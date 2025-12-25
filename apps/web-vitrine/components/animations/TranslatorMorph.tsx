@@ -1,5 +1,4 @@
 "use client";
-
 import React, { useEffect, useRef } from 'react';
 import { gsap } from 'gsap';
 import { MorphSVGPlugin } from 'gsap/MorphSVGPlugin';
@@ -8,12 +7,12 @@ if (typeof window !== "undefined") {
   gsap.registerPlugin(MorphSVGPlugin);
 }
 
-const LogoMorph: React.FC = () => {
+const TranslatorMorph: React.FC = () => {
   const svgRef = useRef<SVGSVGElement>(null);
   const pathRef = useRef<SVGPathElement>(null);
 
-  const initialPath = "M25,20 L35,20 L35,80 L25,80 Z M40,50 L70,20 L82,20 L55,50 L85,80 L72,80 L40,50 Z";
-  const finalPath = "M20,20 L80,20 L80,80 L20,80 Z M20,40 L80,40 M20,60 L80,60 M40,20 L40,80 M60,20 L60,80";
+  const initialPath = "M20,30 L80,30 L80,70 L50,70 L30,90 L30,70 L20,70 Z";
+  const finalPath = "M25,25 L50,25 L50,75 L25,75 Z M50,25 L75,25 L75,75 L50,75 Z";
 
   useEffect(() => {
     const svgElement = svgRef.current;
@@ -63,4 +62,4 @@ const LogoMorph: React.FC = () => {
   );
 };
 
-export default LogoMorph;
+export default TranslatorMorph;
