@@ -3,13 +3,12 @@ import React, { useRef } from 'react';
 import { gsap } from 'gsap';
 import { useGSAP } from '@gsap/react';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { MorphSVGPlugin } from 'gsap/MorphSVGPlugin';
 import Image from 'next/image';
 import LogoMorph from './animations/LogoMorph';
 import DorlisMorph from './animations/DorlisMorph';
 import TranslatorMorph from './animations/TranslatorMorph';
 import DominoMorph from './animations/DominoMorph';
-
-gsap.registerPlugin(ScrollTrigger);
 
 const heroData = {
   id: 'hero',
@@ -59,6 +58,7 @@ const LandingPage = () => {
 
   useGSAP(
     () => {
+      gsap.registerPlugin(ScrollTrigger, MorphSVGPlugin);
       // Hero Parallax
       gsap.to(heroSectionRef.current, {
         backgroundPosition: '50% 100%',

@@ -1,12 +1,6 @@
 "use client";
 
 import React, { forwardRef } from 'react';
-import { gsap } from 'gsap';
-import { MorphSVGPlugin } from 'gsap/MorphSVGPlugin';
-
-if (typeof window !== 'undefined') {
-  gsap.registerPlugin(MorphSVGPlugin);
-}
 
 interface TranslatorMorphProps {
   startClass: string;
