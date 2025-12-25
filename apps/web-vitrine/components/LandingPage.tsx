@@ -10,59 +10,70 @@ import DominoMorph from './animations/DominoMorph';
 
 gsap.registerPlugin(ScrollTrigger);
 
-const sectionsData = [
+const heroData = {
+  id: 'hero',
+  title: 'Kwazé Kréyol : La plateforme interactive de la langue et de la culture martiniquaise.',
+  logo: '/images/logo-kk.webp',
+};
+
+const pillarsData = [
   {
     id: 'section1',
     title: 'Jé Mo Kréyol',
     text: 'Défiez vos amis et enrichissez votre vocabulaire avec nos jeux de mots 100% créole.',
     morphComponent: LogoMorph,
+    bgColor: '#FFD700', // Jaune bouton d'or
   },
   {
     id: 'section2',
     title: 'Jeux de Famille',
     text: "Plongez dans l'univers mystique du Dorlis (RPG inspiré du Loup-Garou) ou redécouvrez les Dominos aux règles de la Martinique.",
     morphComponent: DorlisMorph,
+    bgColor: '#FF0000', // Rouge vif
   },
   {
     id: 'section3',
     title: 'Traducteur Intelligent',
     text: 'Passez du français au créole martiniquais grâce à notre dictionnaire enrichi par Raphaël Confiant.',
     morphComponent: TranslatorMorph,
+    bgColor: '#D2691E', // Orange terreux
   },
   {
     id: 'section4',
     title: 'Dominos Mentor',
     text: 'Notez vos scores, analysez vos statistiques et rejoignez le classement virtuel des meilleurs joueurs.',
     morphComponent: DominoMorph,
+    bgColor: '#006400', // Vert forêt
   },
 ];
 
 const LandingPage = () => {
   const container = useRef(null);
+  const heroSectionRef = useRef(null);
   const sectionsRefs = useRef([]);
   const buttonsRefs = useRef([]);
   const morphRefs = useRef([]);
 
   useGSAP(
     () => {
+      // Hero Parallax
+      gsap.to(heroSectionRef.current, {
+        backgroundPosition: '50% 100%',
+        ease: 'none',
+        scrollTrigger: {
+          trigger: heroSectionRef.current,
+          start: 'top top',
+          end: 'bottom top',
+          scrub: true,
+        },
+      });
+
       const cleanups = [];
 
-      sectionsData.forEach((data, index) => {
+      pillarsData.forEach((data, index) => {
         const section = sectionsRefs.current[index];
         const button = buttonsRefs.current[index];
         const morphTarget = morphRefs.current[index];
-
-        // Parallax
-        gsap.to(section, {
-          backgroundPosition: '50% 100%',
-          ease: 'none',
-          scrollTrigger: {
-            trigger: section,
-            start: 'top top',
-            end: 'bottom top',
-            scrub: true,
-          },
-        });
 
         // Button hover animation
         const buttonTween = gsap.to(button, {
@@ -108,14 +119,27 @@ const LandingPage = () => {
 
   return (
     <div ref={container}>
-      {sectionsData.map((data, index) => {
+      {/* Hero Section */}
+      <section
+        ref={heroSectionRef}
+        className="h-screen w-full bg-cover bg-center flex flex-col items-center justify-center"
+        style={{ backgroundImage: "url('/images/bkg.webp')" }}
+      >
+        <img src={heroData.logo} alt="Kwazé Kréyol Logo" className="w-1/3 mb-8" />
+        <h1 className="text-4xl text-white font-bold text-center max-w-3xl">
+          {heroData.title}
+        </h1>
+      </section>
+
+      {/* Pillars Sections */}
+      {pillarsData.map((data, index) => {
         const MorphComponent = data.morphComponent;
         return (
           <section
             key={data.id}
             ref={(el) => (sectionsRefs.current[index] = el)}
-            className="h-screen w-full bg-cover bg-center flex items-center justify-center"
-            style={{ backgroundImage: "url('/images/bkg.webp')" }}
+            className="h-screen w-full flex items-center justify-center"
+            style={{ backgroundColor: data.bgColor }}
           >
             <div className="flex items-center justify-center w-full max-w-4xl">
               <div className="w-1/2">
