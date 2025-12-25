@@ -12,8 +12,23 @@ import DominoMorph from './animations/DominoMorph';
 
 const heroData = {
   id: 'hero',
-  title: 'Kwazé Kréyol : La plateforme interactive de la langue et de la culture martiniquaise.',
   logo: '/images/logo-kk.webp',
+  title: 'Kwazé Kréyol',
+  subtitle: 'La plateforme interactive de la langue et de la culture martiniquaise.',
+  presentation: (
+    <>
+      Valoriser la{' '}
+      <strong className="font-bold text-madras-yellow">
+        langue créole martiniquaise
+      </strong>{' '}
+      à travers le numérique. Que ce soit pour apprendre, jouer ou échanger,
+      notre mission est de mettre le créole au cœur du digital, avec{' '}
+      <strong className="font-bold text-madras-red">
+        respect, fierté et modernité
+      </strong>
+      .
+    </>
+  ),
 };
 
 const pillarsData = [
@@ -50,15 +65,24 @@ const pillarsData = [
 const LandingPage = () => {
   const container = useRef(null);
   const heroSectionRef = useRef(null);
-  const transitionSectionRef = useRef(null);
-  const transitionTextRef = useRef(null);
-  const sectionsRefs = useRef([]);
-  const buttonsRefs = useRef([]);
-  const morphRefs = useRef([]);
+  const heroLogoRef = useRef(null);
+  const heroTextRef = useRef<HTMLDivElement>(null);
+  const sectionsRefs = useRef<(HTMLElement | null)[]>([]);
+  const buttonsRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const morphRefs = useRef<(SVGElement | null)[]>([]);
 
   useGSAP(
     () => {
       gsap.registerPlugin(ScrollTrigger, MorphSVGPlugin);
+
+      // Animation d'entrée pour le logo
+      gsap.from(heroLogoRef.current, {
+        x: -100,
+        opacity: 0,
+        duration: 1.5,
+        ease: 'power3.out',
+      });
+
       // Hero Parallax
       gsap.to(heroSectionRef.current, {
         backgroundPosition: '50% 100%',
@@ -71,59 +95,48 @@ const LandingPage = () => {
         },
       });
 
-      // Transition Section Fade-in
-      gsap.from(transitionTextRef.current, {
-        opacity: 0,
-        y: 50,
-        duration: 1,
-        ease: 'power3.out',
-        scrollTrigger: {
-          trigger: transitionSectionRef.current,
-          start: 'top 80%',
-          toggleActions: 'play none none none',
-        },
-      });
-
-      const cleanups = [];
+      const cleanups: (() => void)[] = [];
 
       pillarsData.forEach((data, index) => {
         const section = sectionsRefs.current[index];
         const button = buttonsRefs.current[index];
         const morphTarget = morphRefs.current[index];
 
-        // Button hover animation
-        const buttonTween = gsap.to(button, {
-          scale: 1.1,
-          paused: true,
-          duration: 0.3,
-          ease: 'elastic.out(1, 0.3)',
-        });
+        if (button && section) {
+          // Button hover animation
+          const buttonTween = gsap.to(button, {
+            scale: 1.1,
+            paused: true,
+            duration: 0.3,
+            ease: 'elastic.out(1, 0.3)',
+          });
 
-        const playTween = () => buttonTween.play();
-        const reverseTween = () => buttonTween.reverse();
+          const playTween = () => buttonTween.play();
+          const reverseTween = () => buttonTween.reverse();
 
-        button.addEventListener('mouseenter', playTween);
-        button.addEventListener('mouseleave', reverseTween);
+          button.addEventListener('mouseenter', playTween);
+          button.addEventListener('mouseleave', reverseTween);
 
-        // Morphing animation
-        if (morphTarget) {
-          gsap.to(morphTarget, {
-            morphSVG: `.morph-${data.id}-end`,
-            duration: 1,
-            ease: 'power1.inOut',
-            scrollTrigger: {
-              trigger: section,
-              start: 'top top',
-              end: 'bottom top',
-              scrub: true,
-            },
+          // Morphing animation
+          if (morphTarget) {
+            gsap.to(morphTarget, {
+              morphSVG: `.morph-${data.id}-end`,
+              duration: 1,
+              ease: 'power1.inOut',
+              scrollTrigger: {
+                trigger: section,
+                start: 'top top',
+                end: 'bottom top',
+                scrub: true,
+              },
+            });
+          }
+
+          cleanups.push(() => {
+            button.removeEventListener('mouseenter', playTween);
+            button.removeEventListener('mouseleave', reverseTween);
           });
         }
-
-        cleanups.push(() => {
-          button.removeEventListener('mouseenter', playTween);
-          button.removeEventListener('mouseleave', reverseTween);
-        });
       });
 
       return () => {
@@ -138,38 +151,31 @@ const LandingPage = () => {
       {/* Hero Section */}
       <section
         ref={heroSectionRef}
-        className="h-screen w-full bg-cover bg-center flex flex-col items-center justify-center"
+        className="h-screen w-full bg-cover bg-center flex items-center justify-center"
         style={{ backgroundImage: "url('/images/bkg.webp')" }}
       >
-        <Image
-          src={heroData.logo}
-          alt="Kwazé Kréyol Logo"
-          width={512}
-          height={512}
-          className="w-1/3 h-auto mb-8"
-        />
-        <h1 className="text-4xl text-white font-bold text-center max-w-3xl">
-          {heroData.title}
-        </h1>
-      </section>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center max-w-6xl mx-auto p-8">
+          {/* Colonne de gauche : Logo */}
+          <div ref={heroLogoRef} className="flex justify-center">
+            <Image
+              src={heroData.logo}
+              alt="Kwazé Kréyol Logo"
+              width={512}
+              height={512}
+              className="w-2/3 md:w-full h-auto"
+            />
+          </div>
 
-      {/* Transition Section */}
-      <section
-        ref={transitionSectionRef}
-        className="h-screen w-full flex items-center justify-center bg-madras-yellow/20"
-      >
-        <p ref={transitionTextRef} className="text-2xl text-center max-w-3xl">
-          Kwazé Kréyol :{' '}
-          <strong className="font-bold text-madras-red">
-            Valoriser la langue créole martiniquaise
-          </strong>{' '}
-          à travers le numérique. Que ce soit pour apprendre, jouer ou échanger,
-          notre mission est de mettre le créole au cœur du digital, avec{' '}
-          <strong className="font-bold text-madras-red">
-            respect, fierté et modernité
-          </strong>
-          .
-        </p>
+          {/* Colonne de droite : Texte de présentation */}
+          <div
+            ref={heroTextRef}
+            className="text-white text-center md:text-left p-8 bg-black/30 backdrop-blur-sm rounded-lg"
+          >
+            <h1 className="text-5xl font-bold mb-4">{heroData.title}</h1>
+            <h2 className="text-2xl mb-6">{heroData.subtitle}</h2>
+            <p className="text-lg leading-relaxed">{heroData.presentation}</p>
+          </div>
+        </div>
       </section>
 
       {/* Pillars Sections */}
@@ -178,14 +184,18 @@ const LandingPage = () => {
         return (
           <section
             key={data.id}
-            ref={(el) => (sectionsRefs.current[index] = el)}
+            ref={(el) => {
+              sectionsRefs.current[index] = el;
+            }}
             className="h-screen w-full flex items-center justify-center"
             style={{ backgroundColor: data.bgColor }}
           >
             <div className="flex items-center justify-center w-full max-w-4xl">
               <div className="w-1/2">
                 <MorphComponent
-                  ref={(el) => (morphRefs.current[index] = el)}
+                  ref={(el) => {
+                    morphRefs.current[index] = el;
+                  }}
                   startClass={`morph-${data.id}`}
                   endClass={`morph-${data.id}-end`}
                 />
@@ -196,7 +206,9 @@ const LandingPage = () => {
                 </h2>
                 <p className="text-white">{data.text}</p>
                 <button
-                  ref={(el) => (buttonsRefs.current[index] = el)}
+                  ref={(el) => {
+                    buttonsRefs.current[index] = el;
+                  }}
                   className="mt-4 px-6 py-2 bg-madras-yellow text-black font-bold rounded-lg"
                 >
                   En savoir plus
