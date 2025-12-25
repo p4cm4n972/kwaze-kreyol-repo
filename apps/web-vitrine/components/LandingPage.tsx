@@ -27,21 +27,21 @@ const pillarsData = [
   },
   {
     id: 'section2',
-    title: 'Jeux de Famille',
+    title: 'Jé ba piti ek gran',
     text: "Plongez dans l'univers mystique du Dorlis (RPG inspiré du Loup-Garou) ou redécouvrez les Dominos aux règles de la Martinique.",
     morphComponent: DorlisMorph,
     bgColor: '#FF0000', // Rouge vif
   },
   {
     id: 'section3',
-    title: 'Traducteur Intelligent',
+    title: 'Tradiktè',
     text: 'Passez du français au créole martiniquais grâce à notre dictionnaire enrichi par Raphaël Confiant.',
     morphComponent: TranslatorMorph,
     bgColor: '#D2691E', // Orange terreux
   },
   {
     id: 'section4',
-    title: 'Dominos Mentor',
+    title: 'Zouti',
     text: 'Notez vos scores, analysez vos statistiques et rejoignez le classement virtuel des meilleurs joueurs.',
     morphComponent: DominoMorph,
     bgColor: '#006400', // Vert forêt
