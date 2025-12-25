@@ -41,6 +41,7 @@ const LandingPage = () => {
   const container = useRef(null);
   const sectionsRefs = useRef([]);
   const buttonsRefs = useRef([]);
+  const morphRefs = useRef([]);
 
   useGSAP(
     () => {
@@ -49,6 +50,7 @@ const LandingPage = () => {
       sectionsData.forEach((data, index) => {
         const section = sectionsRefs.current[index];
         const button = buttonsRefs.current[index];
+        const morphTarget = morphRefs.current[index];
 
         // Parallax
         gsap.to(section, {
@@ -77,17 +79,19 @@ const LandingPage = () => {
         button.addEventListener('mouseleave', reverseTween);
 
         // Morphing animation
-        gsap.to(`.morph-${data.id} path`, {
-          morphSVG: `.morph-${data.id}-end path`,
-          duration: 1,
-          ease: 'power1.inOut',
-          scrollTrigger: {
-            trigger: section,
-            start: 'top top',
-            end: 'bottom top',
-            scrub: true,
-          },
-        });
+        if (morphTarget) {
+          gsap.to(morphTarget, {
+            morphSVG: `.morph-${data.id}-end`,
+            duration: 1,
+            ease: 'power1.inOut',
+            scrollTrigger: {
+              trigger: section,
+              start: 'top top',
+              end: 'bottom top',
+              scrub: true,
+            },
+          });
+        }
 
         cleanups.push(() => {
           button.removeEventListener('mouseenter', playTween);
@@ -116,6 +120,7 @@ const LandingPage = () => {
             <div className="flex items-center justify-center w-full max-w-4xl">
               <div className="w-1/2">
                 <MorphComponent
+                  ref={(el) => (morphRefs.current[index] = el)}
                   startClass={`morph-${data.id}`}
                   endClass={`morph-${data.id}-end`}
                 />
