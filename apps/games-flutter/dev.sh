@@ -16,8 +16,9 @@ export PATH="$PATH:`pwd`/flutter/bin"
 echo "📦 Getting dependencies..."
 flutter pub get
 
-# Launch dev server on Chrome
-echo "🌐 Launching Flutter web app on Chrome..."
+# Launch dev server on web-server (local HTTP server)
+echo "🌐 Launching Flutter web app on local server..."
 echo "🔥 Hot reload enabled - press 'r' to reload, 'R' for full restart, 'q' to quit"
-flutter run -d chrome
+echo "📱 Open http://localhost:8080 in your browser"
+flutter run -d web-server --web-port 8080
 

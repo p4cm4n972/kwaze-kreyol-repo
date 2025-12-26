@@ -59,7 +59,7 @@ class _MotsMawonScreenState extends State<MotsMawonScreen> {
 
     setState(() {
       _gameData = grid;
-      _selectedCells = {};
+      _selectedCells = [];
       _foundWords = {};
       _score = 0;
       _timeElapsed = 0;
