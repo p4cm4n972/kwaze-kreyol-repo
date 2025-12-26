@@ -12,10 +12,14 @@ class DictionaryService {
       );
 
       final List<dynamic> jsonData = json.decode(contents);
-      return jsonData
+      final entries = jsonData
           .map((entry) =>
               DictionaryEntry.fromJson(entry as Map<String, dynamic>))
+          .where((entry) => entry.mot.isNotEmpty) // Filtrer les entrées vides
           .toList();
+
+      print('Loaded ${entries.length} dictionary entries for letter $letter');
+      return entries;
     } catch (e) {
       print('Error loading dictionary: $e');
       return [];

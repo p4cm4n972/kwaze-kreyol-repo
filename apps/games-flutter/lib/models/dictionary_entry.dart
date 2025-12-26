@@ -9,10 +9,11 @@ class DictionaryEntry {
 
   factory DictionaryEntry.fromJson(Map<String, dynamic> json) {
     return DictionaryEntry(
-      mot: json['mot'] as String,
-      definitions: (json['definitions'] as List)
-          .map((d) => Definition.fromJson(d as Map<String, dynamic>))
-          .toList(),
+      mot: json['mot'] as String? ?? '',
+      definitions: (json['definitions'] as List<dynamic>?)
+              ?.map((d) => Definition.fromJson(d as Map<String, dynamic>))
+              .toList() ??
+          [],
     );
   }
 }
@@ -30,9 +31,9 @@ class Definition {
 
   factory Definition.fromJson(Map<String, dynamic> json) {
     return Definition(
-      sensNum: json['sens_num'] as int,
-      nature: json['nature'] as String,
-      traduction: json['traduction'] as String,
+      sensNum: json['sens_num'] as int? ?? 0,
+      nature: json['nature'] as String? ?? '',
+      traduction: json['traduction'] as String? ?? '',
     );
   }
 }
