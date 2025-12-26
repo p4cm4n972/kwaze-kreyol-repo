@@ -12,10 +12,10 @@ export default function Play() {
       name: 'Mots Mawon',
       icon: '/icons/mots-mawon.png',
       description: 'Jeu de mots cachés en créole martiniquais. Retrouve les mots dissimulés dans la grille !',
-      playOnlineUrl: null, // Bientôt disponible en Flutter
+      playOnlineUrl: 'https://kwaze-kreyol.netlify.app/mots-mawon',
       playStoreUrl: '#', // À compléter
       appStoreUrl: '#', // À compléter
-      available: false,
+      available: false, // Apps mobiles pas encore disponibles
     },
     {
       id: 'skrabb',
