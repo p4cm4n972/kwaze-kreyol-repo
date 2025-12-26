@@ -1,0 +1,29 @@
+# Flutter
+.dart_tool/
+.packages
+pubspec.lock
+analysis_options.yaml
+
+# Platforms
+android/
+ios/
+linux/
+macos/
+windows/
+
+# Source code (on garde seulement le build)
+lib/
+test/
+assets/
+
+# Git
+.git/
+.gitignore
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Other
+README.md

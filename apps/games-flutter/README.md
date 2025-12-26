@@ -19,15 +19,147 @@ lib/
 └── main.dart          # Point d'entrée
 ```
 
-## 🚀 Build
+## 🚀 Déploiement sur Vercel
 
-### Web (pour intégration dans le site Next.js)
+### Méthode 1 : Script automatique (Recommandé)
 
 ```bash
-flutter build web --release
+# Build et déployer en une commande
+./deploy.sh
 ```
 
-Le build sera dans `build/web/`
+### Méthode 2 : Étape par étape
+
+#### 1. Installer Vercel CLI
+
+```bash
+npm install -g vercel
+```
+
+#### 2. Build Flutter
+
+```bash
+flutter build web --release --web-renderer canvaskit
+```
+
+#### 3. Se connecter à Vercel
+
+```bash
+vercel login
+```
+
+#### 4. Déployer
+
+**Première fois (configuration) :**
+```bash
+vercel
+```
+
+Répondre aux questions :
+- Set up and deploy? **Yes**
+- Which scope? **Votre compte**
+- Link to existing project? **No**
+- Project name? **kwaze-kreyol-games**
+- Directory? **./build/web** (IMPORTANT!)
+- Override settings? **No**
+
+**Déploiements suivants :**
+```bash
+# Preview
+vercel
+
+# Production
+vercel --prod
+```
+
+### Méthode 3 : Via GitHub (CI/CD)
+
+Créer `.github/workflows/deploy.yml` :
+
+```yaml
+name: Deploy to Vercel
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.5'
+
+      - name: Build Flutter Web
+        run: |
+          cd apps/games-flutter
+          flutter pub get
+          flutter build web --release --web-renderer canvaskit
+
+      - name: Deploy to Vercel
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          working-directory: apps/games-flutter/build/web
+          vercel-args: '--prod'
+```
+
+## 🌐 Configuration du domaine
+
+### Sous-domaine personnalisé
+
+1. Aller sur [Vercel Dashboard](https://vercel.com/dashboard)
+2. Sélectionner votre projet
+3. Settings → Domains
+4. Ajouter : `games.kwaze-kreyol.com`
+5. Configurer DNS :
+   - Type: `CNAME`
+   - Name: `games`
+   - Value: `cname.vercel-dns.com`
+
+### Intégration avec Next.js
+
+**Option A : Redirection**
+```tsx
+// apps/web-vitrine/app/play/page.tsx
+const games = [
+  {
+    id: 'mots-mawon',
+    playOnlineUrl: 'https://games.kwaze-kreyol.com/mots-mawon',
+    // ...
+  }
+];
+```
+
+**Option B : Iframe**
+```tsx
+<iframe
+  src="https://games.kwaze-kreyol.com"
+  width="100%"
+  height="800px"
+  frameBorder="0"
+  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+/>
+```
+
+## 📦 Build
+
+### Web
+
+```bash
+flutter build web --release --web-renderer canvaskit
+```
+
+Options de renderer :
+- `canvaskit` : Meilleure performance, fichiers plus lourds
+- `html` : Fichiers légers, performance moyenne
+- `auto` : Détection automatique
 
 ### Android
 
@@ -41,34 +173,11 @@ flutter build apk --release
 flutter build ios --release
 ```
 
-## 🔗 Intégration avec Next.js
-
-### Option 1: Déploiement séparé (Recommandé)
-
-1. Build le projet Flutter web
-2. Déployer sur un sous-domaine (ex: games.kwaze-kreyol.com)
-3. Le site Next.js redirige vers ce sous-domaine
-
-### Option 2: Iframe
-
-```tsx
-<iframe
-  src="https://games.kwaze-kreyol.com/mots-mawon"
-  width="100%"
-  height="800px"
-  frameBorder="0"
-/>
-```
-
-### Option 3: Build dans public/
-
-1. Build Flutter web
-2. Copier `build/web/*` vers `../web-vitrine/public/games/`
-3. Accès via `https://kwaze-kreyol.com/games/index.html`
-
 ## 📊 Données partagées
 
 Le dictionnaire est centralisé dans `/data/dictionnaires/` au niveau du monorepo.
+
+Pour la version web, il faudra héberger les fichiers JSON ou les charger via une API.
 
 ## 🛠️ Développement
 
@@ -84,6 +193,68 @@ flutter pub get
 # Web
 flutter run -d chrome
 
-# Android/iOS
+# Android
 flutter run
+
+# iOS (macOS uniquement)
+flutter run -d iphone
 ```
+
+### Tests
+
+```bash
+flutter test
+```
+
+## 🐛 Troubleshooting
+
+### Erreur CORS lors du chargement du dictionnaire
+
+Modifier `web/index.html` pour ajouter les headers CORS :
+
+```html
+<meta http-equiv="Cross-Origin-Embedder-Policy" content="require-corp">
+<meta http-equiv="Cross-Origin-Opener-Policy" content="same-origin">
+```
+
+### Build web ne fonctionne pas
+
+```bash
+flutter clean
+flutter pub get
+flutter build web --release
+```
+
+### Performance lente sur web
+
+Utiliser CanvasKit renderer :
+```bash
+flutter build web --release --web-renderer canvaskit
+```
+
+## 📱 Apps mobiles
+
+### Google Play Store
+
+1. Build APK : `flutter build apk --release`
+2. Créer un compte développeur Google Play
+3. Upload l'APK sur Play Console
+
+### Apple App Store
+
+1. Build iOS : `flutter build ios --release`
+2. Ouvrir Xcode : `open ios/Runner.xcworkspace`
+3. Archive et upload via Xcode
+4. Soumettre sur App Store Connect
+
+## 🔧 Variables d'environnement (optionnel)
+
+Pour la prod, créer `.env` :
+
+```env
+DICTIONARY_API_URL=https://api.kwaze-kreyol.com/dictionaries
+```
+
+## 📄 License
+
+ITMade Studio © 2025
