@@ -114,13 +114,16 @@ export default function Play() {
                 <>
                   {/* Game Icon */}
                   <div className="flex justify-center mb-6">
-                    <Image
-                      src={game.icon}
-                      alt={game.name}
-                      width={120}
-                      height={120}
-                      className="w-24 h-24 md:w-32 md:h-32 object-contain drop-shadow-2xl"
-                    />
+                    <div className="relative">
+                      <div className="absolute inset-0 bg-madras-yellow/20 blur-2xl rounded-full"></div>
+                      <Image
+                        src={game.icon}
+                        alt={game.name}
+                        width={200}
+                        height={200}
+                        className="relative w-40 h-40 md:w-48 md:h-48 object-contain drop-shadow-2xl"
+                      />
+                    </div>
                   </div>
 
                   {/* Game Name */}
