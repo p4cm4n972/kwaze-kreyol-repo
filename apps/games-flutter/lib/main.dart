@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'screens/games_home_screen.dart';
 import 'games/mots_mawon/mots_mawon_screen.dart';
 
 void main() {
@@ -28,8 +29,12 @@ class KwazeKreyolGamesApp extends StatelessWidget {
 }
 
 final _router = GoRouter(
-  initialLocation: '/mots-mawon',
+  initialLocation: '/',
   routes: [
+    GoRoute(
+      path: '/',
+      builder: (context, state) => const GamesHomeScreen(),
+    ),
     GoRoute(
       path: '/mots-mawon',
       builder: (context, state) => const MotsMawonScreen(),
