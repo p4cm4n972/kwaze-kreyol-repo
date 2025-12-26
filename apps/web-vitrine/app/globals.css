@@ -24,3 +24,14 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Responsive backgrounds */
+.bg-responsive {
+  background-image: url('/images/bkg-mobile.webp');
+}
+
+@media (min-width: 768px) {
+  .bg-responsive {
+    background-image: url('/images/bkg.webp');
+  }
+}
