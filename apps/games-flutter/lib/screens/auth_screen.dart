@@ -56,24 +56,17 @@ class _AuthScreenState extends State<AuthScreen> {
       }
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(_isLogin ? 'Connexion réussie !' : 'Inscription réussie !'),
-            backgroundColor: Colors.green,
-          ),
-        );
+        // Appeler le callback avant de pop
         widget.onSuccess?.call();
+        // Fermer l'écran
         Navigator.pop(context, true);
       }
     } catch (e) {
       if (mounted) {
+        setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Erreur: $e')),
         );
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
       }
     }
   }
@@ -92,24 +85,17 @@ class _AuthScreenState extends State<AuthScreen> {
       await _authService.signInAsGuest(_guestNameController.text.trim());
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Mode invité activé !'),
-            backgroundColor: Colors.green,
-          ),
-        );
+        // Appeler le callback avant de pop
         widget.onSuccess?.call();
+        // Fermer l'écran
         Navigator.pop(context, true);
       }
     } catch (e) {
       if (mounted) {
+        setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Erreur: $e')),
         );
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
       }
     }
   }
