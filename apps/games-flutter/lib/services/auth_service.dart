@@ -22,19 +22,18 @@ class AuthService {
       );
 
       if (response.user != null) {
-        // Créer l'utilisateur dans la table users
-        await _supabase.from('users').insert({
-          'id': response.user!.id,
-          'email': email,
-          'username': username,
-        });
+        // Le profil utilisateur est créé automatiquement par le trigger PostgreSQL
+        // Attendre un peu que le trigger s'exécute
+        await Future.delayed(const Duration(milliseconds: 500));
 
-        return AppUser.fromJson({
-          'id': response.user!.id,
-          'email': email,
-          'username': username,
-          'created_at': DateTime.now().toIso8601String(),
-        });
+        // Récupérer le profil créé par le trigger
+        final userData = await _supabase
+            .from('users')
+            .select()
+            .eq('id', response.user!.id)
+            .single();
+
+        return AppUser.fromJson(userData);
       }
       return null;
     } catch (e) {
