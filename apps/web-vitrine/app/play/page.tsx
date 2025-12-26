@@ -5,6 +5,12 @@ import Footer from '@/components/Footer';
 import Image from 'next/image';
 import Link from 'next/link';
 
+const GamepadIcon = () => (
+  <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M6,9H8V11H10V13H8V15H6V13H4V11H6V9M18.5,9A1.5,1.5 0 0,1 20,10.5A1.5,1.5 0 0,1 18.5,12A1.5,1.5 0 0,1 17,10.5A1.5,1.5 0 0,1 18.5,9M15.5,12A1.5,1.5 0 0,1 17,13.5A1.5,1.5 0 0,1 15.5,15A1.5,1.5 0 0,1 14,13.5A1.5,1.5 0 0,1 15.5,12M17,5A7,7 0 0,1 24,12A7,7 0 0,1 17,19C15.04,19 13.27,18.09 12,16.68C10.73,18.09 8.96,19 7,19A7,7 0 0,1 0,12A7,7 0 0,1 7,5H17Z"/>
+  </svg>
+);
+
 export default function Play() {
   const games = [
     {
@@ -136,50 +142,19 @@ export default function Play() {
                     {game.description}
                   </p>
 
-                  {/* Action Buttons */}
-                  <div className="space-y-4 mt-auto">
-                    {/* Play Online Button - Visual indicator only when card is clickable */}
+                  {/* Action Button */}
+                  <div className="mt-auto">
                     {game.playOnlineUrl ? (
-                      <div className="w-full bg-gradient-to-r from-madras-yellow to-madras-orange text-black px-6 py-4 rounded-xl text-base md:text-lg font-bold text-center shadow-lg">
-                        🎮 Jouer en ligne
+                      <div className="w-full bg-gradient-to-r from-madras-yellow to-madras-orange text-black px-6 py-4 rounded-xl text-base md:text-lg font-bold text-center shadow-lg flex items-center justify-center gap-2">
+                        <GamepadIcon />
+                        <span>Jouer en ligne</span>
                       </div>
                     ) : (
-                      <div className="w-full bg-gray-700/50 text-gray-400 px-6 py-4 rounded-xl text-base md:text-lg font-bold text-center cursor-not-allowed border border-gray-600/50">
-                        🎮 Bientôt disponible
+                      <div className="w-full bg-gray-700/50 text-gray-400 px-6 py-4 rounded-xl text-base md:text-lg font-bold text-center cursor-not-allowed border border-gray-600/50 flex items-center justify-center gap-2">
+                        <GamepadIcon />
+                        <span>Bientôt disponible</span>
                       </div>
                     )}
-
-                    {/* Download Buttons */}
-                    <div className="grid grid-cols-2 gap-3">
-                      <a
-                        href={game.playStoreUrl}
-                        className={`flex items-center justify-center px-4 py-3 rounded-xl text-xs md:text-sm font-bold transition-all duration-300 ${
-                          game.available
-                            ? 'bg-gradient-to-r from-green-500 to-green-600 text-white hover:from-green-600 hover:to-green-700 shadow-md'
-                            : 'bg-gray-700/50 text-gray-400 cursor-not-allowed border border-gray-600/50'
-                        }`}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (!game.available) e.preventDefault();
-                        }}
-                      >
-                        <span>📱 Play Store</span>
-                      </a>
-                      <a
-                        href={game.appStoreUrl}
-                        className={`flex items-center justify-center px-4 py-3 rounded-xl text-xs md:text-sm font-bold transition-all duration-300 ${
-                          game.available
-                            ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:from-blue-600 hover:to-blue-700 shadow-md'
-                            : 'bg-gray-700/50 text-gray-400 cursor-not-allowed border border-gray-600/50'
-                        }`}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (!game.available) e.preventDefault();
-                        }}
-                      >
-                        <span>🍎 App Store</span>
-                      </a>
-                    </div>
                   </div>
                 </>
               );
@@ -202,15 +177,46 @@ export default function Play() {
             })}
           </div>
 
-          {/* Info Section */}
-          <div className="mt-12 bg-white/10 backdrop-blur-md rounded-2xl p-6 md:p-8 border border-white/20 shadow-2xl max-w-3xl mx-auto">
-            <h3 className="text-xl md:text-2xl font-bold text-madras-yellow mb-4 text-center">
-              📲 Télécharge nos applications
-            </h3>
-            <p className="text-sm md:text-base text-white text-center">
-              Toutes nos applications sont gratuites et disponibles sur Android et iOS.
-              Joue hors ligne et emporte le créole partout avec toi !
-            </p>
+          {/* Mobile Apps Section */}
+          <div className="mt-16 bg-gradient-to-br from-white/15 to-white/5 backdrop-blur-md rounded-3xl p-8 md:p-12 border border-white/20 shadow-2xl max-w-4xl mx-auto">
+            <div className="text-center mb-8">
+              <h3 className="text-3xl md:text-4xl font-bold text-madras-yellow mb-4">
+                Bientôt sur mobile
+              </h3>
+              <p className="text-base md:text-lg text-white/90 max-w-2xl mx-auto leading-relaxed">
+                Nos jeux seront prochainement disponibles sur iOS et Android.
+                Télécharge les applications gratuites et joue hors ligne !
+              </p>
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6">
+              <a
+                href="#"
+                className="opacity-60 cursor-not-allowed"
+                onClick={(e) => e.preventDefault()}
+              >
+                <Image
+                  src="/icons/app-store-badge.svg"
+                  alt="Télécharger sur l'App Store"
+                  width={160}
+                  height={48}
+                  className="h-14 w-auto"
+                />
+              </a>
+              <a
+                href="#"
+                className="opacity-60 cursor-not-allowed"
+                onClick={(e) => e.preventDefault()}
+              >
+                <Image
+                  src="/icons/google-play-badge.webp"
+                  alt="Disponible sur Google Play"
+                  width={180}
+                  height={53}
+                  className="h-14 w-auto"
+                />
+              </a>
+            </div>
           </div>
         </div>
       </section>
