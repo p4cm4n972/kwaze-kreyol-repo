@@ -53,4 +53,19 @@ app.*.map.json
 build/
 ios/Flutter/Flutter.framework
 ios/Flutter/Flutter.podspec
-pubspec.locknode_modules/
+pubspec.lock
+
+# Flutter SDK (shouldn't be committed)
+flutter/
+
+# Node modules (if using Supabase CLI or other JS tools)
+node_modules/
+
+# Firebase config (will be created locally)
+google-services.json
+GoogleService-Info.plist
+
+# Environment variables
+.env
+.env.local
+.env.*.local
