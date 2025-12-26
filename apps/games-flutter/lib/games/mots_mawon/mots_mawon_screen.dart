@@ -236,26 +236,32 @@ class _MotsMawonScreenState extends State<MotsMawonScreen> {
           _buildStats(),
           const SizedBox(height: 16),
 
-          // Mot en cours de construction
-          if (_selectedCells.isNotEmpty)
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.amber.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.amber, width: 2),
-              ),
-              child: Text(
-                _selectedCells
-                    .map((cell) => _gameData!.grid[cell.row][cell.col])
-                    .join(''),
-                style: const TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 4,
-                ),
-              ),
-            ),
+          // Mot en cours de construction - espace réservé fixe
+          SizedBox(
+            height: 56, // Hauteur fixe pour éviter le redimensionnement
+            child: _selectedCells.isNotEmpty
+                ? Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.amber.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.amber, width: 2),
+                    ),
+                    child: Center(
+                      child: Text(
+                        _selectedCells
+                            .map((cell) => _gameData!.grid[cell.row][cell.col])
+                            .join(''),
+                        style: const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 4,
+                        ),
+                      ),
+                    ),
+                  )
+                : Container(), // Espace vide quand aucune sélection
+          ),
           const SizedBox(height: 16),
 
           Expanded(
@@ -283,24 +289,42 @@ class _MotsMawonScreenState extends State<MotsMawonScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              ElevatedButton.icon(
-                onPressed: _selectedCells.isEmpty ? null : _clearSelection,
-                icon: const Icon(Icons.clear),
-                label: const Text('Annuler'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                  child: ElevatedButton.icon(
+                    onPressed: _selectedCells.isEmpty ? null : _clearSelection,
+                    icon: const Icon(Icons.clear, size: 20),
+                    label: const Text(
+                      'Annuler',
+                      style: TextStyle(fontSize: 16),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      minimumSize: const Size(0, 50), // Hauteur minimum pour mobile
+                    ),
+                  ),
                 ),
               ),
-              ElevatedButton.icon(
-                onPressed: _selectedCells.isEmpty ? null : _validateSelection,
-                icon: const Icon(Icons.check),
-                label: const Text('Valider'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                  child: ElevatedButton.icon(
+                    onPressed: _selectedCells.isEmpty ? null : _validateSelection,
+                    icon: const Icon(Icons.check, size: 20),
+                    label: const Text(
+                      'Valider',
+                      style: TextStyle(fontSize: 16),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      minimumSize: const Size(0, 50), // Hauteur minimum pour mobile
+                    ),
+                  ),
                 ),
               ),
             ],
