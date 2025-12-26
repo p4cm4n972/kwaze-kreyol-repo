@@ -220,16 +220,15 @@ class TranslatorService {
     try {
       var queryBuilder = _supabase
           .from('dictionary_words')
-          .select('id', const FetchOptions(count: CountOption.exact));
+          .select();
 
       if (language != null) {
         queryBuilder = queryBuilder.eq('language', language);
       }
 
-      final response =
-          await queryBuilder.eq('is_official', true).count(CountOption.exact);
+      final response = await queryBuilder.eq('is_official', true);
 
-      return response.count;
+      return (response as List).length;
     } catch (e) {
       throw Exception('Erreur lors du comptage des mots: $e');
     }
