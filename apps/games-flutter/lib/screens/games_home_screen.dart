@@ -10,112 +10,99 @@ class GamesHomeScreen extends StatelessWidget {
       {
         'id': 'mots-mawon',
         'name': 'Mots Mawon',
-        'description': 'Jeu de mots cachés en créole martiniquais',
-        'icon': Icons.grid_on,
-        'color': Colors.amber,
+        'description': 'Jeu de mots cachés en créole martiniquais. Retrouve les mots dissimulés dans la grille !',
+        'iconPath': 'assets/icons/mots-mawon.png',
         'available': true,
       },
       {
         'id': 'skrabb',
         'name': 'Skrabb',
-        'description': 'Scrabble créole ! Forme des mots et marque des points',
-        'icon': Icons.grid_4x4,
-        'color': Colors.green,
+        'description': 'Scrabble créole ! Forme des mots en créole et marque un maximum de points.',
+        'iconPath': 'assets/icons/skrabb.png',
         'available': false,
       },
       {
         'id': 'endorlisseur',
         'name': 'Endorlisseur',
-        'description': 'Jeu de stratégie créole',
-        'icon': Icons.casino,
-        'color': Colors.orange,
+        'description': 'Jeu de stratégie inspiré de la culture créole martiniquaise.',
+        'iconPath': 'assets/icons/endorlisseur.png',
         'available': false,
       },
       {
         'id': 'double-siz',
         'name': 'Double Siz',
-        'description': 'Dominos martiniquais',
-        'icon': Icons.view_module,
-        'color': Colors.blue,
+        'description': 'Jeu de dominos aux règles martiniquaises. Affronte tes adversaires !',
+        'iconPath': 'assets/icons/double-siz.png',
         'available': false,
       },
       {
         'id': 'koze-kwaze',
         'name': 'Kozé Kwazé',
-        'description': 'Quiz sur la culture créole',
-        'icon': Icons.quiz,
-        'color': Colors.purple,
+        'description': 'Jeu de questions-réponses sur la culture créole martiniquaise.',
+        'iconPath': 'assets/icons/koze-kwaze.png',
         'available': false,
       },
       {
         'id': 'met-double',
         'name': 'Mét Double',
-        'description': 'Jeu de cartes traditionnel',
-        'icon': Icons.style,
-        'color': Colors.red,
+        'description': 'Jeu de cartes traditionnel martiniquais. Stratégie et réflexion !',
+        'iconPath': 'assets/icons/met-double.png',
         'available': false,
       },
     ];
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Kwazé Kréyol Games'),
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        centerTitle: true,
-      ),
+      backgroundColor: const Color(0xFF1a1a2e),
       body: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
             colors: [
-              Theme.of(context).colorScheme.primary.withOpacity(0.1),
-              Colors.white,
+              Color(0xFF1a1a2e),
+              Color(0xFF16213e),
+              Color(0xFF0f3460),
             ],
           ),
         ),
         child: SafeArea(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 32),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Header
-                Card(
-                  elevation: 4,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
+                // Title
+                Text(
+                  'Nos jeux',
+                  style: TextStyle(
+                    fontSize: 40,
+                    fontWeight: FontWeight.bold,
+                    color: const Color(0xFFFFD700),
+                    shadows: [
+                      Shadow(
+                        blurRadius: 12,
+                        color: Colors.black.withOpacity(0.8),
+                      ),
+                    ],
                   ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(24.0),
-                    child: Column(
-                      children: [
-                        Icon(
-                          Icons.sports_esports,
-                          size: 64,
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'Jeux 100% Créole',
-                          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Découvre nos jeux en créole martiniquais',
-                          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                color: Colors.grey[600],
-                              ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ],
-                    ),
-                  ),
+                  textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 16),
+                Text(
+                  'Découvre nos jeux 100% créole ! Joue en ligne ou télécharge les applications sur ton téléphone.',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.white.withOpacity(0.9),
+                    shadows: [
+                      Shadow(
+                        blurRadius: 8,
+                        color: Colors.black.withOpacity(0.6),
+                      ),
+                    ],
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 32),
 
                 // Games Grid
                 LayoutBuilder(
@@ -133,7 +120,7 @@ class GamesHomeScreen extends StatelessWidget {
                         crossAxisCount: crossAxisCount,
                         crossAxisSpacing: 16,
                         mainAxisSpacing: 16,
-                        childAspectRatio: 0.85,
+                        childAspectRatio: 0.75,
                       ),
                       itemCount: games.length,
                       itemBuilder: (context, index) {
@@ -141,8 +128,7 @@ class GamesHomeScreen extends StatelessWidget {
                         return _GameCard(
                           name: game['name'] as String,
                           description: game['description'] as String,
-                          icon: game['icon'] as IconData,
-                          color: game['color'] as Color,
+                          iconPath: game['iconPath'] as String,
                           available: game['available'] as bool,
                           onTap: game['available'] as bool
                               ? () => context.go('/${game['id']}')
@@ -153,60 +139,125 @@ class GamesHomeScreen extends StatelessWidget {
                   },
                 ),
 
-                // Footer
-                const SizedBox(height: 32),
-                Card(
-                  color: Colors.grey[100],
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      children: [
-                        Text(
-                          '📱 Télécharge nos apps',
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Joue hors ligne sur Android et iOS',
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: Colors.grey[600],
-                              ),
-                        ),
-                        const SizedBox(height: 16),
-                        Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
-                          alignment: WrapAlignment.center,
-                          children: [
-                            OutlinedButton.icon(
-                              onPressed: () {
-                                // TODO: Link to Play Store
-                              },
-                              icon: const Icon(Icons.android),
-                              label: const Text('Play Store'),
-                            ),
-                            OutlinedButton.icon(
-                              onPressed: () {
-                                // TODO: Link to App Store
-                              },
-                              icon: const Icon(Icons.apple),
-                              label: const Text('App Store'),
+                // Mobile Apps Section
+                const SizedBox(height: 48),
+                Container(
+                  padding: const EdgeInsets.all(32),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        const Color(0xFFFFD700).withOpacity(0.1),
+                        const Color(0xFFFF8C00).withOpacity(0.1),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(24),
+                    border: Border.all(
+                      color: const Color(0xFFFFD700).withOpacity(0.3),
+                      width: 1,
+                    ),
+                  ),
+                  child: Column(
+                    children: [
+                      Text(
+                        'Bientôt sur mobile',
+                        style: TextStyle(
+                          fontSize: 32,
+                          fontWeight: FontWeight.bold,
+                          color: const Color(0xFFFFD700),
+                          shadows: [
+                            Shadow(
+                              blurRadius: 10,
+                              color: Colors.black.withOpacity(0.5),
                             ),
                           ],
                         ),
-                      ],
-                    ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Nos jeux seront prochainement disponibles sur iOS et Android.\nTélécharge les applications gratuites et joue hors ligne !',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.white.withOpacity(0.9),
+                          height: 1.5,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 24),
+                      Wrap(
+                        spacing: 16,
+                        runSpacing: 16,
+                        alignment: WrapAlignment.center,
+                        children: [
+                          Opacity(
+                            opacity: 0.5,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 24,
+                                vertical: 12,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.white24,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: const [
+                                  Icon(Icons.apple, color: Colors.white),
+                                  SizedBox(width: 8),
+                                  Text(
+                                    'App Store',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          Opacity(
+                            opacity: 0.5,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 24,
+                                vertical: 12,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.white24,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: const [
+                                  Icon(Icons.android, color: Colors.white),
+                                  SizedBox(width: 8),
+                                  Text(
+                                    'Google Play',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
 
-                const SizedBox(height: 16),
+                const SizedBox(height: 24),
                 Text(
                   '© 2025 ITMade Studio',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Colors.grey[600],
-                      ),
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.white.withOpacity(0.5),
+                  ),
                   textAlign: TextAlign.center,
                 ),
               ],
@@ -221,120 +272,161 @@ class GamesHomeScreen extends StatelessWidget {
 class _GameCard extends StatelessWidget {
   final String name;
   final String description;
-  final IconData icon;
-  final Color color;
+  final String iconPath;
   final bool available;
   final VoidCallback? onTap;
 
   const _GameCard({
     required this.name,
     required this.description,
-    required this.icon,
-    required this.color,
+    required this.iconPath,
     required this.available,
     this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: available ? 4 : 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Stack(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  // Icon
-                  Container(
-                    height: 80,
-                    decoration: BoxDecoration(
-                      color: color.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(
-                      icon,
-                      size: 48,
-                      color: available ? color : Colors.grey,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Name
-                  Text(
-                    name,
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: available ? null : Colors.grey,
+    return GestureDetector(
+      onTap: available ? onTap : null,
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.05),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: Colors.white.withOpacity(0.1),
+            width: 1,
+          ),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: available ? onTap : null,
+              splashColor: available
+                  ? const Color(0xFFFFD700).withOpacity(0.2)
+                  : Colors.transparent,
+              child: Padding(
+                padding: const EdgeInsets.all(12.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // Game Icon - Dominant (70-80% of space)
+                    Expanded(
+                      flex: 7,
+                      child: Center(
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            // Glow effect
+                            Container(
+                              width: double.infinity,
+                              height: double.infinity,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                gradient: RadialGradient(
+                                  colors: [
+                                    const Color(0xFFFFD700).withOpacity(0.2),
+                                    Colors.transparent,
+                                  ],
+                                ),
+                              ),
+                            ),
+                            // Icon
+                            Image.asset(
+                              iconPath,
+                              width: double.infinity,
+                              fit: BoxFit.contain,
+                              errorBuilder: (context, error, stackTrace) {
+                                return const Icon(
+                                  Icons.sports_esports,
+                                  size: 80,
+                                  color: Colors.white54,
+                                );
+                              },
+                            ),
+                          ],
                         ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 8),
-
-                  // Description
-                  Expanded(
-                    child: Text(
-                      description,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: available ? Colors.grey[700] : Colors.grey,
-                          ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-
-                  // Button
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: onTap,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: available ? color : Colors.grey,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
                       ),
                     ),
-                    child: Text(
-                      available ? '🎮 Jouer' : 'Bientôt disponible',
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                ],
-              ),
-            ),
 
-            // Badge "Nouveau" pour les jeux disponibles
-            if (available)
-              Positioned(
-                top: 8,
-                right: 8,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.green,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Text(
-                    'NOUVEAU',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
+                    // Game Info - Compact
+                    const SizedBox(height: 16),
+                    // Game Name
+                    Text(
+                      name,
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFFFFD700),
+                      ),
+                      textAlign: TextAlign.center,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                  ),
+                    const SizedBox(height: 12),
+
+                    // Button
+                    Container(
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        gradient: available
+                            ? const LinearGradient(
+                                colors: [
+                                  Color(0xFFFFD700),
+                                  Color(0xFFFF8C00),
+                                ],
+                              )
+                            : null,
+                        color: available
+                            ? null
+                            : Colors.grey.withOpacity(0.5),
+                        borderRadius: BorderRadius.circular(8),
+                        border: available
+                            ? null
+                            : Border.all(
+                                color: Colors.grey.withOpacity(0.5),
+                              ),
+                      ),
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: available ? onTap : null,
+                          borderRadius: BorderRadius.circular(8),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.sports_esports,
+                                  size: 20,
+                                  color: available
+                                      ? Colors.black
+                                      : Colors.white54,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  available ? 'Jouer' : 'Bientôt',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: available
+                                        ? Colors.black
+                                        : Colors.white54,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-          ],
+            ),
+          ),
         ),
       ),
     );
