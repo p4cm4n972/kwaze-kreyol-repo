@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'screens/games_home_screen.dart';
 import 'games/mots_mawon/mots_mawon_screen.dart';
+import 'tools/met_double/screens/met_double_home_screen.dart';
+import 'tools/translator/screens/translator_screen.dart';
 
 void main() {
   runApp(const KwazeKreyolGamesApp());
@@ -39,6 +41,13 @@ final _router = GoRouter(
       path: '/mots-mawon',
       builder: (context, state) => const MotsMawonScreen(),
     ),
-    // Autres jeux à ajouter ici
+    GoRoute(
+      path: '/met-double',
+      builder: (context, state) => const MetDoubleHomeScreen(),
+    ),
+    GoRoute(
+      path: '/koze-kwaze',
+      builder: (context, state) => const TranslatorScreen(),
+    ),
   ],
 );

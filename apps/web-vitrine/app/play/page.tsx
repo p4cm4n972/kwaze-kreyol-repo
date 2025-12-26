@@ -114,45 +114,45 @@ export default function Play() {
           {/* Games Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
             {games.map((game) => {
-              const cardClassName = `bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20 shadow-2xl transition-all duration-300 ${game.playOnlineUrl ? 'cursor-pointer hover:scale-105 hover:bg-white/15 hover:border-madras-yellow/50' : 'cursor-default opacity-75'}`;
+              const cardClassName = `bg-white/5 backdrop-blur-sm rounded-2xl p-4 border border-white/10 shadow-xl transition-all duration-300 ${game.playOnlineUrl ? 'cursor-pointer hover:scale-105 hover:bg-white/10 hover:border-madras-yellow/50' : 'cursor-default opacity-75'}`;
 
               const cardContent = (
                 <>
-                  {/* Game Icon */}
-                  <div className="flex justify-center mb-6">
-                    <div className="relative">
-                      <div className="absolute inset-0 bg-madras-yellow/20 blur-2xl rounded-full"></div>
+                  {/* Game Icon - Dominant */}
+                  <div className="flex justify-center mb-4">
+                    <div className="relative w-full flex justify-center">
+                      <div className="absolute inset-0 bg-madras-yellow/20 blur-3xl rounded-full"></div>
                       <Image
                         src={game.icon}
                         alt={game.name}
-                        width={200}
-                        height={200}
-                        className="relative w-40 h-40 md:w-48 md:h-48 object-contain drop-shadow-2xl"
+                        width={300}
+                        height={300}
+                        className="relative w-56 h-56 md:w-64 md:h-64 object-contain drop-shadow-2xl"
                       />
                     </div>
                   </div>
 
-                  {/* Game Name */}
-                  <h2 className="text-2xl md:text-3xl font-bold text-madras-yellow mb-4 text-center">
+                  {/* Game Name - Compact */}
+                  <h2 className="text-xl md:text-2xl font-bold text-madras-yellow mb-2 text-center">
                     {game.name}
                   </h2>
 
-                  {/* Game Description */}
-                  <p className="text-sm md:text-base text-white/90 mb-6 text-center leading-relaxed">
+                  {/* Game Description - Compact */}
+                  <p className="text-xs md:text-sm text-white/80 mb-4 text-center line-clamp-2">
                     {game.description}
                   </p>
 
-                  {/* Action Button */}
+                  {/* Action Button - Compact */}
                   <div className="mt-auto">
                     {game.playOnlineUrl ? (
-                      <div className="w-full bg-gradient-to-r from-madras-yellow to-madras-orange text-black px-6 py-4 rounded-xl text-base md:text-lg font-bold text-center shadow-lg flex items-center justify-center gap-2">
+                      <div className="w-full bg-gradient-to-r from-madras-yellow to-madras-orange text-black px-4 py-3 rounded-lg text-sm md:text-base font-bold text-center shadow-lg flex items-center justify-center gap-2">
                         <GamepadIcon />
-                        <span>Jouer en ligne</span>
+                        <span>Jouer</span>
                       </div>
                     ) : (
-                      <div className="w-full bg-gray-700/50 text-gray-400 px-6 py-4 rounded-xl text-base md:text-lg font-bold text-center cursor-not-allowed border border-gray-600/50 flex items-center justify-center gap-2">
+                      <div className="w-full bg-gray-700/50 text-gray-400 px-4 py-3 rounded-lg text-sm md:text-base font-bold text-center cursor-not-allowed border border-gray-600/50 flex items-center justify-center gap-2">
                         <GamepadIcon />
-                        <span>Bientôt disponible</span>
+                        <span>Bientôt</span>
                       </div>
                     )}
                   </div>

@@ -38,16 +38,16 @@ class GamesHomeScreen extends StatelessWidget {
       {
         'id': 'koze-kwaze',
         'name': 'Kozé Kwazé',
-        'description': 'Jeu de questions-réponses sur la culture créole martiniquaise.',
+        'description': 'Traducteur créole intelligent. Recherche, traduis et contribue !',
         'iconPath': 'assets/icons/koze-kwaze.png',
-        'available': false,
+        'available': true,
       },
       {
         'id': 'met-double',
         'name': 'Mét Double',
-        'description': 'Jeu de cartes traditionnel martiniquais. Stratégie et réflexion !',
+        'description': 'Outil pour suivre tes parties de dominos et statistiques cochons !',
         'iconPath': 'assets/icons/met-double.png',
-        'available': false,
+        'available': true,
       },
     ];
 
