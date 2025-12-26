@@ -4,8 +4,18 @@ import 'screens/games_home_screen.dart';
 import 'games/mots_mawon/mots_mawon_screen.dart';
 import 'tools/met_double/screens/met_double_home_screen.dart';
 import 'tools/translator/screens/translator_screen.dart';
+import 'config/supabase_config.dart';
+import 'services/supabase_service.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialiser Supabase
+  await SupabaseService.initialize(
+    url: SupabaseConfig.supabaseUrl,
+    anonKey: SupabaseConfig.supabaseAnonKey,
+  );
+
   runApp(const KwazeKreyolGamesApp());
 }
 
