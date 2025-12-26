@@ -39,7 +39,7 @@ export default function Support() {
           </h1>
 
           <p className="text-base sm:text-lg md:text-xl text-white mb-8 md:mb-12 text-center drop-shadow-md">
-            Besoin d'aide ? Notre équipe est là pour vous assister dans votre expérience avec Kwazé Kréyol.
+            Besoin d&apos;aide ? Notre équipe est là pour vous assister dans votre expérience avec Kwazé Kréyol.
           </p>
 
           {/* Support Options Grid */}
