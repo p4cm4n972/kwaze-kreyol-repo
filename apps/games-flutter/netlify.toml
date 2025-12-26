@@ -1,0 +1,14 @@
+[build]
+  command = "chmod +x install-flutter.sh && ./install-flutter.sh && flutter build web --release --web-renderer canvaskit"
+  publish = "build/web"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Cross-Origin-Embedder-Policy = "require-corp"
+    Cross-Origin-Opener-Policy = "same-origin"
