@@ -134,6 +134,35 @@ CREATE TABLE dictionary_contributions (
 #### Fonctions PostgreSQL
 
 ```sql
+-- ========================================
+-- TRIGGER POUR CRÉATION AUTOMATIQUE DU PROFIL UTILISATEUR
+-- ========================================
+-- Cette fonction crée automatiquement un profil dans la table users
+-- quand un utilisateur s'inscrit via Supabase Auth
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS trigger AS $$
+BEGIN
+  INSERT INTO public.users (id, email, username, created_at)
+  VALUES (
+    new.id,
+    new.email,
+    new.raw_user_meta_data->>'username',
+    now()
+  );
+  RETURN new;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Trigger qui s'exécute après chaque inscription
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+
+-- ========================================
+-- AUTRES FONCTIONS
+-- ========================================
+
 -- Fonction pour incrémenter les victoires d'un participant
 CREATE OR REPLACE FUNCTION increment_participant_victories(participant_id UUID)
 RETURNS VOID AS $$
