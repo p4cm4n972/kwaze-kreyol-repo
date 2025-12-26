@@ -280,6 +280,52 @@ const LandingPage = () => {
           </section>
         );
       })}
+
+      {/* Mobile Apps Section */}
+      <section className="w-full py-20 md:py-32 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
+        <div className="max-w-4xl mx-auto px-4">
+          <div className="bg-gradient-to-br from-madras-yellow/10 to-madras-orange/10 backdrop-blur-md rounded-3xl p-8 md:p-12 border border-madras-yellow/30 shadow-2xl">
+            <div className="text-center mb-8">
+              <h3 className="text-3xl md:text-4xl font-bold text-madras-yellow mb-4 drop-shadow-lg">
+                Bientôt sur mobile
+              </h3>
+              <p className="text-base md:text-lg text-white max-w-2xl mx-auto leading-relaxed drop-shadow-md">
+                Nos jeux seront prochainement disponibles sur iOS et Android.
+                Télécharge les applications gratuites et joue hors ligne !
+              </p>
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6">
+              <a
+                href="#"
+                className="opacity-60 cursor-not-allowed"
+                onClick={(e) => e.preventDefault()}
+              >
+                <Image
+                  src="/icons/app-store-badge.svg"
+                  alt="Télécharger sur l'App Store"
+                  width={160}
+                  height={48}
+                  className="h-14 w-auto"
+                />
+              </a>
+              <a
+                href="#"
+                className="opacity-60 cursor-not-allowed"
+                onClick={(e) => e.preventDefault()}
+              >
+                <Image
+                  src="/icons/google-play-badge.webp"
+                  alt="Disponible sur Google Play"
+                  width={180}
+                  height={53}
+                  className="h-14 w-auto"
+                />
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
       </div>
       <Footer />
     </>
