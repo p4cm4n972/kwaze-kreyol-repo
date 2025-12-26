@@ -1,26 +1,21 @@
 import 'dart:convert';
-import 'dart:io';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import '../models/dictionary_entry.dart';
 
 class DictionaryService {
-  static const String basePath =
-      '/home/itmade/Documents/ITMADE-AGENCY/kwaze-kreyol/data/dictionnaires';
-
+  /// Charge le dictionnaire depuis les assets Flutter
   Future<List<DictionaryEntry>> loadDictionary(String letter) async {
     try {
-      final file = File('$basePath/dictionnaire_$letter.json');
+      final contents = await rootBundle.loadString(
+        'assets/data/dictionnaire_$letter.json',
+      );
 
-      if (await file.exists()) {
-        final contents = await file.readAsString();
-        final List<dynamic> jsonData = json.decode(contents);
-        return jsonData
-            .map((entry) =>
-                DictionaryEntry.fromJson(entry as Map<String, dynamic>))
-            .toList();
-      }
-
-      return [];
+      final List<dynamic> jsonData = json.decode(contents);
+      return jsonData
+          .map((entry) =>
+              DictionaryEntry.fromJson(entry as Map<String, dynamic>))
+          .toList();
     } catch (e) {
       print('Error loading dictionary: $e');
       return [];
