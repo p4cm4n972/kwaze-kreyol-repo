@@ -1,5 +1,5 @@
 [build]
-  command = "chmod +x install-flutter.sh && ./install-flutter.sh && flutter build web --release --web-renderer canvaskit"
+  command = "chmod +x build.sh && ./build.sh"
   publish = "build/web"
 
 [[redirects]]
