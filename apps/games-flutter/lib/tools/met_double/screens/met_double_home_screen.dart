@@ -3,6 +3,7 @@ import '../../../services/auth_service.dart';
 import '../../../services/supabase_service.dart';
 import '../services/met_double_service.dart';
 import '../models/met_double_game.dart';
+import '../../../screens/auth_screen.dart';
 import 'met_double_lobby_screen.dart';
 
 class MetDoubleHomeScreen extends StatefulWidget {
@@ -64,19 +65,23 @@ class _MetDoubleHomeScreenState extends State<MetDoubleHomeScreen> {
   }
 
   Future<void> _createNewSession() async {
-    if (_isGuest) {
-      // Les invités ne peuvent pas créer de sessions
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-              'Les invités ne peuvent pas créer de sessions. Connectez-vous pour créer une session.'),
+    final userId = _authService.getUserIdOrNull();
+
+    // Si pas connecté, rediriger vers l'écran de connexion
+    if (userId == null) {
+      final result = await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => AuthScreen(onSuccess: _loadData),
         ),
       );
+
+      if (result == true) {
+        // Réessayer après connexion
+        _createNewSession();
+      }
       return;
     }
-
-    final userId = _authService.getUserIdOrNull();
-    if (userId == null) return;
 
     try {
       setState(() {

@@ -1,8 +1,61 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../services/auth_service.dart';
+import 'auth_screen.dart';
 
-class GamesHomeScreen extends StatelessWidget {
+class GamesHomeScreen extends StatefulWidget {
   const GamesHomeScreen({super.key});
+
+  @override
+  State<GamesHomeScreen> createState() => _GamesHomeScreenState();
+}
+
+class _GamesHomeScreenState extends State<GamesHomeScreen> {
+  final AuthService _authService = AuthService();
+  bool _isAuthenticated = false;
+  String? _displayName;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkAuth();
+  }
+
+  Future<void> _checkAuth() async {
+    final isAuth = await _authService.isAuthenticated();
+    final isGuest = await _authService.isGuestMode();
+
+    setState(() {
+      _isAuthenticated = isAuth;
+    });
+
+    if (isGuest) {
+      _displayName = await _authService.getGuestName();
+    } else {
+      final user = await _authService.getCurrentUser();
+      _displayName = user?.username ?? user?.email;
+    }
+
+    setState(() {});
+  }
+
+  Future<void> _showAuthScreen() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => AuthScreen(onSuccess: _checkAuth),
+      ),
+    );
+
+    if (result == true) {
+      _checkAuth();
+    }
+  }
+
+  Future<void> _logout() async {
+    await _authService.signOut();
+    _checkAuth();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -53,6 +106,50 @@ class GamesHomeScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: const Color(0xFF1a1a2e),
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(top: 40),
+        child: Align(
+          alignment: Alignment.topRight,
+          child: _isAuthenticated
+              ? PopupMenuButton(
+                  icon: CircleAvatar(
+                    backgroundColor: const Color(0xFFFFD700),
+                    child: Text(
+                      (_displayName ?? 'U')[0].toUpperCase(),
+                      style: const TextStyle(
+                        color: Colors.black,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  itemBuilder: (context) => [
+                    PopupMenuItem(
+                      enabled: false,
+                      child: Text(
+                        _displayName ?? 'Utilisateur',
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                    const PopupMenuDivider(),
+                    PopupMenuItem(
+                      onTap: _logout,
+                      child: const Row(
+                        children: [
+                          Icon(Icons.logout),
+                          SizedBox(width: 8),
+                          Text('Déconnexion'),
+                        ],
+                      ),
+                    ),
+                  ],
+                )
+              : FloatingActionButton(
+                  onPressed: _showAuthScreen,
+                  backgroundColor: const Color(0xFFFFD700),
+                  child: const Icon(Icons.login, color: Colors.black),
+                ),
+        ),
+      ),
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
