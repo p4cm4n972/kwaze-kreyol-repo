@@ -111,7 +111,7 @@ class _GamesHomeScreenState extends State<GamesHomeScreen> {
         child: Align(
           alignment: Alignment.topRight,
           child: _isAuthenticated
-              ? PopupMenuButton(
+              ? PopupMenuButton<String>(
                   icon: CircleAvatar(
                     backgroundColor: const Color(0xFFFFD700),
                     child: Text(
@@ -122,18 +122,19 @@ class _GamesHomeScreenState extends State<GamesHomeScreen> {
                       ),
                     ),
                   ),
-                  itemBuilder: (context) => [
-                    PopupMenuItem(
+                  itemBuilder: (context) => <PopupMenuEntry<String>>[
+                    PopupMenuItem<String>(
                       enabled: false,
+                      value: 'profile',
                       child: Text(
                         _displayName ?? 'Utilisateur',
                         style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
                     ),
                     const PopupMenuDivider(),
-                    PopupMenuItem(
-                      onTap: _logout,
-                      child: const Row(
+                    const PopupMenuItem<String>(
+                      value: 'logout',
+                      child: Row(
                         children: [
                           Icon(Icons.logout),
                           SizedBox(width: 8),
@@ -142,6 +143,11 @@ class _GamesHomeScreenState extends State<GamesHomeScreen> {
                       ),
                     ),
                   ],
+                  onSelected: (value) {
+                    if (value == 'logout') {
+                      _logout();
+                    }
+                  },
                 )
               : FloatingActionButton(
                   onPressed: _showAuthScreen,
