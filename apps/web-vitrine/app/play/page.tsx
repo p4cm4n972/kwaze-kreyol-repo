@@ -108,54 +108,52 @@ export default function Play() {
           {/* Games Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
             {games.map((game) => {
-              const cardClassName = `bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 shadow-2xl hover:scale-105 transition-transform duration-300 ${game.playOnlineUrl ? 'cursor-pointer' : 'cursor-default'}`;
+              const cardClassName = `bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20 shadow-2xl transition-all duration-300 ${game.playOnlineUrl ? 'cursor-pointer hover:scale-105 hover:bg-white/15 hover:border-madras-yellow/50' : 'cursor-default opacity-75'}`;
 
               const cardContent = (
                 <>
                   {/* Game Icon */}
-                  <div className="flex justify-center mb-4">
-                    <div className="w-24 h-24 md:w-32 md:h-32 rounded-full bg-white/20 flex items-center justify-center">
-                      <Image
-                        src={game.icon}
-                        alt={game.name}
-                        width={80}
-                        height={80}
-                        className="w-16 h-16 md:w-20 md:h-20 object-contain"
-                      />
-                    </div>
+                  <div className="flex justify-center mb-6">
+                    <Image
+                      src={game.icon}
+                      alt={game.name}
+                      width={120}
+                      height={120}
+                      className="w-24 h-24 md:w-32 md:h-32 object-contain drop-shadow-2xl"
+                    />
                   </div>
 
                   {/* Game Name */}
-                  <h2 className="text-xl md:text-2xl font-bold text-madras-yellow mb-3 text-center">
+                  <h2 className="text-2xl md:text-3xl font-bold text-madras-yellow mb-4 text-center">
                     {game.name}
                   </h2>
 
                   {/* Game Description */}
-                  <p className="text-sm md:text-base text-white mb-6 text-center">
+                  <p className="text-sm md:text-base text-white/90 mb-6 text-center leading-relaxed">
                     {game.description}
                   </p>
 
                   {/* Action Buttons */}
-                  <div className="space-y-3">
+                  <div className="space-y-4 mt-auto">
                     {/* Play Online Button - Visual indicator only when card is clickable */}
                     {game.playOnlineUrl ? (
-                      <div className="w-full bg-madras-yellow text-black px-4 py-3 rounded-lg text-sm md:text-base font-bold text-center">
+                      <div className="w-full bg-gradient-to-r from-madras-yellow to-madras-orange text-black px-6 py-4 rounded-xl text-base md:text-lg font-bold text-center shadow-lg">
                         🎮 Jouer en ligne
                       </div>
                     ) : (
-                      <div className="w-full bg-gray-600 text-gray-300 px-4 py-3 rounded-lg text-sm md:text-base font-bold text-center cursor-not-allowed">
+                      <div className="w-full bg-gray-700/50 text-gray-400 px-6 py-4 rounded-xl text-base md:text-lg font-bold text-center cursor-not-allowed border border-gray-600/50">
                         🎮 Bientôt disponible
                       </div>
                     )}
 
                     {/* Download Buttons */}
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="grid grid-cols-2 gap-3">
                       <a
                         href={game.playStoreUrl}
-                        className={`flex items-center justify-center px-3 py-2 rounded-lg text-xs md:text-sm font-semibold transition-all duration-300 ${
+                        className={`flex items-center justify-center px-4 py-3 rounded-xl text-xs md:text-sm font-bold transition-all duration-300 ${
                           game.available
-                            ? 'bg-madras-green text-white hover:bg-green-700'
-                            : 'bg-gray-600 text-gray-300 cursor-not-allowed'
+                            ? 'bg-gradient-to-r from-green-500 to-green-600 text-white hover:from-green-600 hover:to-green-700 shadow-md'
+                            : 'bg-gray-700/50 text-gray-400 cursor-not-allowed border border-gray-600/50'
                         }`}
                         onClick={(e) => {
                           e.stopPropagation();
@@ -166,10 +164,10 @@ export default function Play() {
                       </a>
                       <a
                         href={game.appStoreUrl}
-                        className={`flex items-center justify-center px-3 py-2 rounded-lg text-xs md:text-sm font-semibold transition-all duration-300 ${
+                        className={`flex items-center justify-center px-4 py-3 rounded-xl text-xs md:text-sm font-bold transition-all duration-300 ${
                           game.available
-                            ? 'bg-madras-green text-white hover:bg-green-700'
-                            : 'bg-gray-600 text-gray-300 cursor-not-allowed'
+                            ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:from-blue-600 hover:to-blue-700 shadow-md'
+                            : 'bg-gray-700/50 text-gray-400 cursor-not-allowed border border-gray-600/50'
                         }`}
                         onClick={(e) => {
                           e.stopPropagation();
