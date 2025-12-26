@@ -56,8 +56,8 @@ const AboutPage = () => {
         <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 md:p-8 lg:p-12 mb-6 md:mb-8 border border-white/20 shadow-2xl">
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-madras-red mb-4 md:mb-6 drop-shadow-lg">Notre Histoire</h2>
           <p className="text-base sm:text-lg md:text-xl text-white leading-relaxed mb-4 drop-shadow-md">
-            Le créole martiniquais est une langue vivante, riche d'histoire et
-            d'émotion. Pourtant, peu d'outils modernes permettent de le
+            Le créole martiniquais est une langue vivante, riche d&apos;histoire et
+            d&apos;émotion. Pourtant, peu d&apos;outils modernes permettent de le
             pratiquer ou de le transmettre dans un environnement numérique.
           </p>
           <p className="text-base sm:text-lg md:text-xl text-white leading-relaxed drop-shadow-md">
@@ -70,7 +70,7 @@ const AboutPage = () => {
 
         {/* L'équipe */}
         <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 md:p-8 lg:p-12 mb-6 md:mb-8 border border-white/20 shadow-2xl">
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-madras-orange mb-4 md:mb-6 drop-shadow-lg">L'Équipe</h2>
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-madras-orange mb-4 md:mb-6 drop-shadow-lg">L&apos;Équipe</h2>
           <p className="text-base sm:text-lg md:text-xl text-white leading-relaxed mb-4 drop-shadow-md">
             Ce projet est conçu et développé par{' '}
             <strong className="text-madras-yellow">ITMade</strong>, une agence
@@ -87,7 +87,7 @@ const AboutPage = () => {
             </li>
             <li className="flex items-start gap-3">
               <span className="text-madras-yellow text-2xl font-bold">→</span>
-              <span className="text-base sm:text-lg md:text-xl drop-shadow-md">L'innovation numérique locale</span>
+              <span className="text-base sm:text-lg md:text-xl drop-shadow-md">L&apos;innovation numérique locale</span>
             </li>
           </ul>
         </div>
