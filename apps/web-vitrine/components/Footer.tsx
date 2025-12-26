@@ -20,11 +20,11 @@ const Footer = () => {
             </a>
           </p>
           <div className="mt-4">
-            <Link href="/legal-notice" className="text-sm text-gray-400 hover:text-white mx-2">
+            <Link href="/mentions-legales" className="text-sm text-gray-400 hover:text-white mx-2">
               Mentions Légales
             </Link>
             <span className="text-gray-500">|</span>
-            <Link href="/privacy-policy" className="text-sm text-gray-400 hover:text-white mx-2">
+            <Link href="/politique-confidentialite" className="text-sm text-gray-400 hover:text-white mx-2">
               Politique de Confidentialité
             </Link>
           </div>
