@@ -39,7 +39,7 @@ npm install -g vercel
 #### 2. Build Flutter
 
 ```bash
-flutter build web --release --web-renderer canvaskit
+flutter build web --release
 ```
 
 #### 3. Se connecter à Vercel
@@ -98,7 +98,7 @@ jobs:
         run: |
           cd apps/games-flutter
           flutter pub get
-          flutter build web --release --web-renderer canvaskit
+          flutter build web --release
 
       - name: Deploy to Vercel
         uses: amondnet/vercel-action@v25
@@ -153,13 +153,10 @@ const games = [
 ### Web
 
 ```bash
-flutter build web --release --web-renderer canvaskit
+flutter build web --release
 ```
 
-Options de renderer :
-- `canvaskit` : Meilleure performance, fichiers plus lourds
-- `html` : Fichiers légers, performance moyenne
-- `auto` : Détection automatique
+Le renderer web est automatiquement optimisé selon le navigateur (CanvasKit pour les navigateurs modernes).
 
 ### Android
 
@@ -223,13 +220,6 @@ Modifier `web/index.html` pour ajouter les headers CORS :
 flutter clean
 flutter pub get
 flutter build web --release
-```
-
-### Performance lente sur web
-
-Utiliser CanvasKit renderer :
-```bash
-flutter build web --release --web-renderer canvaskit
 ```
 
 ## 📱 Apps mobiles

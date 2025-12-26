@@ -6,7 +6,7 @@ echo ""
 
 # 1. Build Flutter
 echo "📦 Building Flutter web..."
-flutter build web --release --web-renderer canvaskit
+flutter build web --release
 
 if [ $? -ne 0 ]; then
     echo "❌ Build Flutter failed"
