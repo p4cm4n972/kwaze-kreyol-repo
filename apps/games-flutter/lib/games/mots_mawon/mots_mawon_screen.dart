@@ -16,9 +16,8 @@ class _MotsMawonScreenState extends State<MotsMawonScreen> {
   final DictionaryService _dictService = DictionaryService();
 
   WordSearchGrid? _gameData;
-  Set<CellPosition> _selectedCells = {};
+  List<CellPosition> _selectedCells = []; // Changed to List to maintain order
   Set<String> _foundWords = {};
-  bool _isSelecting = false;
   int _score = 0;
   int _timeElapsed = 0;
   Timer? _timer;
@@ -80,28 +79,37 @@ class _MotsMawonScreenState extends State<MotsMawonScreen> {
   void _handleCellTap(int row, int col) {
     if (_isGameComplete) return;
 
+    final cellPos = CellPosition(row, col);
+
     setState(() {
-      _isSelecting = true;
-      _selectedCells = {CellPosition(row, col)};
+      // Si la cellule est déjà sélectionnée, on la retire
+      if (_selectedCells.contains(cellPos)) {
+        _selectedCells.remove(cellPos);
+      } else {
+        // Sinon, on vérifie qu'elle est adjacente à la dernière cellule sélectionnée
+        if (_selectedCells.isEmpty || _isAdjacentToLast(cellPos)) {
+          _selectedCells.add(cellPos);
+        }
+      }
     });
   }
 
-  void _handleCellHover(int row, int col) {
-    if (!_isSelecting || _isGameComplete) return;
+  bool _isAdjacentToLast(CellPosition newCell) {
+    if (_selectedCells.isEmpty) return true;
 
-    setState(() {
-      _selectedCells.add(CellPosition(row, col));
-    });
+    final lastCell = _selectedCells.last;
+    final rowDiff = (newCell.row - lastCell.row).abs();
+    final colDiff = (newCell.col - lastCell.col).abs();
+
+    // Adjacent = même ligne/colonne/diagonale et à distance 1
+    return (rowDiff <= 1 && colDiff <= 1) && !(rowDiff == 0 && colDiff == 0);
   }
 
-  void _handleSelectionEnd() {
-    if (!_isSelecting || _gameData == null) return;
+  void _validateSelection() {
+    if (_selectedCells.isEmpty || _gameData == null) return;
 
-    // Vérifier si la sélection forme un mot
-    final sortedCells = _selectedCells.toList()
-      ..sort((a, b) => a.row != b.row ? a.row.compareTo(b.row) : a.col.compareTo(b.col));
-
-    final selectedWord = sortedCells
+    // Construire le mot à partir des cellules sélectionnées
+    final selectedWord = _selectedCells
         .map((cell) => _gameData!.grid[cell.row][cell.col])
         .join('');
 
@@ -126,8 +134,13 @@ class _MotsMawonScreenState extends State<MotsMawonScreen> {
     }
 
     setState(() {
-      _selectedCells = {};
-      _isSelecting = false;
+      _selectedCells = [];
+    });
+  }
+
+  void _clearSelection() {
+    setState(() {
+      _selectedCells = [];
     });
   }
 
@@ -222,27 +235,75 @@ class _MotsMawonScreenState extends State<MotsMawonScreen> {
         children: [
           _buildStats(),
           const SizedBox(height: 16),
-          Expanded(
-            child: GestureDetector(
-              onPanEnd: (_) => _handleSelectionEnd(),
-              child: AspectRatio(
-                aspectRatio: 1,
-                child: GridView.builder(
-                  physics: const NeverScrollableScrollPhysics(),
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: _gameData!.size,
-                    crossAxisSpacing: 2,
-                    mainAxisSpacing: 2,
-                  ),
-                  itemCount: _gameData!.size * _gameData!.size,
-                  itemBuilder: (context, index) {
-                    final row = index ~/ _gameData!.size;
-                    final col = index % _gameData!.size;
-                    return _buildCell(row, col);
-                  },
+
+          // Mot en cours de construction
+          if (_selectedCells.isNotEmpty)
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.amber.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.amber, width: 2),
+              ),
+              child: Text(
+                _selectedCells
+                    .map((cell) => _gameData!.grid[cell.row][cell.col])
+                    .join(''),
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 4,
                 ),
               ),
             ),
+          const SizedBox(height: 16),
+
+          Expanded(
+            child: AspectRatio(
+              aspectRatio: 1,
+              child: GridView.builder(
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: _gameData!.size,
+                  crossAxisSpacing: 2,
+                  mainAxisSpacing: 2,
+                ),
+                itemCount: _gameData!.size * _gameData!.size,
+                itemBuilder: (context, index) {
+                  final row = index ~/ _gameData!.size;
+                  final col = index % _gameData!.size;
+                  return _buildCell(row, col);
+                },
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // Boutons de contrôle
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              ElevatedButton.icon(
+                onPressed: _selectedCells.isEmpty ? null : _clearSelection,
+                icon: const Icon(Icons.clear),
+                label: const Text('Annuler'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                ),
+              ),
+              ElevatedButton.icon(
+                onPressed: _selectedCells.isEmpty ? null : _validateSelection,
+                icon: const Icon(Icons.check),
+                label: const Text('Valider'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 16),
           ElevatedButton.icon(
@@ -302,23 +363,23 @@ class _MotsMawonScreenState extends State<MotsMawonScreen> {
       cellColor = Colors.grey[300]!;
     }
 
-    return MouseRegion(
-      onEnter: (_) => _handleCellHover(row, col),
-      child: GestureDetector(
-        onTapDown: (_) => _handleCellTap(row, col),
-        child: Container(
-          decoration: BoxDecoration(
-            color: cellColor,
-            borderRadius: BorderRadius.circular(4),
-          ),
-          child: Center(
-            child: Text(
-              _gameData!.grid[row][col],
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: isInFoundWord || isSelected ? Colors.white : Colors.black,
-              ),
+    return GestureDetector(
+      onTap: () => _handleCellTap(row, col),
+      child: Container(
+        decoration: BoxDecoration(
+          color: cellColor,
+          borderRadius: BorderRadius.circular(4),
+          border: isSelected
+              ? Border.all(color: Colors.orange, width: 2)
+              : null,
+        ),
+        child: Center(
+          child: Text(
+            _gameData!.grid[row][col],
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: isInFoundWord || isSelected ? Colors.white : Colors.black,
             ),
           ),
         ),
