@@ -181,7 +181,7 @@ const LandingPage = () => {
           ref={heroSectionRef}
           className="h-screen w-full bg-cover bg-center flex items-center justify-center bg-responsive"
         >
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-center max-w-6xl mx-auto px-4 py-8 md:p-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-12 items-center max-w-6xl mx-auto px-4 pt-24 pb-8 md:p-8">
           {/* Colonne de gauche : Texte de présentation */}
           <div
             ref={heroTextRef}
@@ -194,7 +194,7 @@ const LandingPage = () => {
 
           {/* Colonne de droite : Logo */}
           <div ref={heroLogoRef} className="flex justify-center order-1 md:order-2">
-            <div className="relative p-6 md:p-8 bg-white/10 backdrop-blur-md rounded-2xl shadow-2xl border border-white/20 w-full max-w-sm md:max-w-full">
+            <div className="relative p-3 md:p-8 bg-white/10 backdrop-blur-md rounded-2xl shadow-2xl border border-white/20 w-full max-w-xs md:max-w-full">
               <Image
                 src={heroData.logo}
                 alt="Kwazé Kréyol Logo"
@@ -229,14 +229,14 @@ const LandingPage = () => {
                     {data.icons.map((icon, iconIndex) => (
                       <div
                         key={iconIndex}
-                        className="relative w-28 h-28 sm:w-32 sm:h-32 md:w-40 md:h-40 bg-white/20 backdrop-blur-sm rounded-full hover:bg-white/30 transition-all duration-300 hover:scale-105 cursor-pointer shadow-lg overflow-hidden flex items-center justify-center"
+                        className="relative w-40 h-40 sm:w-48 sm:h-48 md:w-56 md:h-56 bg-white/20 backdrop-blur-sm rounded-full hover:bg-white/30 transition-all duration-300 hover:scale-105 cursor-pointer shadow-lg overflow-hidden flex items-center justify-center"
                       >
                         <Image
                           src={icon.src}
                           alt={icon.alt}
-                          width={140}
-                          height={140}
-                          className="w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 object-cover rounded-full"
+                          width={224}
+                          height={224}
+                          className="w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 object-cover rounded-full"
                         />
                       </div>
                     ))}

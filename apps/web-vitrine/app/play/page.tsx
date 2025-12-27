@@ -5,9 +5,16 @@ import Footer from '@/components/Footer';
 import Image from 'next/image';
 import Link from 'next/link';
 
-const GamepadIcon = () => (
-  <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
-    <path d="M6,9H8V11H10V13H8V15H6V13H4V11H6V9M18.5,9A1.5,1.5 0 0,1 20,10.5A1.5,1.5 0 0,1 18.5,12A1.5,1.5 0 0,1 17,10.5A1.5,1.5 0 0,1 18.5,9M15.5,12A1.5,1.5 0 0,1 17,13.5A1.5,1.5 0 0,1 15.5,15A1.5,1.5 0 0,1 14,13.5A1.5,1.5 0 0,1 15.5,12M17,5A7,7 0 0,1 24,12A7,7 0 0,1 17,19C15.04,19 13.27,18.09 12,16.68C10.73,18.09 8.96,19 7,19A7,7 0 0,1 0,12A7,7 0 0,1 7,5H17Z"/>
+const PlayIcon = () => (
+  <svg className="w-5 h-5 md:w-6 md:h-6" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M8 5v14l11-7z"/>
+  </svg>
+);
+
+const ComingSoonIcon = () => (
+  <svg className="w-5 h-5 md:w-6 md:h-6" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" opacity="0.5"/>
+    <path d="M12 6v6l4 2"/>
   </svg>
 );
 
@@ -48,26 +55,6 @@ export default function Play() {
       name: 'Double Siz',
       icon: '/icons/double-siz.png',
       description: 'Jeu de dominos aux règles martiniquaises. Affronte tes adversaires !',
-      playOnlineUrl: null,
-      playStoreUrl: '#', // À compléter
-      appStoreUrl: '#', // À compléter
-      available: false,
-    },
-    {
-      id: 'koze-kwaze',
-      name: 'Kozé Kwazé',
-      icon: '/icons/koze-kwaze.png',
-      description: 'Jeu de questions-réponses sur la culture créole martiniquaise.',
-      playOnlineUrl: null,
-      playStoreUrl: '#', // À compléter
-      appStoreUrl: '#', // À compléter
-      available: false,
-    },
-    {
-      id: 'met-double',
-      name: 'Mét Double',
-      icon: '/icons/met-double.png',
-      description: 'Jeu de cartes traditionnel martiniquais. Stratégie et réflexion !',
       playOnlineUrl: null,
       playStoreUrl: '#', // À compléter
       appStoreUrl: '#', // À compléter
@@ -145,14 +132,14 @@ export default function Play() {
                   {/* Action Button - Compact */}
                   <div className="mt-auto">
                     {game.playOnlineUrl ? (
-                      <div className="w-full bg-gradient-to-r from-madras-yellow to-madras-orange text-black px-4 py-3 rounded-lg text-sm md:text-base font-bold text-center shadow-lg flex items-center justify-center gap-2">
-                        <GamepadIcon />
-                        <span>Jouer</span>
+                      <div className="w-full bg-gradient-to-r from-madras-yellow to-madras-orange text-black px-4 py-3 rounded-lg text-sm md:text-base font-bold text-center shadow-lg flex items-center justify-center gap-2 hover:shadow-xl transition-all">
+                        <PlayIcon />
+                        <span>Jouer maintenant</span>
                       </div>
                     ) : (
                       <div className="w-full bg-gray-700/50 text-gray-400 px-4 py-3 rounded-lg text-sm md:text-base font-bold text-center cursor-not-allowed border border-gray-600/50 flex items-center justify-center gap-2">
-                        <GamepadIcon />
-                        <span>Bientôt</span>
+                        <ComingSoonIcon />
+                        <span>Bientôt disponible</span>
                       </div>
                     )}
                   </div>
