@@ -111,6 +111,13 @@ class _MetDoubleHomeScreenState extends State<MetDoubleHomeScreen> {
     }
   }
 
+  Future<void> _logout() async {
+    await _authService.signOut();
+    if (mounted) {
+      Navigator.pop(context); // Retourner à l'écran d'accueil
+    }
+  }
+
   Future<void> _joinSessionWithCode() async {
     final codeController = TextEditingController();
 
@@ -192,23 +199,60 @@ class _MetDoubleHomeScreenState extends State<MetDoubleHomeScreen> {
         backgroundColor: Theme.of(context).colorScheme.primary,
         actions: [
           if (_displayName != null)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Center(
-                child: Row(
-                  children: [
-                    Icon(
-                      _isGuest ? Icons.person_outline : Icons.person,
-                      size: 20,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      _displayName!,
-                      style: const TextStyle(fontSize: 14),
-                    ),
-                  ],
-                ),
+            PopupMenuButton<String>(
+              icon: Row(
+                children: [
+                  Icon(
+                    _isGuest ? Icons.person_outline : Icons.person,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    _displayName!,
+                    style: const TextStyle(fontSize: 14),
+                  ),
+                  const SizedBox(width: 4),
+                  const Icon(Icons.arrow_drop_down, size: 20),
+                ],
               ),
+              itemBuilder: (context) => <PopupMenuEntry<String>>[
+                PopupMenuItem<String>(
+                  enabled: false,
+                  value: 'profile',
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        _displayName!,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      Text(
+                        _isGuest ? 'Invité' : 'Utilisateur',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const PopupMenuDivider(),
+                const PopupMenuItem<String>(
+                  value: 'logout',
+                  child: Row(
+                    children: [
+                      Icon(Icons.logout),
+                      SizedBox(width: 8),
+                      Text('Déconnexion'),
+                    ],
+                  ),
+                ),
+              ],
+              onSelected: (value) {
+                if (value == 'logout') {
+                  _logout();
+                }
+              },
             ),
         ],
       ),
