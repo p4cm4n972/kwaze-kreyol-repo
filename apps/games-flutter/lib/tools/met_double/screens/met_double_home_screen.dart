@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../../services/auth_service.dart';
 import '../../../services/supabase_service.dart';
 import '../services/met_double_service.dart';
@@ -114,7 +115,7 @@ class _MetDoubleHomeScreenState extends State<MetDoubleHomeScreen> {
   Future<void> _logout() async {
     await _authService.signOut();
     if (mounted) {
-      Navigator.pop(context); // Retourner à l'écran d'accueil
+      context.go('/'); // Retourner à l'écran d'accueil avec go_router
     }
   }
 
