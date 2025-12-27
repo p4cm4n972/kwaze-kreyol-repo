@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import '../../models/word.dart';
 import '../../models/dictionary_entry.dart';
@@ -29,24 +28,12 @@ class _MotsMawonScreenState extends State<MotsMawonScreen> {
   @override
   void initState() {
     super.initState();
-    // Forcer l'orientation paysage pour ce jeu
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.landscapeLeft,
-      DeviceOrientation.landscapeRight,
-    ]);
     _loadAndStartGame();
   }
 
   @override
   void dispose() {
     _timer?.cancel();
-    // Restaurer toutes les orientations en quittant
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.portraitUp,
-      DeviceOrientation.portraitDown,
-      DeviceOrientation.landscapeLeft,
-      DeviceOrientation.landscapeRight,
-    ]);
     super.dispose();
   }
 
@@ -201,17 +188,64 @@ class _MotsMawonScreenState extends State<MotsMawonScreen> {
         backgroundColor: Theme.of(context).colorScheme.primary,
       ),
       body: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            // En mode paysage, utiliser le layout large même sur mobile
-            final isWide = constraints.maxWidth > constraints.maxHeight;
+        child: OrientationBuilder(
+          builder: (context, orientation) {
+            final size = MediaQuery.of(context).size;
+            final isPortrait = orientation == Orientation.portrait;
+            final isMobile = size.shortestSide < 600;
 
-            if (isWide) {
+            // Sur mobile en portrait, afficher un message pour tourner l'appareil
+            if (isMobile && isPortrait) {
+              return _buildRotateDeviceMessage();
+            }
+
+            // En mode paysage, utiliser le layout large
+            if (orientation == Orientation.landscape) {
               return _buildWideLayout();
             } else {
               return _buildNarrowLayout();
             }
           },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRotateDeviceMessage() {
+    return Container(
+      color: Theme.of(context).colorScheme.primary,
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.screen_rotation,
+                size: 80,
+                color: Colors.white,
+              ),
+              const SizedBox(height: 24),
+              const Text(
+                'Tournez votre appareil',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Ce jeu est optimisé pour le mode paysage',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.white70,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
         ),
       ),
     );
