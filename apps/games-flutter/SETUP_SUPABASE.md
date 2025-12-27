@@ -293,15 +293,10 @@ ALTER TABLE dictionary_contributions ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Users can read all profiles" ON users FOR SELECT USING (true);
 CREATE POLICY "Users can update own profile" ON users FOR UPDATE USING (auth.uid() = id);
 
--- Politiques sessions: host et participants peuvent lire leurs sessions
-CREATE POLICY "Users can read their sessions" ON met_double_sessions
-  FOR SELECT USING (
-    auth.uid() = host_id OR
-    EXISTS (
-      SELECT 1 FROM met_double_participants
-      WHERE session_id = met_double_sessions.id AND user_id = auth.uid()
-    )
-  );
+-- Politiques sessions: lecture publique pour permettre aux invités de rejoindre
+-- Note: Seuls les utilisateurs authentifiés peuvent créer des sessions (voir politique INSERT)
+CREATE POLICY "Anyone can read sessions" ON met_double_sessions
+  FOR SELECT USING (true);
 
 CREATE POLICY "Host can update session" ON met_double_sessions
   FOR UPDATE USING (host_id = auth.uid());
