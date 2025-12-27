@@ -194,21 +194,36 @@ class _MetDoubleLobbyScreenState extends State<MetDoubleLobbyScreen> {
     );
   }
 
+  PreferredSizeWidget _buildAppBar() {
+    return AppBar(
+      title: const Text('Salle d\'attente'),
+      backgroundColor: Theme.of(context).colorScheme.primary,
+      leading: Builder(
+        builder: (BuildContext context) {
+          return IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            tooltip: 'Retour aux sessions',
+          );
+        },
+      ),
+      actions: [
+        if (_isHost)
+          IconButton(
+            icon: const Icon(Icons.cancel),
+            onPressed: _cancelSession,
+            tooltip: 'Annuler la session',
+          ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Salle d\'attente'),
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        actions: [
-          if (_isHost)
-            IconButton(
-              icon: const Icon(Icons.cancel),
-              onPressed: _cancelSession,
-              tooltip: 'Annuler la session',
-            ),
-        ],
-      ),
+      appBar: _buildAppBar(),
       body: SafeArea(
         child: Column(
           children: [

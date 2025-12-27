@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:confetti/confetti.dart';
 import '../models/met_double_game.dart';
+import '../services/met_double_service.dart';
 
 class MetDoubleResultsScreen extends StatefulWidget {
   final MetDoubleSession session;
@@ -16,17 +17,43 @@ class MetDoubleResultsScreen extends StatefulWidget {
 
 class _MetDoubleResultsScreenState extends State<MetDoubleResultsScreen> {
   late ConfettiController _confettiController;
+  final MetDoubleService _metDoubleService = MetDoubleService();
+  late MetDoubleSession _session;
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
+    _session = widget.session;
     _confettiController = ConfettiController(duration: const Duration(seconds: 3));
-    // Lancer les confettis après un court délai
-    Future.delayed(const Duration(milliseconds: 500), () {
+    _loadSession();
+  }
+
+  Future<void> _loadSession() async {
+    try {
+      // Recharger la session complète avec toutes les données à jour
+      final freshSession = await _metDoubleService.getSession(widget.session.id);
+      setState(() {
+        _session = freshSession;
+        _isLoading = false;
+      });
+
+      // Lancer les confettis après chargement
+      Future.delayed(const Duration(milliseconds: 500), () {
+        if (mounted) {
+          _confettiController.play();
+        }
+      });
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
       if (mounted) {
-        _confettiController.play();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur: $e')),
+        );
       }
-    });
+    }
   }
 
   @override
@@ -37,8 +64,20 @@ class _MetDoubleResultsScreenState extends State<MetDoubleResultsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final winner = widget.session.winner;
-    final cochons = widget.session.participants
+    if (_isLoading) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('Résultats'),
+          backgroundColor: Theme.of(context).colorScheme.primary,
+        ),
+        body: const Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
+    final winner = _session.winner;
+    final cochons = _session.participants
         .where((p) => p.isCochon)
         .toList();
 
@@ -64,7 +103,7 @@ class _MetDoubleResultsScreenState extends State<MetDoubleResultsScreen> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    '${widget.session.rounds.length} manches jouées',
+                    '${_session.rounds.length} manches jouées',
                     style: TextStyle(
                       fontSize: 16,
                       color: Colors.grey[600],
@@ -74,64 +113,232 @@ class _MetDoubleResultsScreenState extends State<MetDoubleResultsScreen> {
 
                   // Gagnant
                   if (winner != null) ...[
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(24),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            Colors.amber.shade300,
-                            Colors.amber.shade100,
+                    (() {
+                      // Calculer le nombre de manches gagnées par le vainqueur
+                      final manchesGagnees = _session.rounds.where((r) => r.winnerParticipantId == winner.id).length;
+
+                      return Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(24),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              Colors.amber.shade300,
+                              Colors.amber.shade100,
+                            ],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.amber.withOpacity(0.3),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
                           ],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
                         ),
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.amber.withOpacity(0.3),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        children: [
-                          const Icon(
-                            Icons.emoji_events,
-                            size: 64,
-                            color: Colors.amber,
-                          ),
-                          const SizedBox(height: 16),
-                          const Text(
-                            'VAINQUEUR',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 2,
+                        child: Column(
+                          children: [
+                            const Icon(
+                              Icons.emoji_events,
+                              size: 64,
+                              color: Colors.amber,
                             ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            winner.displayName,
-                            style: const TextStyle(
-                              fontSize: 32,
-                              fontWeight: FontWeight.bold,
+                            const SizedBox(height: 16),
+                            const Text(
+                              'VAINQUEUR',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 2,
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            '${winner.victories} victoires',
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w500,
+                            const SizedBox(height: 8),
+                            Text(
+                              winner.displayName,
+                              style: const TextStyle(
+                                fontSize: 32,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 32),
+                            const SizedBox(height: 8),
+                            Text(
+                              '$manchesGagnees manche${manchesGagnees > 1 ? 's' : ''} gagnée${manchesGagnees > 1 ? 's' : ''}',
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }()),
+                    const SizedBox(height: 16),
                   ],
+
+                  // Met double (joueur qui a donné le plus de cochons)
+                  (() {
+                    // Calculer le nombre de cochons DONNÉS par chaque participant
+                    final participantsMetDouble = _session.participants.map((p) {
+                      int cochonsDonnes = 0;
+                      for (var round in _session.rounds) {
+                        if (round.winnerParticipantId == p.id) {
+                          cochonsDonnes += round.cochonParticipantIds.length;
+                        }
+                      }
+                      return {'participant': p, 'cochonsDonnes': cochonsDonnes};
+                    }).toList();
+
+                    // Trier par nombre de cochons donnés (décroissant)
+                    participantsMetDouble.sort((a, b) => (b['cochonsDonnes'] as int).compareTo(a['cochonsDonnes'] as int));
+
+                    // Obtenir celui qui a donné le plus de cochons
+                    final metDouble = participantsMetDouble.first;
+                    final metDoubleParticipant = metDouble['participant'] as MetDoubleParticipant;
+                    final cochonsDonnes = metDouble['cochonsDonnes'] as int;
+
+                    // N'afficher que si au moins 1 cochon donné
+                    if (cochonsDonnes > 0) {
+                      return Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(24),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              Colors.green.shade300,
+                              Colors.green.shade100,
+                            ],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.green.withOpacity(0.3),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          children: [
+                            const Text(
+                              '💪',
+                              style: TextStyle(fontSize: 64),
+                            ),
+                            const SizedBox(height: 16),
+                            const Text(
+                              'MET DOUBLE',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 2,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              metDoubleParticipant.displayName,
+                              style: const TextStyle(
+                                fontSize: 32,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              '$cochonsDonnes cochon${cochonsDonnes > 1 ? 's' : ''} donné${cochonsDonnes > 1 ? 's' : ''}',
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    } else {
+                      return const SizedBox.shrink();
+                    }
+                  }()),
+                  const SizedBox(height: 16),
+
+                  // Met cochon (joueur qui a reçu le plus de cochons)
+                  (() {
+                    // Calculer le nombre de cochons REÇUS par chaque participant
+                    final participantsAvecCochons = _session.participants.map((p) {
+                      final nombreCochons = _session.rounds.where((r) => r.cochonParticipantIds.contains(p.id)).length;
+                      return {'participant': p, 'nombreCochons': nombreCochons};
+                    }).toList();
+
+                    // Trier par nombre de cochons reçus (décroissant)
+                    participantsAvecCochons.sort((a, b) => (b['nombreCochons'] as int).compareTo(a['nombreCochons'] as int));
+
+                    // Obtenir celui qui a reçu le plus de cochons
+                    final metCochon = participantsAvecCochons.first;
+                    final metCochonParticipant = metCochon['participant'] as MetDoubleParticipant;
+                    final nombreCochons = metCochon['nombreCochons'] as int;
+
+                    // N'afficher que si au moins 1 cochon reçu
+                    if (nombreCochons > 0) {
+                      return Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(24),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              Colors.pink.shade300,
+                              Colors.pink.shade100,
+                            ],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.pink.withOpacity(0.3),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          children: [
+                            const Text(
+                              '🐷',
+                              style: TextStyle(fontSize: 64),
+                            ),
+                            const SizedBox(height: 16),
+                            const Text(
+                              'MET COCHON',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 2,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              metCochonParticipant.displayName,
+                              style: const TextStyle(
+                                fontSize: 32,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              '$nombreCochons cochon${nombreCochons > 1 ? 's' : ''} reçu${nombreCochons > 1 ? 's' : ''}',
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    } else {
+                      return const SizedBox.shrink();
+                    }
+                  }()),
+                  const SizedBox(height: 32),
 
                   // Cochons
                   if (cochons.isNotEmpty) ...[
@@ -204,14 +411,24 @@ class _MetDoubleResultsScreenState extends State<MetDoubleResultsScreen> {
                   ),
                   const SizedBox(height: 16),
 
-                  ...widget.session.participants.asMap().entries.map((entry) {
-                    final index = entry.key;
-                    final participant = entry.value;
-                    return _buildRankingCard(
-                      participant,
-                      index + 1,
-                    );
-                  }),
+                  // Trier les participants par nombre de manches gagnées (décroissant)
+                  ...(() {
+                    final sortedParticipants = _session.participants.toList()
+                      ..sort((a, b) {
+                        // Compter les manches gagnées pour chaque participant
+                        final manchesA = _session.rounds.where((r) => r.winnerParticipantId == a.id).length;
+                        final manchesB = _session.rounds.where((r) => r.winnerParticipantId == b.id).length;
+                        return manchesB.compareTo(manchesA);
+                      });
+                    return sortedParticipants.asMap().entries.map((entry) {
+                      final index = entry.key;
+                      final participant = entry.value;
+                      return _buildRankingCard(
+                        participant,
+                        index + 1,
+                      );
+                    });
+                  }()),
 
                   const SizedBox(height: 32),
 
@@ -260,6 +477,12 @@ class _MetDoubleResultsScreenState extends State<MetDoubleResultsScreen> {
   }
 
   Widget _buildRankingCard(MetDoubleParticipant participant, int rank) {
+    // Calculer le nombre de manches gagnées depuis l'historique
+    final manchesGagnees = _session.rounds.where((r) => r.winnerParticipantId == participant.id).length;
+
+    // Calculer le nombre de cochons (combien de fois le joueur apparaît dans cochonParticipantIds)
+    final nombreCochons = _session.rounds.where((r) => r.cochonParticipantIds.contains(participant.id)).length;
+
     Color? cardColor;
     IconData? medalIcon;
 
@@ -306,24 +529,65 @@ class _MetDoubleResultsScreenState extends State<MetDoubleResultsScreen> {
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         subtitle: Text(
-          participant.isCochon
-              ? '0 victoire - Cochon 🐷'
-              : '${participant.victories} victoire${participant.victories > 1 ? 's' : ''}',
+          '$manchesGagnees manche${manchesGagnees > 1 ? 's' : ''} gagnée${manchesGagnees > 1 ? 's' : ''} • $nombreCochons cochon${nombreCochons > 1 ? 's' : ''}',
         ),
-        trailing: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          decoration: BoxDecoration(
-            color: _getVictoryColor(participant.victories).withOpacity(0.2),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Text(
-            '${participant.victories}',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: _getVictoryColor(participant.victories),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Victoires
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: _getVictoryColor(manchesGagnees).withOpacity(0.2),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    '$manchesGagnees',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: _getVictoryColor(manchesGagnees),
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  const Text(
+                    '🏆',
+                    style: TextStyle(fontSize: 14),
+                  ),
+                ],
+              ),
             ),
-          ),
+            const SizedBox(width: 8),
+            // Cochons
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: Colors.pink.shade100,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    '$nombreCochons',
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.pink,
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  const Text(
+                    '🐷',
+                    style: TextStyle(fontSize: 14),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );

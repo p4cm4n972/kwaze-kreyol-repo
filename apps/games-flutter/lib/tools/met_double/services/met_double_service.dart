@@ -210,38 +210,33 @@ class MetDoubleService {
     required String sessionId,
     required int roundNumber,
     required String winnerParticipantId,
+    List<String>? cochonParticipantIds, // IDs des joueurs avec 0 point
     required bool isChiree,
+    bool skipIncrement = false, // Ne pas incrémenter si déjà fait
   }) async {
     try {
       final userId = _authService.getUserIdOrNull();
 
-      // Enregistrer la manche
+      // Enregistrer la manche avec les cochons
       await _supabase.from('met_double_rounds').insert({
         'session_id': sessionId,
         'round_number': roundNumber,
         'winner_participant_id': isChiree ? null : winnerParticipantId,
+        'cochon_participant_ids': cochonParticipantIds ?? [],
         'is_chiree': isChiree,
         'recorded_by_user_id': userId,
         'played_at': DateTime.now().toIso8601String(),
       });
 
-      // Si pas chirée, incrémenter les victoires du gagnant
-      if (!isChiree) {
+      // Si pas chirée et qu'on doit incrémenter, incrémenter les victoires du gagnant
+      if (!isChiree && !skipIncrement) {
         await _supabase.rpc('increment_participant_victories', params: {
           'participant_id': winnerParticipantId,
         });
       }
 
-      // Vérifier si quelqu'un a 3 victoires
-      final session = await getSession(sessionId);
-      final winner = session.participants.firstWhere(
-        (p) => p.victories >= 3,
-        orElse: () => session.participants.first,
-      );
-
-      if (winner.victories >= 3) {
-        await _completeSession(sessionId, winner);
-      }
+      // Note: On ne termine plus automatiquement la session quand quelqu'un atteint 3 victoires
+      // L'utilisateur doit cliquer sur "Terminer" ou accepter la popup de fin de manche
     } catch (e) {
       throw Exception('Erreur lors de l\'enregistrement de la manche: $e');
     }
@@ -251,22 +246,36 @@ class MetDoubleService {
   Future<void> _completeSession(
       String sessionId, MetDoubleParticipant winner) async {
     try {
-      await _supabase.from('met_double_sessions').update({
+      // Définir le gagnant selon s'il est utilisateur ou invité
+      final Map<String, dynamic> updateData = {
         'status': 'completed',
         'completed_at': DateTime.now().toIso8601String(),
-        'winner_id': winner.userId,
-        'winner_name': winner.guestName,
-      }).eq('id', sessionId);
+      };
 
-      // Marquer les cochons (ceux avec 0 victoires)
+      if (winner.userId != null) {
+        updateData['winner_id'] = winner.userId;
+        updateData['winner_name'] = null; // Utilisateur inscrit
+      } else {
+        updateData['winner_id'] = null;
+        updateData['winner_name'] = winner.guestName; // Invité
+      }
+
+      await _supabase.from('met_double_sessions').update(updateData).eq('id', sessionId);
+
+      // Marquer les cochons : récupérer tous les participant_ids qui ont été cochons
+      // dans au moins une manche (présents dans cochon_participant_ids de n'importe quel round)
       final session = await getSession(sessionId);
-      final cochons =
-          session.participants.where((p) => p.victories == 0).toList();
+      final Set<String> allCochonIds = {};
 
-      for (var cochon in cochons) {
+      for (var round in session.rounds) {
+        allCochonIds.addAll(round.cochonParticipantIds);
+      }
+
+      // Marquer ces participants comme cochons
+      for (var cochonId in allCochonIds) {
         await _supabase
             .from('met_double_participants')
-            .update({'is_cochon': true}).eq('id', cochon.id);
+            .update({'is_cochon': true}).eq('id', cochonId);
       }
     } catch (e) {
       throw Exception('Erreur lors de la complétion de la session: $e');
@@ -276,17 +285,32 @@ class MetDoubleService {
   // Récupérer les sessions de l'utilisateur
   Future<List<MetDoubleSession>> getUserSessions(String userId) async {
     try {
+      // D'abord récupérer les IDs des sessions où l'utilisateur participe
+      final participantResponse = await _supabase
+          .from('met_double_participants')
+          .select('session_id')
+          .eq('user_id', userId);
+
+      final sessionIds = (participantResponse as List)
+          .map((p) => p['session_id'] as String)
+          .toList();
+
+      if (sessionIds.isEmpty) {
+        return [];
+      }
+
+      // Ensuite récupérer les sessions complètes avec TOUS les participants
       final response = await _supabase
           .from('met_double_sessions')
           .select('''
             *,
-            met_double_participants!inner (
+            met_double_participants (
               *,
               users (username)
             ),
             met_double_rounds (*)
           ''')
-          .eq('met_double_participants.user_id', userId)
+          .inFilter('id', sessionIds)
           .order('created_at', ascending: false);
 
       return (response as List)
@@ -295,6 +319,18 @@ class MetDoubleService {
     } catch (e) {
       throw Exception(
           'Erreur lors de la récupération des sessions utilisateur: $e');
+    }
+  }
+
+  // Supprimer une session (seulement si host)
+  Future<void> deleteSession(String sessionId) async {
+    try {
+      await _supabase
+          .from('met_double_sessions')
+          .delete()
+          .eq('id', sessionId);
+    } catch (e) {
+      throw Exception('Erreur lors de la suppression de la session: $e');
     }
   }
 
@@ -354,6 +390,261 @@ class MetDoubleService {
       }).eq('id', sessionId);
     } catch (e) {
       throw Exception('Erreur lors de l\'annulation de la session: $e');
+    }
+  }
+
+  // Incrémenter les victoires d'un participant
+  Future<void> incrementParticipantVictories(String participantId) async {
+    try {
+      // Récupérer le participant
+      final response = await _supabase
+          .from('met_double_participants')
+          .select('victories')
+          .eq('id', participantId)
+          .single();
+
+      final currentVictories = response['victories'] as int;
+
+      // Incrémenter seulement si < 3
+      if (currentVictories < 3) {
+        await _supabase
+            .from('met_double_participants')
+            .update({'victories': currentVictories + 1})
+            .eq('id', participantId);
+      }
+    } catch (e) {
+      throw Exception('Erreur lors de l\'incrémentation: $e');
+    }
+  }
+
+  // Décrémenter les victoires d'un participant
+  Future<void> decrementParticipantVictories(String participantId) async {
+    try {
+      // Récupérer le participant
+      final response = await _supabase
+          .from('met_double_participants')
+          .select('victories')
+          .eq('id', participantId)
+          .single();
+
+      final currentVictories = response['victories'] as int;
+
+      if (currentVictories > 0) {
+        await _supabase
+            .from('met_double_participants')
+            .update({'victories': currentVictories - 1})
+            .eq('id', participantId);
+      }
+    } catch (e) {
+      throw Exception('Erreur lors de la décrémentation: $e');
+    }
+  }
+
+  // Réinitialiser le score d'un participant
+  Future<void> resetParticipantScore(String participantId) async {
+    try {
+      await _supabase
+          .from('met_double_participants')
+          .update({
+            'victories': 0,
+            'is_cochon': false, // Réinitialiser aussi le statut de cochon
+          })
+          .eq('id', participantId);
+    } catch (e) {
+      throw Exception('Erreur lors de la réinitialisation: $e');
+    }
+  }
+
+  // Forcer la fin de la session
+  Future<void> forceEndSession(String sessionId) async {
+    try {
+      final session = await getSession(sessionId);
+
+      // Calculer le vrai gagnant en comptant les manches gagnées depuis l'historique
+      MetDoubleParticipant? winner;
+      int maxManches = 0;
+
+      for (var participant in session.participants) {
+        final manchesGagnees = session.rounds.where((r) => r.winnerParticipantId == participant.id).length;
+        if (manchesGagnees > maxManches) {
+          maxManches = manchesGagnees;
+          winner = participant;
+        }
+      }
+
+      // Si aucun gagnant trouvé (aucune manche jouée), prendre le premier participant
+      winner ??= session.participants.first;
+
+      await _completeSession(sessionId, winner);
+    } catch (e) {
+      throw Exception('Erreur lors de la fin forcée: $e');
+    }
+  }
+
+  // Marquer un participant comme cochon
+  Future<void> markParticipantAsCochon(String participantId) async {
+    try {
+      await _supabase
+          .from('met_double_participants')
+          .update({'is_cochon': true})
+          .eq('id', participantId);
+    } catch (e) {
+      throw Exception('Erreur lors du marquage du cochon: $e');
+    }
+  }
+
+  // Récupérer les statistiques générales d'un joueur
+  Future<Map<String, dynamic>> getPlayerGeneralStats(String userId) async {
+    try {
+      // Récupérer toutes les sessions terminées où le joueur a participé
+      final sessions = await getUserSessions(userId);
+      final completedSessions = sessions.where((s) => s.status == 'completed').toList();
+
+      // Calculer le nombre de manches jouées PERSONNELLES
+      int nombreManches = 0;
+      for (var session in completedSessions) {
+        nombreManches += session.rounds.length;
+      }
+
+      // Calculer le nombre de partenaires uniques
+      Set<String> partenaires = {};
+      for (var session in completedSessions) {
+        for (var participant in session.participants) {
+          // Ajouter les autres joueurs (pas soi-même)
+          if (participant.userId != userId) {
+            partenaires.add(participant.userId ?? participant.guestName ?? '');
+          }
+        }
+      }
+
+      // STATISTIQUES GLOBALES (tous les joueurs)
+      // Compter le nombre total de parties terminées
+      final totalPartiesResponse = await _supabase
+          .from('met_double_sessions')
+          .select('id')
+          .eq('status', 'completed');
+      final totalParties = (totalPartiesResponse as List).length;
+
+      // Compter le nombre total de manches
+      final totalManchesResponse = await _supabase
+          .from('met_double_rounds')
+          .select('id');
+      final totalManches = (totalManchesResponse as List).length;
+
+      // Compter le nombre d'utilisateurs inscrits
+      final totalAbonnesResponse = await _supabase
+          .from('users')
+          .select('id');
+      final totalAbonnes = (totalAbonnesResponse as List).length;
+
+      // Top joueurs : compter les victoires de chaque joueur
+      Map<String, Map<String, dynamic>> joueursVictoires = {};
+
+      for (var session in completedSessions) {
+        for (var participant in session.participants) {
+          final participantKey = participant.userId ?? participant.guestName ?? '';
+          final participantName = participant.displayName;
+
+          if (!joueursVictoires.containsKey(participantKey)) {
+            joueursVictoires[participantKey] = {
+              'name': participantName,
+              'victories': 0,
+            };
+          }
+
+          // Compter les manches gagnées
+          final manchesGagnees = session.rounds.where((r) => r.winnerParticipantId == participant.id).length;
+          joueursVictoires[participantKey]!['victories'] =
+            (joueursVictoires[participantKey]!['victories'] as int) + manchesGagnees;
+        }
+      }
+
+      // Trier par victoires
+      final topJoueurs = joueursVictoires.values.toList()
+        ..sort((a, b) => (b['victories'] as int).compareTo(a['victories'] as int));
+
+      // Top met double : compter les cochons DONNÉS par chaque joueur
+      Map<String, Map<String, dynamic>> joueursMetDouble = {};
+
+      for (var session in completedSessions) {
+        for (var round in session.rounds) {
+          // Le gagnant a donné des cochons
+          if (round.winnerParticipantId != null && round.cochonParticipantIds.isNotEmpty) {
+            final winner = session.participants.firstWhere(
+              (p) => p.id == round.winnerParticipantId,
+              orElse: () => session.participants.first,
+            );
+
+            final winnerKey = winner.userId ?? winner.guestName ?? '';
+            final winnerName = winner.displayName;
+
+            if (!joueursMetDouble.containsKey(winnerKey)) {
+              joueursMetDouble[winnerKey] = {
+                'name': winnerName,
+                'cochons': 0,
+              };
+            }
+
+            // Compter le nombre de cochons donnés dans ce round
+            joueursMetDouble[winnerKey]!['cochons'] =
+              (joueursMetDouble[winnerKey]!['cochons'] as int) + round.cochonParticipantIds.length;
+          }
+        }
+      }
+
+      // Top met cochon : compter les cochons REÇUS par chaque joueur
+      Map<String, Map<String, dynamic>> joueursMetCochon = {};
+
+      for (var session in completedSessions) {
+        for (var round in session.rounds) {
+          // Pour chaque participant qui a reçu un cochon
+          for (var cochonId in round.cochonParticipantIds) {
+            final cochonParticipant = session.participants.firstWhere(
+              (p) => p.id == cochonId,
+              orElse: () => session.participants.first,
+            );
+
+            final cochonKey = cochonParticipant.userId ?? cochonParticipant.guestName ?? '';
+            final cochonName = cochonParticipant.displayName;
+
+            if (!joueursMetCochon.containsKey(cochonKey)) {
+              joueursMetCochon[cochonKey] = {
+                'name': cochonName,
+                'cochons': 0,
+              };
+            }
+
+            // Incrémenter le nombre de cochons reçus
+            joueursMetCochon[cochonKey]!['cochons'] =
+              (joueursMetCochon[cochonKey]!['cochons'] as int) + 1;
+          }
+        }
+      }
+
+      // Trier par nombre de cochons
+      final topMetDouble = joueursMetDouble.values.toList()
+        ..sort((a, b) => (b['cochons'] as int).compareTo(a['cochons'] as int));
+
+      final topMetCochon = joueursMetCochon.values.toList()
+        ..sort((a, b) => (b['cochons'] as int).compareTo(a['cochons'] as int));
+
+      return {
+        // Statistiques personnelles
+        'nombreManches': nombreManches,
+        'nombrePartenaires': partenaires.length,
+
+        // Statistiques globales
+        'totalParties': totalParties,
+        'totalManches': totalManches,
+        'totalAbonnes': totalAbonnes,
+
+        // Classements
+        'topJoueurs': topJoueurs.take(10).toList(), // Top 10
+        'topMetDouble': topMetDouble.take(10).toList(), // Top 10 - ceux qui donnent le plus
+        'topMetCochon': topMetCochon.take(10).toList(), // Top 10 - ceux qui reçoivent le plus
+      };
+    } catch (e) {
+      throw Exception('Erreur lors de la récupération des statistiques: $e');
     }
   }
 }

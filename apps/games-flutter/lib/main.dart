@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'screens/games_home_screen.dart';
 import 'games/mots_mawon/mots_mawon_screen.dart';
 import 'tools/met_double/screens/met_double_home_screen.dart';
+import 'tools/met_double/screens/met_double_general_stats_screen.dart';
 import 'tools/translator/screens/translator_screen.dart';
 import 'config/supabase_config.dart';
 import 'services/supabase_service.dart';
@@ -54,6 +55,10 @@ final _router = GoRouter(
     GoRoute(
       path: '/met-double',
       builder: (context, state) => const MetDoubleHomeScreen(),
+    ),
+    GoRoute(
+      path: '/met-double/stats',
+      builder: (context, state) => const MetDoubleGeneralStatsScreen(),
     ),
     GoRoute(
       path: '/koze-kwaze',

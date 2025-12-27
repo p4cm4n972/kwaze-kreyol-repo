@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../models/word.dart';
 import '../../models/dictionary_entry.dart';
 import '../../services/dictionary_service.dart';
@@ -179,6 +180,10 @@ class _MotsMawonScreenState extends State<MotsMawonScreen> {
 
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.go('/'),
+        ),
         title: const Text('Mots Mawon'),
         backgroundColor: Theme.of(context).colorScheme.primary,
       ),

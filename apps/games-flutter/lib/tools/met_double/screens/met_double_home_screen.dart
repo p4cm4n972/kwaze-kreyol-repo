@@ -192,12 +192,67 @@ class _MetDoubleHomeScreenState extends State<MetDoubleHomeScreen> {
     }
   }
 
+  Future<void> _deleteSession(MetDoubleSession session) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Supprimer la session'),
+        content: Text(
+          'Êtes-vous sûr de vouloir supprimer cette session ?\n\nSession ${session.id.substring(0, 8)}',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Annuler'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+            ),
+            child: const Text('Supprimer'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) {
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      await _metDoubleService.deleteSession(session.id);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Session supprimée avec succès')),
+        );
+        await _loadData();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur lors de la suppression: $e')),
+        );
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Mét Double'),
         backgroundColor: Theme.of(context).colorScheme.primary,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            context.go('/');
+          },
+          tooltip: 'Retour aux jeux',
+        ),
         actions: [
           if (_displayName != null)
             PopupMenuButton<String>(
@@ -239,6 +294,17 @@ class _MetDoubleHomeScreenState extends State<MetDoubleHomeScreen> {
                 ),
                 const PopupMenuDivider(),
                 const PopupMenuItem<String>(
+                  value: 'stats',
+                  child: Row(
+                    children: [
+                      Icon(Icons.bar_chart),
+                      SizedBox(width: 8),
+                      Text('Statistiques'),
+                    ],
+                  ),
+                ),
+                const PopupMenuDivider(),
+                const PopupMenuItem<String>(
                   value: 'logout',
                   child: Row(
                     children: [
@@ -250,7 +316,9 @@ class _MetDoubleHomeScreenState extends State<MetDoubleHomeScreen> {
                 ),
               ],
               onSelected: (value) {
-                if (value == 'logout') {
+                if (value == 'stats') {
+                  context.push('/met-double/stats');
+                } else if (value == 'logout') {
                   _logout();
                 }
               },
@@ -377,6 +445,8 @@ class _MetDoubleHomeScreenState extends State<MetDoubleHomeScreen> {
   Widget _buildSessionCard(MetDoubleSession session) {
     final statusColor = _getStatusColor(session.status);
     final statusText = _getStatusText(session.status);
+    final currentUserId = _authService.getUserIdOrNull();
+    final isHost = currentUserId != null && currentUserId == session.hostId;
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
@@ -407,21 +477,35 @@ class _MetDoubleHomeScreenState extends State<MetDoubleHomeScreen> {
                       ),
                     ),
                   ),
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: statusColor.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      statusText,
-                      style: TextStyle(
-                        color: statusColor,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: statusColor.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          statusText,
+                          style: TextStyle(
+                            color: statusColor,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                          ),
+                        ),
                       ),
-                    ),
+                      if (isHost) ...[
+                        const SizedBox(width: 8),
+                        IconButton(
+                          icon: const Icon(Icons.delete_outline, size: 20),
+                          color: Colors.red,
+                          onPressed: () => _deleteSession(session),
+                          tooltip: 'Supprimer la session',
+                        ),
+                      ],
+                    ],
                   ),
                 ],
               ),

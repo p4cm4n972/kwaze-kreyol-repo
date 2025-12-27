@@ -83,10 +83,14 @@ CREATE TABLE met_double_rounds (
   session_id UUID NOT NULL REFERENCES met_double_sessions(id) ON DELETE CASCADE,
   round_number INTEGER NOT NULL,
   winner_participant_id UUID REFERENCES met_double_participants(id),
+  cochon_participant_ids TEXT[] DEFAULT '{}', -- IDs des joueurs avec 0 point (cochons)
   is_chiree BOOLEAN DEFAULT FALSE,
   recorded_by_user_id UUID REFERENCES users(id), -- Qui a enregistré le résultat
   played_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+-- Si la table existe déjà, exécutez cette commande pour ajouter la colonne:
+-- ALTER TABLE met_double_rounds ADD COLUMN IF NOT EXISTS cochon_participant_ids TEXT[] DEFAULT '{}';
 
 -- Table invitations
 CREATE TABLE met_double_invitations (
@@ -351,9 +355,20 @@ CREATE POLICY "Host can update session" ON met_double_sessions
 CREATE POLICY "Users can create sessions" ON met_double_sessions
   FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
 
+CREATE POLICY "Host can delete session" ON met_double_sessions
+  FOR DELETE USING (host_id = auth.uid());
+
 -- Politiques participants: lecture publique, modification par les participants de la session
 CREATE POLICY "Anyone can read participants" ON met_double_participants FOR SELECT USING (true);
 CREATE POLICY "Users can join sessions" ON met_double_participants FOR INSERT WITH CHECK (true);
+CREATE POLICY "Participants can update their scores" ON met_double_participants
+  FOR UPDATE USING (
+    EXISTS (
+      SELECT 1 FROM met_double_sessions
+      WHERE met_double_sessions.id = met_double_participants.session_id
+        AND met_double_sessions.status = 'in_progress'
+    )
+  );
 
 -- Politiques rounds: participants peuvent créer/lire
 CREATE POLICY "Participants can read rounds" ON met_double_rounds FOR SELECT USING (

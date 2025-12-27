@@ -148,6 +148,7 @@ class MetDoubleRound {
   final String sessionId;
   final int roundNumber;
   final String? winnerParticipantId;
+  final List<String> cochonParticipantIds; // IDs des joueurs qui ont fait 0 (cochons)
   final bool isChiree;
   final String? recordedByUserId;
   final DateTime playedAt;
@@ -157,17 +158,28 @@ class MetDoubleRound {
     required this.sessionId,
     required this.roundNumber,
     this.winnerParticipantId,
+    this.cochonParticipantIds = const [],
     this.isChiree = false,
     this.recordedByUserId,
     required this.playedAt,
   });
 
   factory MetDoubleRound.fromJson(Map<String, dynamic> json) {
+    // Parser cochon_participant_ids (peut être null ou une liste)
+    List<String> cochonIds = [];
+    if (json['cochon_participant_ids'] != null) {
+      final rawIds = json['cochon_participant_ids'];
+      if (rawIds is List) {
+        cochonIds = rawIds.map((id) => id.toString()).toList();
+      }
+    }
+
     return MetDoubleRound(
       id: json['id'] as String,
       sessionId: json['session_id'] as String,
       roundNumber: json['round_number'] as int,
       winnerParticipantId: json['winner_participant_id'] as String?,
+      cochonParticipantIds: cochonIds,
       isChiree: json['is_chiree'] as bool? ?? false,
       recordedByUserId: json['recorded_by_user_id'] as String?,
       playedAt: DateTime.parse(json['played_at'] as String),
