@@ -293,12 +293,13 @@ ALTER TABLE dictionary_contributions ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Users can read all profiles" ON users FOR SELECT USING (true);
 CREATE POLICY "Users can update own profile" ON users FOR UPDATE USING (auth.uid() = id);
 
--- Politiques sessions: participants peuvent lire, hôte peut modifier
-CREATE POLICY "Users can read sessions they participate in" ON met_double_sessions
+-- Politiques sessions: host et participants peuvent lire leurs sessions
+CREATE POLICY "Users can read their sessions" ON met_double_sessions
   FOR SELECT USING (
+    auth.uid() = host_id OR
     EXISTS (
       SELECT 1 FROM met_double_participants
-      WHERE session_id = id AND (user_id = auth.uid() OR user_id IS NULL)
+      WHERE session_id = met_double_sessions.id AND user_id = auth.uid()
     )
   );
 
