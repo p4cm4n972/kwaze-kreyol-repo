@@ -23,17 +23,13 @@ class AuthService {
 
       if (response.user != null) {
         // Le profil utilisateur est créé automatiquement par le trigger PostgreSQL
-        // Attendre un peu que le trigger s'exécute
-        await Future.delayed(const Duration(milliseconds: 500));
-
-        // Récupérer le profil créé par le trigger
-        final userData = await _supabase
-            .from('users')
-            .select()
-            .eq('id', response.user!.id)
-            .single();
-
-        return AppUser.fromJson(userData);
+        // On retourne les infos de base sans interroger la table users
+        return AppUser.fromJson({
+          'id': response.user!.id,
+          'email': email,
+          'username': username ?? '',
+          'created_at': DateTime.now().toIso8601String(),
+        });
       }
       return null;
     } catch (e) {
