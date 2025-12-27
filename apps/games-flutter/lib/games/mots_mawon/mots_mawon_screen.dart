@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import '../../models/word.dart';
 import '../../models/dictionary_entry.dart';
@@ -28,12 +29,24 @@ class _MotsMawonScreenState extends State<MotsMawonScreen> {
   @override
   void initState() {
     super.initState();
+    // Forcer l'orientation paysage pour ce jeu
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight,
+    ]);
     _loadAndStartGame();
   }
 
   @override
   void dispose() {
     _timer?.cancel();
+    // Restaurer toutes les orientations en quittant
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight,
+    ]);
     super.dispose();
   }
 
@@ -190,7 +203,8 @@ class _MotsMawonScreenState extends State<MotsMawonScreen> {
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
-            final isWide = constraints.maxWidth > 800;
+            // En mode paysage, utiliser le layout large même sur mobile
+            final isWide = constraints.maxWidth > constraints.maxHeight;
 
             if (isWide) {
               return _buildWideLayout();
@@ -204,17 +218,21 @@ class _MotsMawonScreenState extends State<MotsMawonScreen> {
   }
 
   Widget _buildWideLayout() {
-    return Row(
-      children: [
-        Expanded(
-          flex: 2,
-          child: _buildGameBoard(),
-        ),
-        Expanded(
-          flex: 1,
-          child: _buildWordList(),
-        ),
-      ],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return Row(
+          children: [
+            Expanded(
+              flex: 2,
+              child: _buildGameBoard(constraints.maxWidth),
+            ),
+            Expanded(
+              flex: 1,
+              child: _buildWordList(),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -418,7 +436,7 @@ class _MotsMawonScreenState extends State<MotsMawonScreen> {
           child: Text(
             _gameData!.grid[row][col],
             style: TextStyle(
-              fontSize: isMobile ? 22 : 20,
+              fontSize: isMobile ? 18 : 20,
               fontWeight: FontWeight.bold,
               color: isInFoundWord || isSelected ? Colors.white : Colors.black,
             ),
