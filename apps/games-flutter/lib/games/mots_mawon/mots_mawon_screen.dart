@@ -293,40 +293,28 @@ class _MotsMawonScreenState extends State<MotsMawonScreen> {
     final isMobile = screenWidth != null && screenWidth < 600;
 
     return Padding(
-      padding: EdgeInsets.all(isMobile ? 8.0 : 16.0),
+      padding: EdgeInsets.all(isMobile ? 4.0 : 16.0),
       child: Column(
         children: [
-          _buildStats(),
-          SizedBox(height: isMobile ? 8 : 16),
+          // Stats compacts en mode mobile
+          if (isMobile)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  Text('⏱️ ${_formatTime(_timeElapsed)}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                  Text('🎯 $_score', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                  Text('✅ ${_foundWords.length}/${_gameData!.words.length}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                ],
+              ),
+            )
+          else
+            _buildStats(),
 
-          // Mot en cours de construction - espace réservé fixe
-          SizedBox(
-            height: isMobile ? 40 : 56,
-            child: _selectedCells.isNotEmpty
-                ? Container(
-                    padding: EdgeInsets.all(isMobile ? 8 : 12),
-                    decoration: BoxDecoration(
-                      color: Colors.amber.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.amber, width: 2),
-                    ),
-                    child: Center(
-                      child: Text(
-                        _selectedCells
-                            .map((cell) => _gameData!.grid[cell.row][cell.col])
-                            .join(''),
-                        style: TextStyle(
-                          fontSize: isMobile ? 20 : 24,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 4,
-                        ),
-                      ),
-                    ),
-                  )
-                : Container(),
-          ),
-          SizedBox(height: isMobile ? 8 : 16),
+          SizedBox(height: isMobile ? 4 : 16),
 
+          // Grille - prend tout l'espace disponible
           Expanded(
             child: AspectRatio(
               aspectRatio: 1,
@@ -334,8 +322,8 @@ class _MotsMawonScreenState extends State<MotsMawonScreen> {
                 physics: const NeverScrollableScrollPhysics(),
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: _gameData!.size,
-                  crossAxisSpacing: isMobile ? 3 : 2,
-                  mainAxisSpacing: isMobile ? 3 : 2,
+                  crossAxisSpacing: isMobile ? 4 : 2,
+                  mainAxisSpacing: isMobile ? 4 : 2,
                 ),
                 itemCount: _gameData!.size * _gameData!.size,
                 itemBuilder: (context, index) {
@@ -346,66 +334,68 @@ class _MotsMawonScreenState extends State<MotsMawonScreen> {
               ),
             ),
           ),
-          SizedBox(height: isMobile ? 8 : 16),
+          SizedBox(height: isMobile ? 4 : 16),
 
-          // Boutons de contrôle
+          // Boutons de contrôle compacts
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               Expanded(
                 child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: isMobile ? 4.0 : 8.0),
+                  padding: EdgeInsets.symmetric(horizontal: isMobile ? 2.0 : 8.0),
                   child: ElevatedButton.icon(
                     onPressed: _selectedCells.isEmpty ? null : _clearSelection,
-                    icon: Icon(Icons.clear, size: isMobile ? 16 : 20),
+                    icon: Icon(Icons.clear, size: isMobile ? 14 : 20),
                     label: Text(
                       'Annuler',
-                      style: TextStyle(fontSize: isMobile ? 14 : 16),
+                      style: TextStyle(fontSize: isMobile ? 12 : 16),
                     ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.red,
                       foregroundColor: Colors.white,
-                      padding: EdgeInsets.symmetric(vertical: isMobile ? 12 : 16),
-                      minimumSize: Size(0, isMobile ? 40 : 50),
+                      padding: EdgeInsets.symmetric(vertical: isMobile ? 8 : 16),
+                      minimumSize: Size(0, isMobile ? 32 : 50),
                     ),
                   ),
                 ),
               ),
               Expanded(
                 child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: isMobile ? 4.0 : 8.0),
+                  padding: EdgeInsets.symmetric(horizontal: isMobile ? 2.0 : 8.0),
                   child: ElevatedButton.icon(
                     onPressed: _selectedCells.isEmpty ? null : _validateSelection,
-                    icon: Icon(Icons.check, size: isMobile ? 16 : 20),
+                    icon: Icon(Icons.check, size: isMobile ? 14 : 20),
                     label: Text(
                       'Valider',
-                      style: TextStyle(fontSize: isMobile ? 14 : 16),
+                      style: TextStyle(fontSize: isMobile ? 12 : 16),
                     ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.green,
                       foregroundColor: Colors.white,
-                      padding: EdgeInsets.symmetric(vertical: isMobile ? 12 : 16),
-                      minimumSize: Size(0, isMobile ? 40 : 50),
+                      padding: EdgeInsets.symmetric(vertical: isMobile ? 8 : 16),
+                      minimumSize: Size(0, isMobile ? 32 : 50),
+                    ),
+                  ),
+                ),
+              ),
+              Expanded(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: isMobile ? 2.0 : 8.0),
+                  child: ElevatedButton.icon(
+                    onPressed: _loadAndStartGame,
+                    icon: Icon(Icons.refresh, size: isMobile ? 14 : 20),
+                    label: Text(
+                      'Nouveau',
+                      style: TextStyle(fontSize: isMobile ? 12 : 16),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      padding: EdgeInsets.symmetric(vertical: isMobile ? 8 : 16),
+                      minimumSize: Size(0, isMobile ? 32 : 50),
                     ),
                   ),
                 ),
               ),
             ],
-          ),
-          SizedBox(height: isMobile ? 8 : 16),
-          ElevatedButton.icon(
-            onPressed: _loadAndStartGame,
-            icon: Icon(Icons.refresh, size: isMobile ? 16 : 20),
-            label: Text(
-              'Nouvelle partie',
-              style: TextStyle(fontSize: isMobile ? 14 : 16),
-            ),
-            style: ElevatedButton.styleFrom(
-              padding: EdgeInsets.symmetric(
-                horizontal: isMobile ? 16 : 32,
-                vertical: isMobile ? 12 : 16,
-              ),
-            ),
           ),
         ],
       ),
@@ -470,7 +460,7 @@ class _MotsMawonScreenState extends State<MotsMawonScreen> {
           child: Text(
             _gameData!.grid[row][col],
             style: TextStyle(
-              fontSize: isMobile ? 18 : 20,
+              fontSize: isMobile ? 14 : 20,
               fontWeight: FontWeight.bold,
               color: isInFoundWord || isSelected ? Colors.white : Colors.black,
             ),
