@@ -184,8 +184,10 @@ class _MetDoubleLobbyScreenState extends State<MetDoubleLobbyScreen> {
   }
 
   void _copySessionCode() {
-    // Utiliser les 6 premiers caractères de l'ID comme code
-    final code = _currentSession.id.substring(0, 6).toUpperCase();
+    // Utiliser le code généré par Supabase
+    final code = _currentSession.joinCode ?? '';
+    if (code.isEmpty) return;
+
     Clipboard.setData(ClipboardData(text: code));
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Code copié dans le presse-papiers')),
@@ -229,7 +231,7 @@ class _MetDoubleLobbyScreenState extends State<MetDoubleLobbyScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        _currentSession.id.substring(0, 6).toUpperCase(),
+                        _currentSession.joinCode ?? 'N/A',
                         style: const TextStyle(
                           fontSize: 32,
                           fontWeight: FontWeight.bold,
