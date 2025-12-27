@@ -224,7 +224,7 @@ class _MotsMawonScreenState extends State<MotsMawonScreen> {
         return Column(
           children: [
             Expanded(
-              flex: 3,
+              flex: 4,
               child: _buildGameBoard(constraints.maxWidth),
             ),
             Expanded(
@@ -418,7 +418,7 @@ class _MotsMawonScreenState extends State<MotsMawonScreen> {
           child: Text(
             _gameData!.grid[row][col],
             style: TextStyle(
-              fontSize: isMobile ? 28 : 20,
+              fontSize: isMobile ? 22 : 20,
               fontWeight: FontWeight.bold,
               color: isInFoundWord || isSelected ? Colors.white : Colors.black,
             ),
