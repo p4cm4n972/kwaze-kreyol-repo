@@ -140,11 +140,47 @@ class _MetDoubleHomeScreenState extends State<MetDoubleHomeScreen> {
       ),
     );
 
-    if (code != null && code.isNotEmpty) {
-      // TODO: Implémenter la jonction par code
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Fonctionnalité à venir')),
+    if (code == null || code.isEmpty || code.length != 6) {
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      // Récupérer l'ID utilisateur ou le nom d'invité
+      final userId = _authService.getUserIdOrNull();
+      String? guestName;
+
+      if (userId == null) {
+        guestName = await _authService.getGuestName();
+      }
+
+      // Rejoindre la session
+      final session = await _metDoubleService.joinSessionWithCode(
+        joinCode: code,
+        userId: userId,
+        guestName: guestName,
       );
+
+      if (mounted) {
+        // Naviguer vers le lobby de la session
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => MetDoubleLobbyScreen(session: session),
+          ),
+        ).then((_) => _loadData());
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur: $e')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 

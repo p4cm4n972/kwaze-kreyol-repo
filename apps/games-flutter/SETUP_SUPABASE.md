@@ -49,6 +49,7 @@ CREATE TABLE users (
 CREATE TABLE met_double_sessions (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   host_id UUID NOT NULL REFERENCES users(id),
+  join_code TEXT UNIQUE, -- Code à 6 chiffres pour rejoindre la session
   status TEXT NOT NULL DEFAULT 'waiting', -- waiting, in_progress, completed, cancelled
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   started_at TIMESTAMP WITH TIME ZONE,
@@ -158,6 +159,52 @@ DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+
+-- ========================================
+-- GÉNÉRATION CODE DE SESSION (MÉT DOUBLE)
+-- ========================================
+-- Fonction pour générer un code unique à 6 chiffres
+CREATE OR REPLACE FUNCTION generate_unique_join_code()
+RETURNS TEXT AS $$
+DECLARE
+  new_code TEXT;
+  code_exists BOOLEAN;
+BEGIN
+  LOOP
+    -- Générer un code aléatoire à 6 chiffres
+    new_code := LPAD(FLOOR(RANDOM() * 1000000)::TEXT, 6, '0');
+
+    -- Vérifier si le code existe déjà dans les sessions actives (waiting ou in_progress)
+    SELECT EXISTS(
+      SELECT 1 FROM met_double_sessions
+      WHERE join_code = new_code
+        AND status IN ('waiting', 'in_progress')
+    ) INTO code_exists;
+
+    -- Si le code n'existe pas, on sort de la boucle
+    EXIT WHEN NOT code_exists;
+  END LOOP;
+
+  RETURN new_code;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Fonction pour assigner un code lors de la création d'une session
+CREATE OR REPLACE FUNCTION assign_join_code()
+RETURNS TRIGGER AS $$
+BEGIN
+  IF NEW.join_code IS NULL THEN
+    NEW.join_code := generate_unique_join_code();
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Trigger pour assigner automatiquement un code à chaque nouvelle session
+DROP TRIGGER IF EXISTS on_session_created ON met_double_sessions;
+CREATE TRIGGER on_session_created
+  BEFORE INSERT ON met_double_sessions
+  FOR EACH ROW EXECUTE FUNCTION assign_join_code();
 
 -- ========================================
 -- AUTRES FONCTIONS

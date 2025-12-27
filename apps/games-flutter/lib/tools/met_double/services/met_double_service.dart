@@ -103,6 +103,43 @@ class MetDoubleService {
     }
   }
 
+  // Rejoindre une session via le code à 6 chiffres
+  Future<MetDoubleSession> joinSessionWithCode({
+    required String joinCode,
+    String? userId,
+    String? guestName,
+  }) async {
+    try {
+      // Rechercher la session par le code
+      final response = await _supabase
+          .from('met_double_sessions')
+          .select('id')
+          .eq('join_code', joinCode)
+          .eq('status', 'waiting') // Seulement les sessions en attente
+          .maybeSingle();
+
+      if (response == null) {
+        throw Exception('Code invalide ou session déjà commencée');
+      }
+
+      final sessionId = response['id'] as String;
+
+      // Rejoindre selon le type (utilisateur ou invité)
+      if (userId != null) {
+        await joinSessionAsUser(sessionId: sessionId, userId: userId);
+      } else if (guestName != null) {
+        await joinSessionAsGuest(sessionId: sessionId, guestName: guestName);
+      } else {
+        throw Exception('Utilisateur ou nom d\'invité requis');
+      }
+
+      // Retourner la session complète
+      return await getSession(sessionId);
+    } catch (e) {
+      throw Exception('Erreur lors de la jonction avec le code: $e');
+    }
+  }
+
   // Envoyer une invitation
   Future<void> sendInvitation({
     required String sessionId,

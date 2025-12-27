@@ -1,6 +1,7 @@
 class MetDoubleSession {
   final String id;
   final String hostId;
+  final String? joinCode; // Code à 6 chiffres pour rejoindre la session
   final String status; // waiting, in_progress, completed, cancelled
   final DateTime createdAt;
   final DateTime? startedAt;
@@ -14,6 +15,7 @@ class MetDoubleSession {
   MetDoubleSession({
     required this.id,
     required this.hostId,
+    this.joinCode,
     required this.status,
     required this.createdAt,
     this.startedAt,
@@ -29,6 +31,7 @@ class MetDoubleSession {
     return MetDoubleSession(
       id: json['id'] as String,
       hostId: json['host_id'] as String,
+      joinCode: json['join_code'] as String?,
       status: json['status'] as String? ?? 'waiting',
       createdAt: DateTime.parse(json['created_at'] as String),
       startedAt: json['started_at'] != null
