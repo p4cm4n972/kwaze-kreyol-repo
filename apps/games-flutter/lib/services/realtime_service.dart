@@ -19,6 +19,8 @@ class RealtimeService {
       unsubscribeFromSession(sessionId);
     }
 
+    print('📡 Realtime: Création canal $channelName');
+
     final channel = _supabase
         .channel(channelName)
         .onPostgresChanges(
@@ -31,6 +33,7 @@ class RealtimeService {
             value: sessionId,
           ),
           callback: (payload) async {
+            print('🔔 Realtime: Changement dans met_double_sessions');
             // Recharger toute la session avec les relations
             await _loadAndEmitSession(sessionId, controller);
           },
@@ -45,6 +48,7 @@ class RealtimeService {
             value: sessionId,
           ),
           callback: (payload) async {
+            print('🔔 Realtime: Changement dans met_double_participants');
             await _loadAndEmitSession(sessionId, controller);
           },
         )
@@ -58,12 +62,14 @@ class RealtimeService {
             value: sessionId,
           ),
           callback: (payload) async {
+            print('🔔 Realtime: Changement dans met_double_rounds');
             await _loadAndEmitSession(sessionId, controller);
           },
         )
         .subscribe();
 
     _channels[channelName] = channel;
+    print('✅ Realtime: Canal $channelName créé et souscrit');
 
     // Charger la session initiale
     _loadAndEmitSession(sessionId, controller);
@@ -77,6 +83,7 @@ class RealtimeService {
     StreamController<MetDoubleSession> controller,
   ) async {
     try {
+      print('🔄 Realtime: Chargement session $sessionId');
       final response = await _supabase
           .from('met_double_sessions')
           .select('''
@@ -91,8 +98,10 @@ class RealtimeService {
           .single();
 
       final session = MetDoubleSession.fromJson(response);
+      print('✅ Realtime: Session chargée avec ${session.participants.length} participants');
       controller.add(session);
     } catch (e) {
+      print('❌ Realtime: Erreur $e');
       controller.addError(e);
     }
   }
