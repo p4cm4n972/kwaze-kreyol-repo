@@ -16,20 +16,22 @@ const heroData = {
   id: 'hero',
   logo: '/images/logo-kk.webp',
   title: 'Kwazé Kréyol',
-  subtitle: 'La plateforme interactive de la langue et de la culture martiniquaise.',
+  subtitle: 'Apprendre, jouer, partager… en créole martiniquais.',
   presentation: (
-    <>
-      Valoriser la{' '}
-      <strong className="font-bold text-madras-yellow">
-        langue créole martiniquaise
-      </strong>{' '}
-      à travers le numérique. Que ce soit pour apprendre, jouer ou échanger,
-      notre mission est de mettre le créole au cœur du digital, avec{' '}
-      <strong className="font-bold text-madras-red">
-        respect, fierté et modernité
-      </strong>
-      .
-    </>
+   <>
+   La
+  rencontre entre tradition et innovation. <br />
+  Le{' '}
+  <strong className="font-bold text-madras-yellow">
+    créole martiniquais
+  </strong>{' '}
+  y vit, s’apprend, se joue et se partage, avec{' '}
+  <strong className="font-bold text-madras-red">
+    fierté, respect et modernité
+  </strong>
+  .
+</>
+
   ),
 };
 
