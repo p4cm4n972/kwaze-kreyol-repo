@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../services/auth_service.dart';
+import '../services/realtime_service.dart';
+import '../models/friend_request.dart';
 import 'auth_screen.dart';
 
 class GamesHomeScreen extends StatefulWidget {
@@ -12,13 +14,25 @@ class GamesHomeScreen extends StatefulWidget {
 
 class _GamesHomeScreenState extends State<GamesHomeScreen> {
   final AuthService _authService = AuthService();
+  final RealtimeService _realtimeService = RealtimeService();
   bool _isAuthenticated = false;
   String? _displayName;
+  int _pendingRequestsCount = 0;
 
   @override
   void initState() {
     super.initState();
     _checkAuth();
+    _subscribeToFriendRequests();
+  }
+
+  @override
+  void dispose() {
+    final userId = _authService.getUserIdOrNull();
+    if (userId != null) {
+      _realtimeService.unsubscribeFromFriendRequests(userId);
+    }
+    super.dispose();
   }
 
   Future<void> _checkAuth() async {
@@ -52,6 +66,26 @@ class _GamesHomeScreenState extends State<GamesHomeScreen> {
     }
   }
 
+  void _subscribeToFriendRequests() {
+    final userId = _authService.getUserIdOrNull();
+    if (userId != null) {
+      _realtimeService
+          .subscribeToFriendRequests(userId)
+          .listen(
+            (requests) {
+              if (mounted) {
+                setState(() {
+                  _pendingRequestsCount = requests.length;
+                });
+              }
+            },
+            onError: (e) {
+              // Silently fail for now
+            },
+          );
+    }
+  }
+
   Future<void> _logout() async {
     await _authService.signOut();
     _checkAuth();
@@ -63,42 +97,48 @@ class _GamesHomeScreenState extends State<GamesHomeScreen> {
       {
         'id': 'mots-mawon',
         'name': 'Mots Mawon',
-        'description': 'Jeu de mots cachés en créole martiniquais. Retrouve les mots dissimulés dans la grille !',
+        'description':
+            'Jeu de mots cachés en créole martiniquais. Retrouve les mots dissimulés dans la grille !',
         'iconPath': 'assets/icons/mots-mawon.png',
         'available': true,
       },
       {
         'id': 'skrabb',
         'name': 'Skrabb',
-        'description': 'Scrabble créole ! Forme des mots en créole et marque un maximum de points.',
+        'description':
+            'Scrabble créole ! Forme des mots en créole et marque un maximum de points.',
         'iconPath': 'assets/icons/skrabb.png',
         'available': false,
       },
       {
         'id': 'endorlisseur',
         'name': 'Endorlisseur',
-        'description': 'Jeu de stratégie inspiré de la culture créole martiniquaise.',
+        'description':
+            'Jeu de stratégie inspiré de la culture créole martiniquaise.',
         'iconPath': 'assets/icons/endorlisseur.png',
         'available': false,
       },
       {
         'id': 'double-siz',
         'name': 'Double Siz',
-        'description': 'Jeu de dominos aux règles martiniquaises. Affronte tes adversaires !',
+        'description':
+            'Jeu de dominos aux règles martiniquaises. Affronte tes adversaires !',
         'iconPath': 'assets/icons/double-siz.png',
         'available': false,
       },
       {
         'id': 'koze-kwaze',
         'name': 'Kozé Kwazé',
-        'description': 'Traducteur créole intelligent. Recherche, traduis et contribue !',
+        'description':
+            'Traducteur créole intelligent. Recherche, traduis et contribue !',
         'iconPath': 'assets/icons/koze-kwaze.png',
         'available': true,
       },
       {
         'id': 'met-double',
         'name': 'Mét Double',
-        'description': 'Outil pour suivre tes parties de dominos et statistiques cochons !',
+        'description':
+            'Outil pour suivre tes parties de dominos et statistiques cochons !',
         'iconPath': 'assets/icons/met-double.png',
         'available': true,
       },
@@ -112,15 +152,44 @@ class _GamesHomeScreenState extends State<GamesHomeScreen> {
           alignment: Alignment.topRight,
           child: _isAuthenticated
               ? PopupMenuButton<String>(
-                  icon: CircleAvatar(
-                    backgroundColor: const Color(0xFFFFD700),
-                    child: Text(
-                      (_displayName ?? 'U')[0].toUpperCase(),
-                      style: const TextStyle(
-                        color: Colors.black,
-                        fontWeight: FontWeight.bold,
+                  icon: Stack(
+                    children: [
+                      CircleAvatar(
+                        backgroundColor: const Color(0xFFFFD700),
+                        child: Text(
+                          (_displayName ?? 'U')[0].toUpperCase(),
+                          style: const TextStyle(
+                            color: Colors.black,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
-                    ),
+                      if (_pendingRequestsCount > 0)
+                        Positioned(
+                          right: 0,
+                          top: 0,
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: const BoxDecoration(
+                              color: Colors.red,
+                              shape: BoxShape.circle,
+                            ),
+                            constraints: const BoxConstraints(
+                              minWidth: 16,
+                              minHeight: 16,
+                            ),
+                            child: Text(
+                              '$_pendingRequestsCount',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
                   itemBuilder: (context) => <PopupMenuEntry<String>>[
                     PopupMenuItem<String>(
@@ -132,13 +201,31 @@ class _GamesHomeScreenState extends State<GamesHomeScreen> {
                       ),
                     ),
                     const PopupMenuDivider(),
-                    const PopupMenuItem<String>(
+                    PopupMenuItem<String>(
                       value: 'friends',
                       child: Row(
                         children: [
-                          Icon(Icons.people),
-                          SizedBox(width: 8),
-                          Text('Mes Amis'),
+                          const Icon(Icons.people),
+                          const SizedBox(width: 8),
+                          const Text('Mes Amis'),
+                          if (_pendingRequestsCount > 0) ...[
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: const BoxDecoration(
+                                color: Colors.red,
+                                shape: BoxShape.circle,
+                              ),
+                              child: Text(
+                                '$_pendingRequestsCount',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ],
                         ],
                       ),
                     ),
@@ -173,11 +260,7 @@ class _GamesHomeScreenState extends State<GamesHomeScreen> {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [
-              Color(0xFF1a1a2e),
-              Color(0xFF16213e),
-              Color(0xFF0f3460),
-            ],
+            colors: [Color(0xFF1a1a2e), Color(0xFF16213e), Color(0xFF0f3460)],
           ),
         ),
         child: SafeArea(
@@ -225,8 +308,8 @@ class _GamesHomeScreenState extends State<GamesHomeScreen> {
                     final crossAxisCount = constraints.maxWidth > 800
                         ? 3
                         : constraints.maxWidth > 500
-                            ? 2
-                            : 1;
+                        ? 2
+                        : 1;
 
                     return GridView.builder(
                       shrinkWrap: true,
@@ -407,10 +490,7 @@ class _GameCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.white.withOpacity(0.05),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: Colors.white.withOpacity(0.1),
-            width: 1,
-          ),
+          border: Border.all(color: Colors.white.withOpacity(0.1), width: 1),
         ),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(16),
@@ -487,21 +567,14 @@ class _GameCard extends StatelessWidget {
                       decoration: BoxDecoration(
                         gradient: available
                             ? const LinearGradient(
-                                colors: [
-                                  Color(0xFFFFD700),
-                                  Color(0xFFFF8C00),
-                                ],
+                                colors: [Color(0xFFFFD700), Color(0xFFFF8C00)],
                               )
                             : null,
-                        color: available
-                            ? null
-                            : Colors.grey.withOpacity(0.5),
+                        color: available ? null : Colors.grey.withOpacity(0.5),
                         borderRadius: BorderRadius.circular(8),
                         border: available
                             ? null
-                            : Border.all(
-                                color: Colors.grey.withOpacity(0.5),
-                              ),
+                            : Border.all(color: Colors.grey.withOpacity(0.5)),
                       ),
                       child: Material(
                         color: Colors.transparent,
