@@ -133,6 +133,16 @@ class _GamesHomeScreenState extends State<GamesHomeScreen> {
                     ),
                     const PopupMenuDivider(),
                     const PopupMenuItem<String>(
+                      value: 'friends',
+                      child: Row(
+                        children: [
+                          Icon(Icons.people),
+                          SizedBox(width: 8),
+                          Text('Mes Amis'),
+                        ],
+                      ),
+                    ),
+                    const PopupMenuItem<String>(
                       value: 'logout',
                       child: Row(
                         children: [
@@ -146,6 +156,8 @@ class _GamesHomeScreenState extends State<GamesHomeScreen> {
                   onSelected: (value) {
                     if (value == 'logout') {
                       _logout();
+                    } else if (value == 'friends') {
+                      context.go('/friends');
                     }
                   },
                 )
