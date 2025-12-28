@@ -2,11 +2,15 @@ class Word {
   final String text;
   final List<CellPosition> cells;
   bool found;
+  final String? definition; // Traduction/définition du mot
+  final String? nature; // Nature grammaticale (nom, verbe, etc.)
 
   Word({
     required this.text,
     required this.cells,
     this.found = false,
+    this.definition,
+    this.nature,
   });
 }
 

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'screens/games_home_screen.dart';
+import 'screens/auth_screen.dart';
 import 'games/mots_mawon/mots_mawon_screen.dart';
+import 'games/mots_mawon/screens/mots_mawon_leaderboard_screen.dart';
 import 'tools/met_double/screens/met_double_home_screen.dart';
 import 'tools/met_double/screens/met_double_general_stats_screen.dart';
 import 'tools/translator/screens/translator_screen.dart';
@@ -49,8 +51,20 @@ final _router = GoRouter(
       builder: (context, state) => const GamesHomeScreen(),
     ),
     GoRoute(
+      path: '/auth',
+      builder: (context, state) => AuthScreen(
+        onSuccess: () {
+          // Callback après connexion réussie
+        },
+      ),
+    ),
+    GoRoute(
       path: '/mots-mawon',
       builder: (context, state) => const MotsMawonScreen(),
+    ),
+    GoRoute(
+      path: '/mots-mawon/leaderboard',
+      builder: (context, state) => const MotsMawonLeaderboardScreen(),
     ),
     GoRoute(
       path: '/met-double',

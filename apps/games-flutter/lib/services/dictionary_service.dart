@@ -50,4 +50,10 @@ class DictionaryService {
     final shuffled = List<DictionaryEntry>.from(entries)..shuffle();
     return shuffled.take(count).map((e) => e.mot).toList();
   }
+
+  /// Retourne des entrées aléatoires complètes avec définitions
+  List<DictionaryEntry> getRandomEntries(List<DictionaryEntry> entries, int count) {
+    final shuffled = List<DictionaryEntry>.from(entries)..shuffle();
+    return shuffled.take(count).toList();
+  }
 }

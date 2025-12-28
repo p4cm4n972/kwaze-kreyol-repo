@@ -13,12 +13,18 @@ class AuthService {
     required String email,
     required String password,
     String? username,
+    String? postalCode,
+    String? phone,
   }) async {
     try {
       final response = await _supabase.auth.signUp(
         email: email,
         password: password,
-        data: {'username': username},
+        data: {
+          'username': username,
+          'postal_code': postalCode,
+          'phone': phone,
+        },
       );
 
       if (response.user != null) {

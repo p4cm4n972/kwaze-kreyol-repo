@@ -1,5 +1,6 @@
 import 'dart:math';
 import '../models/word.dart';
+import '../models/dictionary_entry.dart';
 
 class WordSearchGenerator {
   static const List<Direction> _directions = [
@@ -44,7 +45,52 @@ class WordSearchGenerator {
     );
   }
 
-  static Word? _placeWord(List<List<String>> grid, String word, int size) {
+  /// Génère une grille à partir d'entrées de dictionnaire avec définitions
+  static WordSearchGrid generateWithDefinitions(List<DictionaryEntry> entries, {int size = 12}) {
+    final grid = List.generate(size, (_) => List<String>.filled(size, ''));
+    final placedWords = <Word>[];
+
+    // Filtrer et normaliser les entrées
+    final validEntries = entries
+        .where((e) => e.mot.length >= 3 && e.mot.length <= size)
+        .take(10)
+        .toList();
+
+    // Placer les mots avec leurs définitions
+    for (final entry in validEntries) {
+      final normalizedWord = _normalizeWord(entry.mot.toUpperCase());
+      final placed = _placeWord(grid, normalizedWord, size,
+        definition: entry.definitions.isNotEmpty ? entry.definitions.first.traduction : null,
+        nature: entry.definitions.isNotEmpty ? entry.definitions.first.nature : null,
+      );
+      if (placed != null) {
+        placedWords.add(placed);
+      }
+    }
+
+    // Remplir les cases vides
+    for (int row = 0; row < size; row++) {
+      for (int col = 0; col < size; col++) {
+        if (grid[row][col].isEmpty) {
+          grid[row][col] = _getRandomLetter();
+        }
+      }
+    }
+
+    return WordSearchGrid(
+      grid: grid,
+      words: placedWords,
+      size: size,
+    );
+  }
+
+  static Word? _placeWord(
+    List<List<String>> grid,
+    String word,
+    int size, {
+    String? definition,
+    String? nature,
+  }) {
     final random = Random();
     const maxAttempts = 100;
 
@@ -63,7 +109,12 @@ class WordSearchGenerator {
           cells.add(CellPosition(row, col));
         }
 
-        return Word(text: word, cells: cells);
+        return Word(
+          text: word,
+          cells: cells,
+          definition: definition,
+          nature: nature,
+        );
       }
     }
 
