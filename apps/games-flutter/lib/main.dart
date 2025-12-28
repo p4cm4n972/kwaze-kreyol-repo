@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'screens/games_home_screen.dart';
 import 'screens/auth_screen.dart';
+import 'screens/friends_list_screen.dart';
+import 'screens/add_friend_screen.dart';
+import 'screens/email_invitation_screen.dart';
 import 'games/mots_mawon/mots_mawon_screen.dart';
 import 'games/mots_mawon/screens/mots_mawon_leaderboard_screen.dart';
 import 'tools/met_double/screens/met_double_home_screen.dart';
@@ -46,10 +49,7 @@ class KwazeKreyolGamesApp extends StatelessWidget {
 final _router = GoRouter(
   initialLocation: '/',
   routes: [
-    GoRoute(
-      path: '/',
-      builder: (context, state) => const GamesHomeScreen(),
-    ),
+    GoRoute(path: '/', builder: (context, state) => const GamesHomeScreen()),
     GoRoute(
       path: '/auth',
       builder: (context, state) => AuthScreen(
@@ -77,6 +77,18 @@ final _router = GoRouter(
     GoRoute(
       path: '/koze-kwaze',
       builder: (context, state) => const TranslatorScreen(),
+    ),
+    GoRoute(
+      path: '/friends',
+      builder: (context, state) => const FriendsListScreen(),
+    ),
+    GoRoute(
+      path: '/friends/add',
+      builder: (context, state) => const AddFriendScreen(),
+    ),
+    GoRoute(
+      path: '/friends/invite-email',
+      builder: (context, state) => const EmailInvitationScreen(),
     ),
   ],
 );
