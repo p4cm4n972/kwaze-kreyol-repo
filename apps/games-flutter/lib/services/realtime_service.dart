@@ -229,7 +229,7 @@ class RealtimeService {
           .from('friend_requests')
           .select('''
             *,
-            sender:users!sender_id (username, avatar_url)
+            sender:users!sender_id(username, avatar_url)
           ''')
           .eq('receiver_id', userId)
           .eq('status', 'pending')

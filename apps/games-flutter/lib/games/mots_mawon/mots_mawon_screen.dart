@@ -75,14 +75,16 @@ class _MotsMawonScreenState extends State<MotsMawonScreen> {
     if (_currentGame == null) return;
 
     // Fire and forget - pas de setState car le widget est détruit
-    _motsMawonService.saveGameProgress(
-      gameId: _currentGame!.id,
-      foundWords: _foundWords,
-      score: _score,
-      timeElapsed: _timeElapsed,
-    ).catchError((e) {
-      debugPrint('Erreur de sauvegarde finale: $e');
-    });
+    _motsMawonService
+        .saveGameProgress(
+          gameId: _currentGame!.id,
+          foundWords: _foundWords,
+          score: _score,
+          timeElapsed: _timeElapsed,
+        )
+        .catchError((e) {
+          debugPrint('Erreur de sauvegarde finale: $e');
+        });
   }
 
   /// Vérifie l'authentification et charge la partie en cours ou démarre une nouvelle
@@ -143,9 +145,9 @@ class _MotsMawonScreenState extends State<MotsMawonScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Erreur: $e')));
       }
       await _loadAndStartGame();
     }
@@ -254,10 +256,17 @@ class _MotsMawonScreenState extends State<MotsMawonScreen> {
               children: [
                 const Text('Vous avez trouvé tous les mots !'),
                 const SizedBox(height: 16),
-                Text('Score: $_score points',
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                Text('Temps: ${_formatTime(_timeElapsed)}',
-                    style: const TextStyle(fontSize: 16)),
+                Text(
+                  'Score: $_score points',
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Text(
+                  'Temps: ${_formatTime(_timeElapsed)}',
+                  style: const TextStyle(fontSize: 16),
+                ),
               ],
             ),
             actions: [
@@ -327,7 +336,9 @@ class _MotsMawonScreenState extends State<MotsMawonScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur lors de la création de la partie: $e')),
+          SnackBar(
+            content: Text('Erreur lors de la création de la partie: $e'),
+          ),
         );
       }
     }
@@ -383,7 +394,8 @@ class _MotsMawonScreenState extends State<MotsMawonScreen> {
         foundWord.found = true;
 
         // Assigner une couleur madras au mot trouvé
-        _wordColors[foundWord.text] = _madrasColors[_foundWords.length % _madrasColors.length];
+        _wordColors[foundWord.text] =
+            _madrasColors[_foundWords.length % _madrasColors.length];
       });
 
       // Sauvegarder la progression après chaque mot trouvé
@@ -415,11 +427,7 @@ class _MotsMawonScreenState extends State<MotsMawonScreen> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Scaffold(
-        body: Center(
-          child: CircularProgressIndicator(),
-        ),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     if (_gameData == null) {
@@ -506,14 +514,8 @@ class _MotsMawonScreenState extends State<MotsMawonScreen> {
       builder: (context, constraints) {
         return Row(
           children: [
-            Expanded(
-              flex: 2,
-              child: _buildGameBoard(constraints.maxWidth),
-            ),
-            Expanded(
-              flex: 1,
-              child: _buildWordList(),
-            ),
+            Expanded(flex: 2, child: _buildGameBoard(constraints.maxWidth)),
+            Expanded(flex: 1, child: _buildWordList()),
           ],
         );
       },
@@ -525,14 +527,8 @@ class _MotsMawonScreenState extends State<MotsMawonScreen> {
       builder: (context, constraints) {
         return Column(
           children: [
-            Expanded(
-              flex: 5,
-              child: _buildGameBoard(constraints.maxWidth),
-            ),
-            SizedBox(
-              height: 70,
-              child: _buildWordList(),
-            ),
+            Expanded(flex: 5, child: _buildGameBoard(constraints.maxWidth)),
+            SizedBox(height: 45, child: _buildWordList()),
           ],
         );
       },
@@ -543,7 +539,7 @@ class _MotsMawonScreenState extends State<MotsMawonScreen> {
     final isMobile = screenWidth != null && screenWidth < 600;
 
     return Padding(
-      padding: EdgeInsets.all(isMobile ? 4.0 : 16.0),
+      padding: EdgeInsets.all(isMobile ? 16.0 : 16.0),
       child: Column(
         children: [
           // Stats compacts en mode mobile
@@ -553,9 +549,15 @@ class _MotsMawonScreenState extends State<MotsMawonScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  _buildMobileStatItem('assets/icons/clock.svg', _formatTime(_timeElapsed)),
+                  _buildMobileStatItem(
+                    'assets/icons/clock.svg',
+                    _formatTime(_timeElapsed),
+                  ),
                   _buildMobileStatItem('assets/icons/trophy.svg', '$_score'),
-                  _buildMobileStatItem('assets/icons/check_circle.svg', '${_foundWords.length}/${_gameData!.words.length}'),
+                  _buildMobileStatItem(
+                    'assets/icons/check_circle.svg',
+                    '${_foundWords.length}/${_gameData!.words.length}',
+                  ),
                 ],
               ),
             )
@@ -592,7 +594,9 @@ class _MotsMawonScreenState extends State<MotsMawonScreen> {
             children: [
               Expanded(
                 child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: isMobile ? 2.0 : 8.0),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: isMobile ? 2.0 : 8.0,
+                  ),
                   child: ElevatedButton.icon(
                     onPressed: _selectedCells.isEmpty ? null : _clearSelection,
                     icon: Icon(Icons.clear, size: isMobile ? 14 : 20),
@@ -603,7 +607,9 @@ class _MotsMawonScreenState extends State<MotsMawonScreen> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.red,
                       foregroundColor: Colors.white,
-                      padding: EdgeInsets.symmetric(vertical: isMobile ? 8 : 16),
+                      padding: EdgeInsets.symmetric(
+                        vertical: isMobile ? 8 : 16,
+                      ),
                       minimumSize: Size(0, isMobile ? 32 : 50),
                     ),
                   ),
@@ -611,9 +617,13 @@ class _MotsMawonScreenState extends State<MotsMawonScreen> {
               ),
               Expanded(
                 child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: isMobile ? 2.0 : 8.0),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: isMobile ? 2.0 : 8.0,
+                  ),
                   child: ElevatedButton.icon(
-                    onPressed: _selectedCells.isEmpty ? null : _validateSelection,
+                    onPressed: _selectedCells.isEmpty
+                        ? null
+                        : _validateSelection,
                     icon: Icon(Icons.check, size: isMobile ? 14 : 20),
                     label: Text(
                       'Valider',
@@ -622,7 +632,9 @@ class _MotsMawonScreenState extends State<MotsMawonScreen> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.green,
                       foregroundColor: Colors.white,
-                      padding: EdgeInsets.symmetric(vertical: isMobile ? 8 : 16),
+                      padding: EdgeInsets.symmetric(
+                        vertical: isMobile ? 8 : 16,
+                      ),
                       minimumSize: Size(0, isMobile ? 32 : 50),
                     ),
                   ),
@@ -630,7 +642,9 @@ class _MotsMawonScreenState extends State<MotsMawonScreen> {
               ),
               Expanded(
                 child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: isMobile ? 2.0 : 8.0),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: isMobile ? 2.0 : 8.0,
+                  ),
                   child: ElevatedButton.icon(
                     onPressed: _loadAndStartGame,
                     icon: Icon(Icons.refresh, size: isMobile ? 14 : 20),
@@ -639,7 +653,9 @@ class _MotsMawonScreenState extends State<MotsMawonScreen> {
                       style: TextStyle(fontSize: isMobile ? 12 : 16),
                     ),
                     style: ElevatedButton.styleFrom(
-                      padding: EdgeInsets.symmetric(vertical: isMobile ? 8 : 16),
+                      padding: EdgeInsets.symmetric(
+                        vertical: isMobile ? 8 : 16,
+                      ),
                       minimumSize: Size(0, isMobile ? 32 : 50),
                     ),
                   ),
@@ -656,9 +672,15 @@ class _MotsMawonScreenState extends State<MotsMawonScreen> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: [
-        _buildStatItemWithSvg('assets/icons/clock.svg', _formatTime(_timeElapsed)),
+        _buildStatItemWithSvg(
+          'assets/icons/clock.svg',
+          _formatTime(_timeElapsed),
+        ),
         _buildStatItemWithSvg('assets/icons/trophy.svg', '$_score pts'),
-        _buildStatItemWithSvg('assets/icons/check_circle.svg', '${_foundWords.length}/${_gameData!.words.length}'),
+        _buildStatItemWithSvg(
+          'assets/icons/check_circle.svg',
+          '${_foundWords.length}/${_gameData!.words.length}',
+        ),
       ],
     );
   }
@@ -681,11 +703,7 @@ class _MotsMawonScreenState extends State<MotsMawonScreen> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          SvgPicture.asset(
-            svgPath,
-            width: 20,
-            height: 20,
-          ),
+          SvgPicture.asset(svgPath, width: 20, height: 20),
           const SizedBox(width: 8),
           Text(
             text,
@@ -704,11 +722,7 @@ class _MotsMawonScreenState extends State<MotsMawonScreen> {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        SvgPicture.asset(
-          svgPath,
-          width: 14,
-          height: 14,
-        ),
+        SvgPicture.asset(svgPath, width: 14, height: 14),
         const SizedBox(width: 4),
         Text(
           text,
@@ -741,9 +755,13 @@ class _MotsMawonScreenState extends State<MotsMawonScreen> {
       // Utiliser la couleur madras assignée au mot
       cellColor = _wordColors[foundWordText!] ?? Colors.green;
     } else if (isSelected) {
-      cellColor = const Color(0xFFE74C3C).withOpacity(0.7); // Rouge madras pour sélection
+      cellColor = const Color(
+        0xFFE74C3C,
+      ).withOpacity(0.7); // Rouge madras pour sélection
     } else {
-      cellColor = Colors.white.withOpacity(0.3); // Transparence pour glassmorphisme
+      cellColor = Colors.white.withOpacity(
+        0.3,
+      ); // Transparence pour glassmorphisme
     }
 
     return GestureDetector(
@@ -751,9 +769,7 @@ class _MotsMawonScreenState extends State<MotsMawonScreen> {
       child: Container(
         decoration: BoxDecoration(
           // Effet glassmorphisme
-          color: isInFoundWord || isSelected
-              ? cellColor
-              : cellColor,
+          color: isInFoundWord || isSelected ? cellColor : cellColor,
           borderRadius: BorderRadius.circular(8),
           border: isSelected
               ? Border.all(color: const Color(0xFFE74C3C), width: 2)
@@ -790,7 +806,9 @@ class _MotsMawonScreenState extends State<MotsMawonScreen> {
                   style: TextStyle(
                     fontSize: isMobile ? 14 : 20,
                     fontWeight: FontWeight.bold,
-                    color: isInFoundWord || isSelected ? Colors.white : Colors.black87,
+                    color: isInFoundWord || isSelected
+                        ? Colors.white
+                        : Colors.black87,
                     shadows: isInFoundWord || isSelected
                         ? [
                             const Shadow(
@@ -840,17 +858,17 @@ class _MotsMawonScreenState extends State<MotsMawonScreen> {
               ),
               if (_isGameComplete)
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: const Color(0xFFF39C12),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Row(
                     children: [
-                      const Text(
-                        '🎉',
-                        style: TextStyle(fontSize: 12),
-                      ),
+                      const Text('🎉', style: TextStyle(fontSize: 12)),
                       const SizedBox(width: 4),
                       Text(
                         '${_formatTime(_timeElapsed)} - $_score pts',
@@ -876,19 +894,26 @@ class _MotsMawonScreenState extends State<MotsMawonScreen> {
                   flex: _selectedWordForDefinition != null ? 2 : 3,
                   child: ListView.separated(
                     itemCount: _gameData!.words.length,
-                    separatorBuilder: (context, index) => const SizedBox(height: 6),
+                    separatorBuilder: (context, index) =>
+                        const SizedBox(height: 6),
                     itemBuilder: (context, index) {
                       final word = _gameData!.words[index];
                       final isFound = _foundWords.contains(word.text);
-                      final wordColor = _wordColors[word.text] ?? const Color(0xFF27AE60);
+                      final wordColor =
+                          _wordColors[word.text] ?? const Color(0xFF27AE60);
                       final isSelected = _selectedWordForDefinition == word;
 
                       return Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 8,
+                        ),
                         decoration: BoxDecoration(
                           color: isSelected
                               ? wordColor.withOpacity(0.2)
-                              : (isFound ? wordColor.withOpacity(0.1) : Colors.grey[50]),
+                              : (isFound
+                                    ? wordColor.withOpacity(0.1)
+                                    : Colors.grey[50]),
                           borderRadius: BorderRadius.circular(8),
                           border: Border.all(
                             color: isSelected
@@ -913,17 +938,91 @@ class _MotsMawonScreenState extends State<MotsMawonScreen> {
                                   fontSize: 13,
                                   fontWeight: FontWeight.bold,
                                   color: isFound ? wordColor : Colors.black87,
-                                  decoration: isFound ? TextDecoration.lineThrough : null,
+                                  decoration: isFound
+                                      ? TextDecoration.lineThrough
+                                      : null,
                                 ),
                               ),
                             ),
                             // Bouton "?" pour afficher la définition
                             InkWell(
                               onTap: () {
-                                setState(() {
-                                  _selectedWordForDefinition =
-                                      isSelected ? null : word;
-                                });
+                                // Détecter si on est en mode mobile
+                                final isMobile =
+                                    MediaQuery.of(context).size.width < 600;
+
+                                if (isMobile) {
+                                  // Sur mobile, afficher une popup
+                                  showDialog(
+                                    context: context,
+                                    builder: (context) => AlertDialog(
+                                      title: Row(
+                                        children: [
+                                          const Icon(
+                                            Icons.info_outline,
+                                            color: Color(0xFF3498DB),
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Expanded(
+                                            child: Text(
+                                              word.text,
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                color: Color(0xFF3498DB),
+                                              ),
+                                            ),
+                                          ),
+                                          if (word.nature != null &&
+                                              word.nature!.isNotEmpty)
+                                            Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 8,
+                                                    vertical: 4,
+                                                  ),
+                                              decoration: BoxDecoration(
+                                                color: const Color(0xFF3498DB),
+                                                borderRadius:
+                                                    BorderRadius.circular(4),
+                                              ),
+                                              child: Text(
+                                                word.nature!,
+                                                style: const TextStyle(
+                                                  fontSize: 12,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors.white,
+                                                ),
+                                              ),
+                                            ),
+                                        ],
+                                      ),
+                                      content: SingleChildScrollView(
+                                        child: Text(
+                                          word.definition ??
+                                              'Aucune définition disponible',
+                                          style: const TextStyle(
+                                            fontSize: 14,
+                                            fontStyle: FontStyle.italic,
+                                          ),
+                                        ),
+                                      ),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () =>
+                                              Navigator.pop(context),
+                                          child: const Text('Fermer'),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                } else {
+                                  // Sur desktop, comportement actuel (inline)
+                                  setState(() {
+                                    _selectedWordForDefinition = isSelected
+                                        ? null
+                                        : word;
+                                  });
+                                }
                               },
                               child: Container(
                                 padding: const EdgeInsets.all(4),
@@ -986,8 +1085,11 @@ class _MotsMawonScreenState extends State<MotsMawonScreen> {
                                     ),
                                   ),
                                 ),
-                                if (_selectedWordForDefinition!.nature != null &&
-                                    _selectedWordForDefinition!.nature!.isNotEmpty)
+                                if (_selectedWordForDefinition!.nature !=
+                                        null &&
+                                    _selectedWordForDefinition!
+                                        .nature!
+                                        .isNotEmpty)
                                   Container(
                                     padding: const EdgeInsets.symmetric(
                                       horizontal: 6,
@@ -1009,8 +1111,11 @@ class _MotsMawonScreenState extends State<MotsMawonScreen> {
                               ],
                             ),
                             const SizedBox(height: 8),
-                            if (_selectedWordForDefinition!.definition != null &&
-                                _selectedWordForDefinition!.definition!.isNotEmpty)
+                            if (_selectedWordForDefinition!.definition !=
+                                    null &&
+                                _selectedWordForDefinition!
+                                    .definition!
+                                    .isNotEmpty)
                               Text(
                                 _selectedWordForDefinition!.definition!,
                                 style: const TextStyle(
