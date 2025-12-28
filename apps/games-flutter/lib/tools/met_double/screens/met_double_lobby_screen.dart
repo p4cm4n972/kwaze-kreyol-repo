@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import 'dart:async';
 import '../../../services/auth_service.dart';
 import '../../../services/realtime_service.dart';
+import '../../../services/friends_service.dart';
+import '../../../models/friend.dart';
 import '../services/met_double_service.dart';
 import '../models/met_double_game.dart';
 import 'met_double_game_screen.dart';
@@ -10,10 +12,7 @@ import 'met_double_game_screen.dart';
 class MetDoubleLobbyScreen extends StatefulWidget {
   final MetDoubleSession session;
 
-  const MetDoubleLobbyScreen({
-    super.key,
-    required this.session,
-  });
+  const MetDoubleLobbyScreen({super.key, required this.session});
 
   @override
   State<MetDoubleLobbyScreen> createState() => _MetDoubleLobbyScreenState();
@@ -23,6 +22,7 @@ class _MetDoubleLobbyScreenState extends State<MetDoubleLobbyScreen> {
   final MetDoubleService _metDoubleService = MetDoubleService();
   final AuthService _authService = AuthService();
   final RealtimeService _realtimeService = RealtimeService();
+  final FriendsService _friendsService = FriendsService();
 
   late MetDoubleSession _currentSession;
   StreamSubscription<MetDoubleSession>? _sessionSubscription;
@@ -60,20 +60,21 @@ class _MetDoubleLobbyScreenState extends State<MetDoubleLobbyScreen> {
     _sessionSubscription = _realtimeService
         .subscribeToSession(_currentSession.id)
         .listen((session) {
-      setState(() {
-        _currentSession = session;
-      });
+          setState(() {
+            _currentSession = session;
+          });
 
-      // Si la session a démarré, naviguer vers l'écran de jeu
-      if (_currentSession.status == 'in_progress' && mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => MetDoubleGameScreen(session: _currentSession),
-          ),
-        );
-      }
-    });
+          // Si la session a démarré, naviguer vers l'écran de jeu
+          if (_currentSession.status == 'in_progress' && mounted) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) =>
+                    MetDoubleGameScreen(session: _currentSession),
+              ),
+            );
+          }
+        });
   }
 
   Future<void> _addGuestPlayer() async {
@@ -112,16 +113,105 @@ class _MetDoubleLobbyScreenState extends State<MetDoubleLobbyScreen> {
         );
 
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('$name a rejoint la session')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('$name a rejoint la session')));
         }
       } catch (e) {
         if (mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Erreur: $e')));
+        }
+      }
+    }
+  }
+
+  Future<void> _inviteFriend() async {
+    try {
+      // Récupérer la liste des amis
+      final friends = await _friendsService.getFriends();
+
+      if (friends.isEmpty) {
+        if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Erreur: $e')),
+            const SnackBar(
+              content: Text('Vous n\'avez pas encore d\'amis à inviter'),
+            ),
           );
         }
+        return;
+      }
+
+      // Afficher la liste des amis dans un dialog
+      final selectedFriend = await showDialog<Friend>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Inviter un ami'),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: ListView.builder(
+              shrinkWrap: true,
+              itemCount: friends.length,
+              itemBuilder: (context, index) {
+                final friend = friends[index];
+                return ListTile(
+                  leading: CircleAvatar(
+                    backgroundImage: friend.avatarUrl != null
+                        ? NetworkImage(friend.avatarUrl!)
+                        : null,
+                    child: friend.avatarUrl == null
+                        ? Text(friend.username[0].toUpperCase())
+                        : null,
+                  ),
+                  title: Text(friend.username),
+                  trailing: friend.isOnline
+                      ? Container(
+                          width: 12,
+                          height: 12,
+                          decoration: const BoxDecoration(
+                            color: Colors.green,
+                            shape: BoxShape.circle,
+                          ),
+                        )
+                      : null,
+                  onTap: () => Navigator.pop(context, friend),
+                );
+              },
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Annuler'),
+            ),
+          ],
+        ),
+      );
+
+      if (selectedFriend != null) {
+        final userId = _authService.getUserIdOrNull();
+        if (userId == null) return;
+
+        await _metDoubleService.sendInvitation(
+          sessionId: _currentSession.id,
+          inviterId: userId,
+          inviteeId: selectedFriend.id,
+        );
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Invitation envoyée à ${selectedFriend.username}'),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Erreur: $e')));
       }
     }
   }
@@ -140,9 +230,9 @@ class _MetDoubleLobbyScreenState extends State<MetDoubleLobbyScreen> {
       await _metDoubleService.startSession(_currentSession.id);
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Erreur: $e')));
       }
     }
   }
@@ -175,9 +265,9 @@ class _MetDoubleLobbyScreenState extends State<MetDoubleLobbyScreen> {
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Erreur: $e')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Erreur: $e')));
         }
       }
     }
@@ -236,10 +326,7 @@ class _MetDoubleLobbyScreenState extends State<MetDoubleLobbyScreen> {
                 children: [
                   const Text(
                     'Code de session',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                    ),
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
                   ),
                   const SizedBox(height: 8),
                   Row(
@@ -308,6 +395,19 @@ class _MetDoubleLobbyScreenState extends State<MetDoubleLobbyScreen> {
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton.icon(
+                        onPressed: _inviteFriend,
+                        icon: const Icon(Icons.person_add_alt_1),
+                        label: const Text('Inviter un ami'),
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          backgroundColor: const Color(0xFFFFD700),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
                         onPressed: _addGuestPlayer,
                         icon: const Icon(Icons.person_add),
                         label: const Text('Ajouter un joueur invité'),
@@ -322,7 +422,9 @@ class _MetDoubleLobbyScreenState extends State<MetDoubleLobbyScreen> {
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton.icon(
-                        onPressed: _currentSession.canStart ? _startSession : null,
+                        onPressed: _currentSession.canStart
+                            ? _startSession
+                            : null,
                         icon: const Icon(Icons.play_arrow),
                         label: Text(
                           _currentSession.canStart
@@ -415,10 +517,7 @@ class _MetDoubleLobbyScreenState extends State<MetDoubleLobbyScreen> {
           participant.isGuest ? 'Joueur invité' : 'Joueur inscrit',
           style: const TextStyle(fontSize: 12),
         ),
-        trailing: Icon(
-          Icons.check_circle,
-          color: Colors.green[400],
-        ),
+        trailing: Icon(Icons.check_circle, color: Colors.green[400]),
       ),
     );
   }
