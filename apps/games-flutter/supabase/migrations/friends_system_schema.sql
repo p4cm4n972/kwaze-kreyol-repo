@@ -3,6 +3,58 @@
 -- ================================================
 
 -- ================================================
+-- 0. FIX EXISTING FOREIGN KEYS (if tables already exist)
+-- ================================================
+
+-- Fix friendships table foreign keys
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'friendships') THEN
+    ALTER TABLE friendships
+      DROP CONSTRAINT IF EXISTS friendships_user_id_a_fkey,
+      DROP CONSTRAINT IF EXISTS friendships_user_id_b_fkey;
+
+    ALTER TABLE friendships
+      ADD CONSTRAINT friendships_user_id_a_fkey
+        FOREIGN KEY (user_id_a) REFERENCES public.users(id) ON DELETE CASCADE,
+      ADD CONSTRAINT friendships_user_id_b_fkey
+        FOREIGN KEY (user_id_b) REFERENCES public.users(id) ON DELETE CASCADE;
+  END IF;
+END $$;
+
+-- Fix friend_requests table foreign keys
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'friend_requests') THEN
+    ALTER TABLE friend_requests
+      DROP CONSTRAINT IF EXISTS friend_requests_sender_id_fkey,
+      DROP CONSTRAINT IF EXISTS friend_requests_receiver_id_fkey;
+
+    ALTER TABLE friend_requests
+      ADD CONSTRAINT friend_requests_sender_id_fkey
+        FOREIGN KEY (sender_id) REFERENCES public.users(id) ON DELETE CASCADE,
+      ADD CONSTRAINT friend_requests_receiver_id_fkey
+        FOREIGN KEY (receiver_id) REFERENCES public.users(id) ON DELETE CASCADE;
+  END IF;
+END $$;
+
+-- Fix friend_invitations table foreign keys
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'friend_invitations') THEN
+    ALTER TABLE friend_invitations
+      DROP CONSTRAINT IF EXISTS friend_invitations_inviter_id_fkey,
+      DROP CONSTRAINT IF EXISTS friend_invitations_accepted_by_user_id_fkey;
+
+    ALTER TABLE friend_invitations
+      ADD CONSTRAINT friend_invitations_inviter_id_fkey
+        FOREIGN KEY (inviter_id) REFERENCES public.users(id) ON DELETE CASCADE,
+      ADD CONSTRAINT friend_invitations_accepted_by_user_id_fkey
+        FOREIGN KEY (accepted_by_user_id) REFERENCES public.users(id) ON DELETE SET NULL;
+  END IF;
+END $$;
+
+-- ================================================
 -- 1. ADD FRIEND_CODE TO USERS TABLE
 -- ================================================
 
@@ -67,8 +119,8 @@ CREATE TABLE IF NOT EXISTS friendships (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 
   -- Bidirectional pattern: user_id_a < user_id_b (alphabetically)
-  user_id_a UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  user_id_b UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  user_id_a UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+  user_id_b UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
 
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
 
@@ -102,8 +154,8 @@ CREATE POLICY "Users can delete their own friendships"
 CREATE TABLE IF NOT EXISTS friend_requests (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 
-  sender_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  receiver_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  sender_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+  receiver_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
 
   status TEXT NOT NULL DEFAULT 'pending'
     CHECK (status IN ('pending', 'accepted', 'declined', 'cancelled')),
@@ -164,7 +216,7 @@ CREATE TRIGGER update_friend_requests_updated_at
 CREATE TABLE IF NOT EXISTS friend_invitations (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 
-  inviter_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  inviter_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
   invitee_email TEXT NOT NULL,
 
   status TEXT NOT NULL DEFAULT 'sent'
@@ -175,7 +227,7 @@ CREATE TABLE IF NOT EXISTS friend_invitations (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   expires_at TIMESTAMPTZ NOT NULL DEFAULT (now() + INTERVAL '30 days'),
   accepted_at TIMESTAMPTZ,
-  accepted_by_user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+  accepted_by_user_id UUID REFERENCES public.users(id) ON DELETE SET NULL,
 
   -- Email validation constraint
   CONSTRAINT friend_invitations_valid_email
