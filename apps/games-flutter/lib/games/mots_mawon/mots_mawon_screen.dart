@@ -522,7 +522,7 @@ class _MotsMawonScreenState extends State<MotsMawonScreen> {
     );
   }
 
-  Widget buildNarrowLayout() => LayoutBuilder(
+  Widget _buildNarrowLayout() => LayoutBuilder(
   builder: (context, constraints) => Column(
     children: [
       Expanded(flex: 4, child: buildGameBoard(constraints.maxWidth)),  // flex: 5 → 4
