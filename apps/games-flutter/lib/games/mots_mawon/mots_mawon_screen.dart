@@ -500,7 +500,7 @@ class _MotsMawonScreenState extends State<MotsMawonScreen> {
               if (isWide) {
                 return _buildWideLayout();
               } else {
-                return _buildNarrowLayout();
+                return buildNarrowLayout();
               }
             },
           ),
@@ -522,7 +522,7 @@ class _MotsMawonScreenState extends State<MotsMawonScreen> {
     );
   }
 
-  Widget _buildNarrowLayout() => LayoutBuilder(
+  Widget buildNarrowLayout() => LayoutBuilder(
   builder: (context, constraints) => Column(
     children: [
       Expanded(flex: 4, child: buildGameBoard(constraints.maxWidth)),  // flex: 5 → 4
