@@ -522,18 +522,16 @@ class _MotsMawonScreenState extends State<MotsMawonScreen> {
     );
   }
 
-  Widget _buildNarrowLayout() {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        return Column(
-          children: [
-            Expanded(flex: 5, child: _buildGameBoard(constraints.maxWidth)),
-            SizedBox(height: 45, child: _buildWordList()),
-          ],
-        );
-      },
-    );
-  }
+  Widget buildNarrowLayout() => LayoutBuilder(
+  builder: (context, constraints) => Column(
+    children: [
+      Expanded(flex: 4, child: buildGameBoard(constraints.maxWidth)),  // ← Réduit de 5 à 4
+      SizedBox(height: 12),  // ← Espacement minimal adaptatif
+      Expanded(flex: 2, child: buildWordList()),  // ← Ajoute flex pour prendre l'espace restant
+    ],
+  ),
+);
+
 
   Widget _buildGameBoard([double? screenWidth]) {
     final isMobile = screenWidth != null && screenWidth < 600;
