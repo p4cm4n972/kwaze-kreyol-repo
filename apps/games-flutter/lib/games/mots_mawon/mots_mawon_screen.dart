@@ -525,12 +525,13 @@ class _MotsMawonScreenState extends State<MotsMawonScreen> {
   Widget buildNarrowLayout() => LayoutBuilder(
   builder: (context, constraints) => Column(
     children: [
-      Expanded(flex: 4, child: buildGameBoard(constraints.maxWidth)),  // ← Réduit de 5 à 4
-      SizedBox(height: 12),  // ← Espacement minimal adaptatif
-      Expanded(flex: 2, child: buildWordList()),  // ← Ajoute flex pour prendre l'espace restant
+      Expanded(flex: 4, child: buildGameBoard(constraints.maxWidth)),  // flex: 5 → 4
+      SizedBox(height: 12),  // 45 → 12
+      Expanded(flex: 2, child: buildWordList()),  // ← NOUVEAU : prend l'espace restant
     ],
   ),
 );
+
 
 
   Widget _buildGameBoard([double? screenWidth]) {
