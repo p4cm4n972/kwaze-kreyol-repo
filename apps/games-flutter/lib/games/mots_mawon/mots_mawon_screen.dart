@@ -227,8 +227,9 @@ class _MotsMawonScreenState extends State<MotsMawonScreen> {
               flex: 4,
               child: _buildGameBoard(constraints.maxWidth),
             ),
+             SizedBox(height: 12),
             Expanded(
-              flex: 1,
+              flex: 2,
               child: _buildWordList(),
             ),
           ],
