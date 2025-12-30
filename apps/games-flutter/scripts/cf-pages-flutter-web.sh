@@ -14,4 +14,4 @@ flutter config --enable-web
 
 # On est déjà dans apps/games-flutter grâce au Root directory
 flutter pub get
-flutter build web --release --web-renderer canvaskit
+flutter build web --release
