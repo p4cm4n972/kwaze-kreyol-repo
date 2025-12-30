@@ -521,16 +521,116 @@ class _MotsMawonScreenState extends State<MotsMawonScreen> {
       },
     );
   }
-
-  Widget buildNarrowLayout() => LayoutBuilder(
+Widget buildNarrowLayout() => LayoutBuilder(
   builder: (context, constraints) => Column(
     children: [
-      Expanded(flex: 4, child: buildGameBoard(constraints.maxWidth)),  // flex: 5 → 4
-      SizedBox(height: 12),  // 45 → 12
-      Expanded(flex: 2, child: buildWordList()),  // ← NOUVEAU : prend l'espace restant
+      // GRILLE - prend plus d'espace (flex 4 au lieu de 5)
+      Expanded(
+        flex: 4,
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            children: [
+              // Stats compacts mobile
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    buildMobileStatItem('assets/icons/clock.svg', formatTime(timeElapsed)),
+                    buildMobileStatItem('assets/icons/trophy.svg', '$score'),
+                    buildMobileStatItem('assets/icons/check_circle.svg', '${foundWords.length}/${gameData!.words.length}'),
+                  ],
+                ),
+              ),
+              SizedBox(height: 4),
+              // GRILLE
+              Expanded(
+                child: AspectRatio(
+                  aspectRatio: 1,
+                  child: GridView.builder(
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: gameData!.size,
+                      crossAxisSpacing: 4,
+                      mainAxisSpacing: 4,
+                    ),
+                    itemCount: gameData!.size * gameData!.size,
+                    itemBuilder: (context, index) {
+                      final row = index ~/ gameData!.size;
+                      final col = index % gameData!.size;
+                      return buildCell(row, col, true);
+                    },
+                  ),
+                ),
+              ),
+              SizedBox(height: 4),
+              // BOUTONS compacts
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 2.0),
+                      child: ElevatedButton.icon(
+                        onPressed: selectedCells.isEmpty ? null : clearSelection,
+                        icon: Icon(Icons.clear, size: 14),
+                        label: Text('Annuler', style: TextStyle(fontSize: 12)),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red,
+                          foregroundColor: Colors.white,
+                          padding: EdgeInsets.symmetric(vertical: 8),
+                          minimumSize: Size(0, 32),
+                        ),
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 2.0),
+                      child: ElevatedButton.icon(
+                        onPressed: selectedCells.isEmpty ? null : validateSelection,
+                        icon: Icon(Icons.check, size: 14),
+                        label: Text('Valider', style: TextStyle(fontSize: 12)),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green,
+                          foregroundColor: Colors.white,
+                          padding: EdgeInsets.symmetric(vertical: 8),
+                          minimumSize: Size(0, 32),
+                        ),
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 2.0),
+                      child: ElevatedButton.icon(
+                        onPressed: loadAndStartGame,
+                        icon: Icon(Icons.refresh, size: 14),
+                        label: Text('Nouveau', style: TextStyle(fontSize: 12)),
+                        style: ElevatedButton.styleFrom(
+                          padding: EdgeInsets.symmetric(vertical: 8),
+                          minimumSize: Size(0, 32),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+      SizedBox(height: 12),  // ← ESPACEMENT RÉDUIT (45 → 12)
+      // LISTE DES MOTS - prend l'espace restant
+      Expanded(
+        flex: 2,
+        child: buildWordList(),
+      ),
     ],
   ),
 );
+
 
 
 
