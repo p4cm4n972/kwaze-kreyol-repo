@@ -35,7 +35,7 @@ export default function Tools() {
       name: 'Mét Double',
       icon: '/icons/met-double.png',
       description: 'Application de comptage de points pour le jeu de dominos martiniquais.',
-      playOnlineUrl: 'http://localhost:8080/#/met-double',
+      playOnlineUrl: 'https://kwaze-kreyol.pages.dev/#/met-double',
       playStoreUrl: '#',
       appStoreUrl: '#',
       available: true,
