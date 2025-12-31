@@ -20,9 +20,8 @@ class MotsMawonService {
       // Vérifier qu'il n'y a pas déjà une partie en cours
       final existingGame = await loadInProgressGame();
       if (existingGame != null) {
-        throw Exception(
-          'Vous avez déjà une partie en cours. Terminez-la ou abandonnez-la avant d\'en commencer une nouvelle.',
-        );
+        // Abandonner l'ancienne partie avant d'en créer une nouvelle
+        await abandonGame(existingGame.id);
       }
 
       final response = await _supabase
