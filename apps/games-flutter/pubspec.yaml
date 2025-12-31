@@ -35,3 +35,8 @@ flutter:
     - assets/icons/
     - assets/images/
     - assets/data/
+
+  fonts:
+    - family: Permanent_Marker
+      fonts:
+        - asset: assets/fonts/Permanent_Marker/PermanentMarker-Regular.ttf
