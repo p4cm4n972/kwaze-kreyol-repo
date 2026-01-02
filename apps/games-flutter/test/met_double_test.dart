@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:kwaze_kreyol/tools/met_double/models/met_double_game.dart';
+import 'package:kwaze_kreyol_games/tools/met_double/models/met_double_game.dart';
 
 void main() {
   group('Met Double - Modèles', () {
@@ -355,7 +355,7 @@ void main() {
       int cochonsDonnes = 0;
       for (var round in rounds) {
         if (round.winnerParticipantId == 'p1') {
-          cochonsDonnes += round.cochonParticipantIds.length;
+          cochonsDonnes += round.cochonParticipantIds.length as int;
         }
       }
 

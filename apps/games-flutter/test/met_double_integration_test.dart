@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:kwaze_kreyol/tools/met_double/models/met_double_game.dart';
+import 'package:kwaze_kreyol_games/tools/met_double/models/met_double_game.dart';
 
 /// Tests d'intégration pour détecter les anomalies spécifiques
 /// comme l'enregistrement multiple de manches
