@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 import '../../../services/realtime_service.dart';
+import '../../../services/auth_service.dart';
 import '../services/met_double_service.dart';
 import '../models/met_double_game.dart';
 import 'met_double_results_screen.dart';
@@ -20,12 +21,22 @@ class MetDoubleGameScreen extends StatefulWidget {
 class _MetDoubleGameScreenState extends State<MetDoubleGameScreen> {
   final MetDoubleService _metDoubleService = MetDoubleService();
   final RealtimeService _realtimeService = RealtimeService();
+  final AuthService _authService = AuthService();
 
   late MetDoubleSession _currentSession;
   StreamSubscription<MetDoubleSession>? _sessionSubscription;
   bool _isRecording = false;
   bool _chireeDialogShown = false;
   bool _victoryDialogShown = false;
+  bool _isHistoryExpanded = false;
+  bool _isRecordingVictory = false; // Protection contre les enregistrements multiples
+
+  // Vérifier si l'utilisateur actuel est l'hôte
+  bool get _isCurrentUserHost {
+    final currentUserId = _authService.getUserIdOrNull();
+    if (currentUserId == null) return false;
+    return _currentSession.hostId == currentUserId;
+  }
 
   @override
   void initState() {
@@ -65,8 +76,8 @@ class _MetDoubleGameScreenState extends State<MetDoubleGameScreen> {
         _chireeDialogShown = false;
       }
 
-      // Afficher le dialog si c'est une nouvelle situation de chirée
-      if (allHaveAtLeastOne && !_chireeDialogShown && mounted) {
+      // Afficher le dialog si c'est une nouvelle situation de chirée (seulement pour l'hôte)
+      if (allHaveAtLeastOne && !_chireeDialogShown && mounted && _isCurrentUserHost) {
         print('✅ Affichage du dialog de chirée');
         _chireeDialogShown = true;
         Future.delayed(const Duration(milliseconds: 500), () {
@@ -84,8 +95,8 @@ class _MetDoubleGameScreenState extends State<MetDoubleGameScreen> {
         _victoryDialogShown = false;
       }
 
-      // Afficher le dialog de victoire si quelqu'un a gagné
-      if (winner != null && !_victoryDialogShown && mounted) {
+      // Afficher le dialog de victoire si quelqu'un a gagné (seulement pour l'hôte)
+      if (winner != null && !_victoryDialogShown && mounted && _isCurrentUserHost) {
         print('🏆 Victoire détectée: ${winner.displayName} avec ${winner.victories} victoires');
         _victoryDialogShown = true;
         Future.delayed(const Duration(milliseconds: 500), () {
@@ -168,8 +179,8 @@ class _MetDoubleGameScreenState extends State<MetDoubleGameScreen> {
         winner: _currentSession.participants.first,
         isChiree: true,
       );
-      // Réinitialiser le flag après enregistrement
-      _chireeDialogShown = false;
+      // Ne pas réinitialiser le flag ici car la condition de chirée est toujours vraie
+      // Le flag sera réinitialisé automatiquement quand un joueur descendra en dessous de 1
     }
   }
 
@@ -252,12 +263,24 @@ class _MetDoubleGameScreenState extends State<MetDoubleGameScreen> {
   }
 
   Future<void> _recordVictoryRound(MetDoubleParticipant winner) async {
+    // Protection contre les enregistrements multiples
+    if (_isRecordingVictory) {
+      print('⚠️ Enregistrement déjà en cours, annulation...');
+      return;
+    }
+
+    setState(() {
+      _isRecordingVictory = true;
+    });
+
     try {
       // Trouver les cochons (ceux avec 0 victoires)
       final cochonParticipants = _currentSession.participants.where((p) => p.victories == 0).toList();
       final cochonIds = cochonParticipants.map((p) => p.id).toList();
 
       final nextRoundNumber = _currentSession.rounds.length + 1;
+      print('📝 Enregistrement manche $nextRoundNumber - Gagnant: ${winner.displayName}');
+
       await _metDoubleService.recordRound(
         sessionId: _currentSession.id,
         roundNumber: nextRoundNumber,
@@ -289,6 +312,10 @@ class _MetDoubleGameScreenState extends State<MetDoubleGameScreen> {
           ),
         );
       }
+    } finally {
+      setState(() {
+        _isRecordingVictory = false;
+      });
     }
   }
 
@@ -516,10 +543,9 @@ class _MetDoubleGameScreenState extends State<MetDoubleGameScreen> {
               ),
             ),
 
-            // Historique des manches - Tableau
+            // Historique des manches - Tableau dépliable
             if (_currentSession.rounds.isNotEmpty) ...[
               Container(
-                padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   color: Colors.grey[100],
                   border: Border(
@@ -529,30 +555,57 @@ class _MetDoubleGameScreenState extends State<MetDoubleGameScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          'Historique des manches',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
+                    // En-tête cliquable
+                    InkWell(
+                      onTap: () {
+                        setState(() {
+                          _isHistoryExpanded = !_isHistoryExpanded;
+                        });
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              children: [
+                                Icon(
+                                  _isHistoryExpanded
+                                      ? Icons.expand_less
+                                      : Icons.expand_more,
+                                  color: Colors.grey[700],
+                                ),
+                                const SizedBox(width: 8),
+                                const Text(
+                                  'Historique des manches',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            Text(
+                              '${_currentSession.rounds.length} manche${_currentSession.rounds.length > 1 ? 's' : ''}',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                          ],
                         ),
-                        Text(
-                          '${_currentSession.rounds.length} manche${_currentSession.rounds.length > 1 ? 's' : ''}',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey[600],
-                          ),
+                      ),
+                    ),
+                    // Tableau dépliable
+                    if (_isHistoryExpanded) ...[
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: _buildRoundsTable(),
                         ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: _buildRoundsTable(),
-                    ),
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -563,64 +616,67 @@ class _MetDoubleGameScreenState extends State<MetDoubleGameScreen> {
               padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
-                  // Info
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.blue.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.blue.withOpacity(0.3)),
+                  // Info (seulement pour l'hôte)
+                  if (_isCurrentUserHost) ...[
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.blue.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.blue.withOpacity(0.3)),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.info_outline, color: Colors.blue, size: 20),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              'Utilisez les boutons +/- pour incrémenter les scores. La partie se termine automatiquement à 3 points.',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.blue[900],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                    child: Row(
+                    const SizedBox(height: 16),
+                  ],
+
+                  // Boutons d'action (seulement pour l'hôte)
+                  if (_isCurrentUserHost)
+                    Row(
                       children: [
-                        const Icon(Icons.info_outline, color: Colors.blue, size: 20),
-                        const SizedBox(width: 12),
+                        // Bouton Nouvelle manche
                         Expanded(
-                          child: Text(
-                            'Utilisez les boutons +/- pour incrémenter les scores. La partie se termine automatiquement à 3 points.',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.blue[900],
+                          child: OutlinedButton.icon(
+                            onPressed: _resetScores,
+                            icon: const Icon(Icons.refresh),
+                            label: const Text('Nouvelle manche'),
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              side: BorderSide(color: Colors.blue[700]!),
+                              foregroundColor: Colors.blue[700],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+
+                        // Bouton Terminer la partie
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            onPressed: _endGame,
+                            icon: const Icon(Icons.stop),
+                            label: const Text('Terminer'),
+                            style: ElevatedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              backgroundColor: Colors.red,
                             ),
                           ),
                         ),
                       ],
                     ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Boutons d'action
-                  Row(
-                    children: [
-                      // Bouton Nouvelle manche
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: _resetScores,
-                          icon: const Icon(Icons.refresh),
-                          label: const Text('Nouvelle manche'),
-                          style: OutlinedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            side: BorderSide(color: Colors.blue[700]!),
-                            foregroundColor: Colors.blue[700],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-
-                      // Bouton Terminer la partie
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: _endGame,
-                          icon: const Icon(Icons.stop),
-                          label: const Text('Terminer'),
-                          style: ElevatedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            backgroundColor: Colors.red,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
                 ],
               ),
             ),
@@ -928,47 +984,65 @@ class _MetDoubleGameScreenState extends State<MetDoubleGameScreen> {
               ),
             ),
 
-            // Boutons de contrôle du score
-            Row(
-              children: [
-                // Bouton -
-                IconButton(
-                  onPressed: participant.victories > 0
-                      ? () => _decrementScore(participant.id, participant.victories)
-                      : null,
-                  icon: const Icon(Icons.remove_circle_outline),
-                  color: Colors.red,
-                  iconSize: 32,
-                ),
-
-                // Score
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: _getVictoryColor(participant.victories).withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(8),
+            // Boutons de contrôle du score (seulement pour l'hôte)
+            if (_isCurrentUserHost)
+              Row(
+                children: [
+                  // Bouton -
+                  IconButton(
+                    onPressed: participant.victories > 0
+                        ? () => _decrementScore(participant.id, participant.victories)
+                        : null,
+                    icon: const Icon(Icons.remove_circle_outline),
+                    color: Colors.red,
+                    iconSize: 32,
                   ),
-                  child: Text(
-                    '${participant.victories}',
-                    style: TextStyle(
-                      fontSize: 32,
-                      fontWeight: FontWeight.bold,
-                      color: _getVictoryColor(participant.victories),
+
+                  // Score
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: _getVictoryColor(participant.victories).withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      '${participant.victories}',
+                      style: TextStyle(
+                        fontSize: 32,
+                        fontWeight: FontWeight.bold,
+                        color: _getVictoryColor(participant.victories),
+                      ),
                     ),
                   ),
-                ),
 
-                // Bouton +
-                IconButton(
-                  onPressed: participant.victories < 3
-                      ? () => _incrementScore(participant.id)
-                      : null,
-                  icon: const Icon(Icons.add_circle_outline),
-                  color: Colors.green,
-                  iconSize: 32,
+                  // Bouton +
+                  IconButton(
+                    onPressed: participant.victories < 3
+                        ? () => _incrementScore(participant.id)
+                        : null,
+                    icon: const Icon(Icons.add_circle_outline),
+                    color: Colors.green,
+                    iconSize: 32,
+                  ),
+                ],
+              )
+            else
+              // Afficher juste le score pour les non-hôtes
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: _getVictoryColor(participant.victories).withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(8),
                 ),
-              ],
-            ),
+                child: Text(
+                  '${participant.victories}',
+                  style: TextStyle(
+                    fontSize: 32,
+                    fontWeight: FontWeight.bold,
+                    color: _getVictoryColor(participant.victories),
+                  ),
+                ),
+              ),
 
             // Indicateur de victoire
             if (participant.victories >= 3)
