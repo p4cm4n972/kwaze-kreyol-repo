@@ -332,5 +332,220 @@ void main() {
       expect(shouldShowAgain, isFalse,
         reason: 'La modal chirée ne devrait pas se réafficher en boucle (bug corrigé)');
     });
+
+    test('RÉGRESSION: Bug statistiques globales ne remontant que les parties du joueur (CORRIGÉ)', () {
+      final now = DateTime.now();
+
+      // Simuler 3 sessions terminées avec des joueurs différents
+      // SESSION 1: Alice vs Bob vs Charlie - Alice gagne
+      final session1 = MetDoubleSession(
+        id: 'session-1',
+        hostId: 'user-alice',
+        status: 'completed',
+        createdAt: now.subtract(Duration(days: 3)),
+        participants: [
+          MetDoubleParticipant(
+            id: 'p1-alice',
+            sessionId: 'session-1',
+            userId: 'user-alice',
+            userName: 'Alice',
+            victories: 3,
+            joinedAt: now,
+          ),
+          MetDoubleParticipant(
+            id: 'p2-bob',
+            sessionId: 'session-1',
+            userId: 'user-bob',
+            userName: 'Bob',
+            victories: 1,
+            joinedAt: now,
+          ),
+          MetDoubleParticipant(
+            id: 'p3-charlie',
+            sessionId: 'session-1',
+            guestName: 'Charlie',
+            victories: 0,
+            isCochon: true,
+            joinedAt: now,
+          ),
+        ],
+        rounds: [
+          MetDoubleRound(
+            id: 'r1',
+            sessionId: 'session-1',
+            roundNumber: 1,
+            winnerParticipantId: 'p1-alice',
+            cochonParticipantIds: ['p3-charlie'],
+            playedAt: now,
+          ),
+          MetDoubleRound(
+            id: 'r2',
+            sessionId: 'session-1',
+            roundNumber: 2,
+            winnerParticipantId: 'p1-alice',
+            cochonParticipantIds: ['p3-charlie'],
+            playedAt: now,
+          ),
+          MetDoubleRound(
+            id: 'r3',
+            sessionId: 'session-1',
+            roundNumber: 3,
+            winnerParticipantId: 'p2-bob',
+            playedAt: now,
+          ),
+          MetDoubleRound(
+            id: 'r4',
+            sessionId: 'session-1',
+            roundNumber: 4,
+            winnerParticipantId: 'p1-alice',
+            playedAt: now,
+          ),
+        ],
+      );
+
+      // SESSION 2: David vs Eve vs Frank - David gagne (Alice N'EST PAS dans cette partie)
+      final session2 = MetDoubleSession(
+        id: 'session-2',
+        hostId: 'user-david',
+        status: 'completed',
+        createdAt: now.subtract(Duration(days: 2)),
+        participants: [
+          MetDoubleParticipant(
+            id: 'p1-david',
+            sessionId: 'session-2',
+            userId: 'user-david',
+            userName: 'David',
+            victories: 3,
+            joinedAt: now,
+          ),
+          MetDoubleParticipant(
+            id: 'p2-eve',
+            sessionId: 'session-2',
+            userId: 'user-eve',
+            userName: 'Eve',
+            victories: 2,
+            joinedAt: now,
+          ),
+          MetDoubleParticipant(
+            id: 'p3-frank',
+            sessionId: 'session-2',
+            guestName: 'Frank',
+            victories: 0,
+            isCochon: true,
+            joinedAt: now,
+          ),
+        ],
+        rounds: [
+          MetDoubleRound(
+            id: 'r5',
+            sessionId: 'session-2',
+            roundNumber: 1,
+            winnerParticipantId: 'p1-david',
+            cochonParticipantIds: ['p3-frank'],
+            playedAt: now,
+          ),
+          MetDoubleRound(
+            id: 'r6',
+            sessionId: 'session-2',
+            roundNumber: 2,
+            winnerParticipantId: 'p2-eve',
+            playedAt: now,
+          ),
+          MetDoubleRound(
+            id: 'r7',
+            sessionId: 'session-2',
+            roundNumber: 3,
+            winnerParticipantId: 'p1-david',
+            cochonParticipantIds: ['p3-frank'],
+            playedAt: now,
+          ),
+          MetDoubleRound(
+            id: 'r8',
+            sessionId: 'session-2',
+            roundNumber: 4,
+            winnerParticipantId: 'p2-eve',
+            playedAt: now,
+          ),
+          MetDoubleRound(
+            id: 'r9',
+            sessionId: 'session-2',
+            roundNumber: 5,
+            winnerParticipantId: 'p1-david',
+            cochonParticipantIds: ['p3-frank'],
+            playedAt: now,
+          ),
+        ],
+      );
+
+      // Toutes les sessions terminées (pour statistiques globales)
+      final allCompletedSessions = [session1, session2];
+
+      // Sessions où Alice a participé (pour statistiques personnelles)
+      final alicePersonalSessions = [session1]; // Seulement session1
+
+      // VALIDATION: Statistiques globales doivent inclure TOUTES les sessions
+
+      // Calculer Top Joueurs (GLOBAL - TOUTES les parties)
+      Map<String, int> globalVictories = {};
+      for (var session in allCompletedSessions) {
+        for (var participant in session.participants) {
+          final key = participant.userId ?? participant.guestName ?? '';
+          final manchesGagnees = session.rounds.where((r) => r.winnerParticipantId == participant.id).length;
+          globalVictories[key] = (globalVictories[key] ?? 0) + manchesGagnees;
+        }
+      }
+
+      // David devrait apparaître dans les stats globales même si Alice n'a pas joué avec lui
+      expect(globalVictories.containsKey('user-david'), isTrue,
+        reason: 'David devrait apparaître dans les statistiques globales même si Alice n\'a pas joué avec lui');
+
+      expect(globalVictories['user-david'], equals(3),
+        reason: 'David a gagné 3 manches dans sa partie');
+
+      expect(globalVictories['user-alice'], equals(3),
+        reason: 'Alice a gagné 3 manches dans sa partie');
+
+      // Calculer Top Met Double (GLOBAL - celui qui a donné le plus de cochons)
+      Map<String, int> globalCochonsDonnes = {};
+      for (var session in allCompletedSessions) {
+        for (var round in session.rounds) {
+          if (round.winnerParticipantId != null && round.cochonParticipantIds.isNotEmpty) {
+            final winner = session.participants.firstWhere(
+              (p) => p.id == round.winnerParticipantId,
+              orElse: () => session.participants.first,
+            );
+            final key = winner.userId ?? winner.guestName ?? '';
+            globalCochonsDonnes[key] = (globalCochonsDonnes[key] ?? 0) + round.cochonParticipantIds.length;
+          }
+        }
+      }
+
+      // David a donné 3 cochons (Frank a reçu un cochon dans les rounds 1, 3, 5)
+      expect(globalCochonsDonnes['user-david'], equals(3),
+        reason: 'David a donné 3 cochons à Frank');
+
+      // Alice a donné 2 cochons (Charlie a reçu un cochon dans les rounds 1, 2)
+      expect(globalCochonsDonnes['user-alice'], equals(2),
+        reason: 'Alice a donné 2 cochons à Charlie');
+
+      // VÉRIFICATION CRITIQUE: Si on ne regardait que les parties d'Alice (BUG),
+      // David ne devrait PAS apparaître
+      Map<String, int> aliceOnlyVictories = {};
+      for (var session in alicePersonalSessions) {
+        for (var participant in session.participants) {
+          final key = participant.userId ?? participant.guestName ?? '';
+          final manchesGagnees = session.rounds.where((r) => r.winnerParticipantId == participant.id).length;
+          aliceOnlyVictories[key] = (aliceOnlyVictories[key] ?? 0) + manchesGagnees;
+        }
+      }
+
+      // PREUVE DU BUG: Dans les stats personnelles d'Alice, David n'apparaît pas
+      expect(aliceOnlyVictories.containsKey('user-david'), isFalse,
+        reason: 'Dans les parties d\'Alice uniquement, David ne devrait pas apparaître (c\'est normal pour les stats personnelles)');
+
+      // MAIS les statistiques GLOBALES doivent montrer David !
+      expect(globalVictories.containsKey('user-david'), isTrue,
+        reason: 'BUG CORRIGÉ: Les statistiques globales doivent maintenant inclure David même si Alice n\'a pas joué avec lui');
+    });
   });
 }

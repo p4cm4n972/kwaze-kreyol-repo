@@ -496,7 +496,7 @@ class MetDoubleService {
   // Récupérer les statistiques générales d'un joueur
   Future<Map<String, dynamic>> getPlayerGeneralStats(String userId) async {
     try {
-      // Récupérer toutes les sessions terminées où le joueur a participé
+      // Récupérer toutes les sessions terminées où le joueur a participé (pour stats personnelles)
       final sessions = await getUserSessions(userId);
       final completedSessions = sessions.where((s) => s.status == 'completed').toList();
 
@@ -518,12 +518,25 @@ class MetDoubleService {
       }
 
       // STATISTIQUES GLOBALES (tous les joueurs)
-      // Compter le nombre total de parties terminées
-      final totalPartiesResponse = await _supabase
+      // Récupérer TOUTES les sessions terminées (pas seulement celles du joueur actuel)
+      final allCompletedSessionsResponse = await _supabase
           .from('met_double_sessions')
-          .select('id')
+          .select('''
+            *,
+            met_double_participants (
+              *,
+              users (username)
+            ),
+            met_double_rounds (*)
+          ''')
           .eq('status', 'completed');
-      final totalParties = (totalPartiesResponse as List).length;
+
+      final allCompletedSessions = (allCompletedSessionsResponse as List)
+          .map((json) => MetDoubleSession.fromJson(json))
+          .toList();
+
+      // Compter le nombre total de parties terminées
+      final totalParties = allCompletedSessions.length;
 
       // Compter le nombre total de manches
       final totalManchesResponse = await _supabase
@@ -537,10 +550,10 @@ class MetDoubleService {
           .select('id');
       final totalAbonnes = (totalAbonnesResponse as List).length;
 
-      // Top joueurs : compter les victoires de chaque joueur
+      // Top joueurs : compter les victoires de chaque joueur (TOUTES les parties)
       Map<String, Map<String, dynamic>> joueursVictoires = {};
 
-      for (var session in completedSessions) {
+      for (var session in allCompletedSessions) {
         for (var participant in session.participants) {
           final participantKey = participant.userId ?? participant.guestName ?? '';
           final participantName = participant.displayName;
@@ -563,10 +576,10 @@ class MetDoubleService {
       final topJoueurs = joueursVictoires.values.toList()
         ..sort((a, b) => (b['victories'] as int).compareTo(a['victories'] as int));
 
-      // Top met double : compter les cochons DONNÉS par chaque joueur
+      // Top met double : compter les cochons DONNÉS par chaque joueur (TOUTES les parties)
       Map<String, Map<String, dynamic>> joueursMetDouble = {};
 
-      for (var session in completedSessions) {
+      for (var session in allCompletedSessions) {
         for (var round in session.rounds) {
           // Le gagnant a donné des cochons
           if (round.winnerParticipantId != null && round.cochonParticipantIds.isNotEmpty) {
@@ -592,10 +605,10 @@ class MetDoubleService {
         }
       }
 
-      // Top met cochon : compter les cochons REÇUS par chaque joueur
+      // Top met cochon : compter les cochons REÇUS par chaque joueur (TOUTES les parties)
       Map<String, Map<String, dynamic>> joueursMetCochon = {};
 
-      for (var session in completedSessions) {
+      for (var session in allCompletedSessions) {
         for (var round in session.rounds) {
           // Pour chaque participant qui a reçu un cochon
           for (var cochonId in round.cochonParticipantIds) {
