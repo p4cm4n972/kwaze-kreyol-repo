@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'dart:ui';
 import '../../models/word.dart';
 import '../../models/dictionary_entry.dart';
@@ -804,8 +805,7 @@ class _MotsMawonScreenState extends State<MotsMawonScreen> {
               child: Center(
                 child: Text(
                   _gameData!.grid[row][col],
-                  style: TextStyle(
-                    fontFamily: 'Open_Sans',
+                  style: GoogleFonts.openSans(
                     fontSize: isMobile ? 14 : 20,
                     fontWeight: FontWeight.bold,
                     color: isInFoundWord || isSelected
