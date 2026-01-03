@@ -22,7 +22,7 @@ export const metadata: Metadata = {
   authors: [{ name: "ITMade Studio", url: "https://itmade.studio" }],
   creator: "ITMade Studio",
   publisher: "ITMade Studio",
-  metadataBase: new URL("https://kwaze-kreyol.com"),
+  metadataBase: new URL("https://kwazé-kréyol.fr"),
   alternates: {
     canonical: "/",
   },
@@ -37,7 +37,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "fr_FR",
-    url: "https://kwaze-kreyol.com",
+    url: "https://kwazé-kréyol.fr",
     siteName: "Kwazé Kréyol",
     title: "Kwazé Kréyol - Plateforme interactive de la langue créole martiniquaise",
     description: "Découvrez la plateforme interactive dédiée à la langue et la culture créole martiniquaise.",
@@ -75,24 +75,72 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const jsonLd = {
+  const jsonLdWebSite = {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
     name: 'Kwazé Kréyol',
     description: 'Plateforme interactive dédiée à la langue et la culture créole martiniquaise',
-    url: 'https://kwaze-kreyol.com',
+    url: 'https://kwazé-kréyol.fr',
     inLanguage: 'fr-FR',
     publisher: {
       '@type': 'Organization',
       name: 'ITMade Studio',
       url: 'https://itmade.studio',
+      logo: {
+        '@type': 'ImageObject',
+        url: 'https://kwazé-kréyol.fr/images/logo-kk.webp',
+        width: 512,
+        height: 512,
+      },
       email: 'contact@itmade.fr',
+      foundingDate: '2024',
+      foundingLocation: {
+        '@type': 'Place',
+        name: 'Martinique',
+      },
     },
     potentialAction: {
       '@type': 'SearchAction',
-      target: 'https://kwaze-kreyol.com/search?q={search_term_string}',
+      target: 'https://kwazé-kréyol.fr/search?q={search_term_string}',
       'query-input': 'required name=search_term_string',
     },
+    about: {
+      '@type': 'Thing',
+      name: 'Langue créole martiniquaise',
+      description: 'Patrimoine linguistique et culturel de la Martinique',
+    },
+  };
+
+  const jsonLdOrganization = {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: 'Kwazé Kréyol',
+    alternateName: 'Kwaze Kreyol',
+    url: 'https://kwazé-kréyol.fr',
+    logo: 'https://kwazé-kréyol.fr/images/logo-kk.webp',
+    description: 'Plateforme dédiée à la valorisation de la langue et culture créole martiniquaise à travers des jeux interactifs et outils numériques',
+    sameAs: [
+      'https://jeux.kwazé-kréyol.fr',
+    ],
+    contactPoint: {
+      '@type': 'ContactPoint',
+      email: 'contact@itmade.fr',
+      contactType: 'customer service',
+      availableLanguage: ['fr-FR', 'fr-MQ'],
+    },
+  };
+
+  const jsonLdBreadcrumb = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'Accueil',
+        item: 'https://kwazé-kréyol.fr',
+      },
+    ],
   };
 
   return (
@@ -100,7 +148,15 @@ export default function RootLayout({
       <head>
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdWebSite) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdOrganization) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdBreadcrumb) }}
         />
       </head>
       <body

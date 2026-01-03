@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next';
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = 'https://kwaze-kreyol.com';
+  const baseUrl = 'https://kwazé-kréyol.fr';
   const currentDate = new Date();
 
   return [

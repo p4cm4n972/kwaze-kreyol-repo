@@ -1,13 +1,16 @@
 {
-    "name": "kwaze_kreyol",
-    "short_name": "kwaze_kreyol",
-    "start_url": ".",
+    "name": "Kwazé Kréyol - Jeux Créoles Interactifs",
+    "short_name": "Kwazé Kréyol",
+    "start_url": "/",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "Jeux créoles interactifs : Mots Mawon, Met Double, Traducteur créole. Valorisez la langue créole martiniquaise en vous amusant !",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
+    "lang": "fr-FR",
+    "dir": "ltr",
+    "categories": ["games", "education", "entertainment"],
     "icons": [
         {
             "src": "icons/Icon-192.png",
