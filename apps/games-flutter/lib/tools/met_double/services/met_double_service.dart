@@ -159,6 +159,31 @@ class MetDoubleService {
     }
   }
 
+  // Récupérer les invitations en attente pour un utilisateur
+  Future<List<MetDoubleInvitation>> getPendingInvitations(String userId) async {
+    try {
+      final response = await _supabase
+          .from('met_double_invitations')
+          .select('''
+            *,
+            inviter:users!inviter_id (username),
+            met_double_sessions (
+              status,
+              join_code
+            )
+          ''')
+          .eq('invitee_id', userId)
+          .eq('status', 'pending')
+          .order('created_at', ascending: false);
+
+      return (response as List)
+          .map((json) => MetDoubleInvitation.fromJson(json))
+          .toList();
+    } catch (e) {
+      throw Exception('Erreur lors de la récupération des invitations: $e');
+    }
+  }
+
   // Accepter une invitation
   Future<void> acceptInvitation(String invitationId) async {
     try {
@@ -185,6 +210,18 @@ class MetDoubleService {
       }
     } catch (e) {
       throw Exception('Erreur lors de l\'acceptation de l\'invitation: $e');
+    }
+  }
+
+  // Refuser une invitation
+  Future<void> declineInvitation(String invitationId) async {
+    try {
+      await _supabase.from('met_double_invitations').update({
+        'status': 'declined',
+        'responded_at': DateTime.now().toIso8601String(),
+      }).eq('id', invitationId);
+    } catch (e) {
+      throw Exception('Erreur lors du refus de l\'invitation: $e');
     }
   }
 

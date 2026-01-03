@@ -19,6 +19,7 @@ class _MetDoubleHomeScreenState extends State<MetDoubleHomeScreen> {
   final AuthService _authService = AuthService();
 
   List<MetDoubleSession> _sessions = [];
+  List<MetDoubleInvitation> _pendingInvitations = [];
   bool _isLoading = true;
   bool _isGuest = false;
   String? _displayName;
@@ -44,12 +45,13 @@ class _MetDoubleHomeScreenState extends State<MetDoubleHomeScreen> {
       _displayName = user?.username ?? user?.email;
     }
 
-    // Charger les sessions de l'utilisateur (si connecté)
+    // Charger les sessions et invitations de l'utilisateur (si connecté)
     if (!_isGuest) {
       final userId = _authService.getUserIdOrNull();
       if (userId != null) {
         try {
           _sessions = await _metDoubleService.getUserSessions(userId);
+          _pendingInvitations = await _metDoubleService.getPendingInvitations(userId);
         } catch (e) {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -240,6 +242,63 @@ class _MetDoubleHomeScreenState extends State<MetDoubleHomeScreen> {
     }
   }
 
+  Future<void> _acceptInvitation(MetDoubleInvitation invitation) async {
+    setState(() => _isLoading = true);
+
+    try {
+      await _metDoubleService.acceptInvitation(invitation.id);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Invitation acceptée de ${invitation.inviterUsername ?? "l\'hôte"}')),
+        );
+
+        // Recharger les données pour obtenir la session mise à jour
+        await _loadData();
+
+        // Récupérer la session et y naviguer
+        final session = await _metDoubleService.getSession(invitation.sessionId);
+        if (mounted) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => MetDoubleLobbyScreen(session: session),
+            ),
+          ).then((_) => _loadData());
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur: $e')),
+        );
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  Future<void> _declineInvitation(MetDoubleInvitation invitation) async {
+    setState(() => _isLoading = true);
+
+    try {
+      await _metDoubleService.declineInvitation(invitation.id);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Invitation refusée de ${invitation.inviterUsername ?? "l\'hôte"}')),
+        );
+        await _loadData();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur: $e')),
+        );
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -358,14 +417,57 @@ class _MetDoubleHomeScreenState extends State<MetDoubleHomeScreen> {
       return _buildGuestView();
     }
 
-    if (_sessions.isEmpty) {
+    if (_sessions.isEmpty && _pendingInvitations.isEmpty) {
       return _buildEmptyState();
     }
 
-    return ListView.builder(
+    return ListView(
       padding: const EdgeInsets.all(16),
-      itemCount: _sessions.length,
-      itemBuilder: (context, index) => _buildSessionCard(_sessions[index]),
+      children: [
+        // Afficher les invitations en attente en premier
+        if (_pendingInvitations.isNotEmpty) ...[
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Row(
+              children: [
+                Icon(Icons.mail, color: Colors.blue[700]),
+                const SizedBox(width: 8),
+                Text(
+                  'Invitations reçues (${_pendingInvitations.length})',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.blue[700],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          ..._pendingInvitations.map((invitation) => _buildInvitationCard(invitation)),
+          const SizedBox(height: 24),
+        ],
+
+        // Afficher les sessions
+        if (_sessions.isNotEmpty) ...[
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Row(
+              children: [
+                const Icon(Icons.history),
+                const SizedBox(width: 8),
+                const Text(
+                  'Mes sessions',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          ..._sessions.map((session) => _buildSessionCard(session)),
+        ],
+      ],
     );
   }
 
@@ -547,6 +649,73 @@ class _MetDoubleHomeScreenState extends State<MetDoubleHomeScreen> {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInvitationCard(MetDoubleInvitation invitation) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      color: Colors.blue[50],
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.person_add, color: Colors.blue[700], size: 28),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '${invitation.inviterUsername ?? "Un joueur"} vous invite',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        _formatDate(invitation.createdAt),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                OutlinedButton.icon(
+                  onPressed: () => _declineInvitation(invitation),
+                  icon: const Icon(Icons.close, size: 18),
+                  label: const Text('Refuser'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.red,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                ElevatedButton.icon(
+                  onPressed: () => _acceptInvitation(invitation),
+                  icon: const Icon(Icons.check, size: 18),
+                  label: const Text('Accepter'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );

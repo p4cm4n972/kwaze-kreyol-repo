@@ -471,6 +471,154 @@ void main() {
     });
   });
 
+  group('Met Double - Invitations', () {
+    test('Invitation - Création et propriétés', () {
+      final now = DateTime.now();
+
+      final invitation = MetDoubleInvitation(
+        id: 'inv-1',
+        sessionId: 'session-1',
+        inviterId: 'user-1',
+        inviteeId: 'user-2',
+        status: 'pending',
+        createdAt: now,
+        inviterUsername: 'Alice',
+        inviteeUsername: 'Bob',
+      );
+
+      expect(invitation.id, equals('inv-1'));
+      expect(invitation.sessionId, equals('session-1'));
+      expect(invitation.inviterId, equals('user-1'));
+      expect(invitation.inviteeId, equals('user-2'));
+      expect(invitation.status, equals('pending'));
+      expect(invitation.inviterUsername, equals('Alice'));
+      expect(invitation.inviteeUsername, equals('Bob'));
+    });
+
+    test('Invitation - Status pending par défaut', () {
+      final now = DateTime.now();
+
+      final invitation = MetDoubleInvitation(
+        id: 'inv-1',
+        sessionId: 'session-1',
+        inviterId: 'user-1',
+        inviteeId: 'user-2',
+        status: 'pending',
+        createdAt: now,
+      );
+
+      expect(invitation.status, equals('pending'));
+      expect(invitation.respondedAt, isNull);
+    });
+
+    test('Invitation - Status accepted avec date de réponse', () {
+      final now = DateTime.now();
+      final respondedAt = now.add(Duration(minutes: 5));
+
+      final invitation = MetDoubleInvitation(
+        id: 'inv-1',
+        sessionId: 'session-1',
+        inviterId: 'user-1',
+        inviteeId: 'user-2',
+        status: 'accepted',
+        createdAt: now,
+        respondedAt: respondedAt,
+      );
+
+      expect(invitation.status, equals('accepted'));
+      expect(invitation.respondedAt, equals(respondedAt));
+    });
+
+    test('Invitation - Status declined', () {
+      final now = DateTime.now();
+      final respondedAt = now.add(Duration(minutes: 3));
+
+      final invitation = MetDoubleInvitation(
+        id: 'inv-1',
+        sessionId: 'session-1',
+        inviterId: 'user-1',
+        inviteeId: 'user-2',
+        status: 'declined',
+        createdAt: now,
+        respondedAt: respondedAt,
+      );
+
+      expect(invitation.status, equals('declined'));
+      expect(invitation.respondedAt, isNotNull);
+    });
+
+    test('Invitation - Filtrage des invitations pending', () {
+      final now = DateTime.now();
+
+      final invitations = [
+        MetDoubleInvitation(
+          id: 'inv-1',
+          sessionId: 'session-1',
+          inviterId: 'user-1',
+          inviteeId: 'user-2',
+          status: 'pending',
+          createdAt: now,
+        ),
+        MetDoubleInvitation(
+          id: 'inv-2',
+          sessionId: 'session-2',
+          inviterId: 'user-3',
+          inviteeId: 'user-2',
+          status: 'accepted',
+          createdAt: now,
+        ),
+        MetDoubleInvitation(
+          id: 'inv-3',
+          sessionId: 'session-3',
+          inviterId: 'user-4',
+          inviteeId: 'user-2',
+          status: 'declined',
+          createdAt: now,
+        ),
+        MetDoubleInvitation(
+          id: 'inv-4',
+          sessionId: 'session-4',
+          inviterId: 'user-5',
+          inviteeId: 'user-2',
+          status: 'pending',
+          createdAt: now,
+        ),
+      ];
+
+      final pendingInvitations = invitations.where((inv) => inv.status == 'pending').toList();
+
+      expect(pendingInvitations.length, equals(2));
+      expect(pendingInvitations[0].id, equals('inv-1'));
+      expect(pendingInvitations[1].id, equals('inv-4'));
+    });
+
+    test('Invitation - fromJson avec données complètes', () {
+      final json = {
+        'id': 'inv-1',
+        'session_id': 'session-1',
+        'inviter_id': 'user-1',
+        'invitee_id': 'user-2',
+        'status': 'pending',
+        'created_at': '2025-01-03T10:00:00.000Z',
+        'responded_at': null,
+        'inviter': {
+          'username': 'Alice',
+        },
+        'invitee': {
+          'username': 'Bob',
+        },
+      };
+
+      final invitation = MetDoubleInvitation.fromJson(json);
+
+      expect(invitation.id, equals('inv-1'));
+      expect(invitation.inviterUsername, equals('Alice'));
+      expect(invitation.inviteeUsername, equals('Bob'));
+      expect(invitation.status, equals('pending'));
+      expect(invitation.respondedAt, isNull);
+    });
+  });
+
   group('Met Double - Sérialisation JSON', () {
     test('MetDoubleSession - toJson et fromJson', () {
       final now = DateTime.now();
