@@ -43,6 +43,7 @@ async function importDictionnaire() {
   let totalImported = 0;
   let totalSkipped = 0;
   let totalErrors = 0;
+  let totalNoTranslation = 0;
 
   for (const filePath of dictionnaireFiles) {
     if (!fs.existsSync(filePath)) {
@@ -59,6 +60,12 @@ async function importDictionnaire() {
 
       for (const def of entry.definitions) {
         try {
+          // Ignorer les définitions sans traduction (renvois vers d'autres mots)
+          if (!def.traduction || def.traduction.trim() === '') {
+            totalNoTranslation++;
+            continue;
+          }
+
           // Extraire le premier exemple (s'il existe)
           const firstExample = def.exemples && def.exemples.length > 0 ? def.exemples[0] : null;
 
@@ -135,6 +142,7 @@ async function importDictionnaire() {
   console.log('📊 Résumé de l\'import:');
   console.log(`   ✅ Importés: ${totalImported}`);
   console.log(`   ⏭️  Ignorés (doublons): ${totalSkipped}`);
+  console.log(`   📝 Sans traduction (renvois): ${totalNoTranslation}`);
   console.log(`   ❌ Erreurs: ${totalErrors}`);
   console.log('═══════════════════════════════════════\n');
 
