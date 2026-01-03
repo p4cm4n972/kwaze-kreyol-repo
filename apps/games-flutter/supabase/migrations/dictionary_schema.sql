@@ -1,3 +1,6 @@
+-- Activer l'extension pg_trgm pour la recherche floue (DOIT ÊTRE EN PREMIER)
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+
 -- Table pour les mots du dictionnaire créole-français
 -- Structure simplifiée : un mot peut avoir plusieurs définitions
 CREATE TABLE IF NOT EXISTS dictionary_words (
@@ -24,9 +27,6 @@ CREATE INDEX IF NOT EXISTS idx_dictionary_words_word ON dictionary_words(word);
 CREATE INDEX IF NOT EXISTS idx_dictionary_words_language ON dictionary_words(language);
 CREATE INDEX IF NOT EXISTS idx_dictionary_words_is_official ON dictionary_words(is_official);
 CREATE INDEX IF NOT EXISTS idx_dictionary_words_word_trgm ON dictionary_words USING gin(word gin_trgm_ops);
-
--- Activer l'extension pg_trgm pour la recherche floue
-CREATE EXTENSION IF NOT EXISTS pg_trgm;
 
 -- Table pour les contributions des utilisateurs au dictionnaire
 CREATE TABLE IF NOT EXISTS dictionary_contributions (
