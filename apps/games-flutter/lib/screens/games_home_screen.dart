@@ -194,13 +194,23 @@ class _GamesHomeScreenState extends State<GamesHomeScreen> {
                   itemBuilder: (context) => <PopupMenuEntry<String>>[
                     PopupMenuItem<String>(
                       enabled: false,
-                      value: 'profile',
+                      value: 'username',
                       child: Text(
                         _displayName ?? 'Utilisateur',
                         style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
                     ),
                     const PopupMenuDivider(),
+                    const PopupMenuItem<String>(
+                      value: 'profile',
+                      child: Row(
+                        children: [
+                          Icon(Icons.person),
+                          SizedBox(width: 8),
+                          Text('Mon Profil'),
+                        ],
+                      ),
+                    ),
                     PopupMenuItem<String>(
                       value: 'friends',
                       child: Row(
@@ -243,6 +253,8 @@ class _GamesHomeScreenState extends State<GamesHomeScreen> {
                   onSelected: (value) {
                     if (value == 'logout') {
                       _logout();
+                    } else if (value == 'profile') {
+                      context.go('/profile');
                     } else if (value == 'friends') {
                       context.go('/friends');
                     }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'screens/games_home_screen.dart';
 import 'screens/auth_screen.dart';
+import 'screens/profile_screen.dart';
 import 'screens/friends_list_screen.dart';
 import 'screens/add_friend_screen.dart';
 import 'screens/email_invitation_screen.dart';
@@ -77,6 +78,10 @@ final _router = GoRouter(
     GoRoute(
       path: '/koze-kwaze',
       builder: (context, state) => const TranslatorScreen(),
+    ),
+    GoRoute(
+      path: '/profile',
+      builder: (context, state) => const ProfileScreen(),
     ),
     GoRoute(
       path: '/friends',

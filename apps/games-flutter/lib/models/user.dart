@@ -4,6 +4,8 @@ class AppUser {
   final String? username;
   final String? avatarUrl;
   final String? friendCode;
+  final String? postalCode;
+  final String? phone;
   final DateTime createdAt;
 
   AppUser({
@@ -12,6 +14,8 @@ class AppUser {
     this.username,
     this.avatarUrl,
     this.friendCode,
+    this.postalCode,
+    this.phone,
     required this.createdAt,
   });
 
@@ -22,6 +26,8 @@ class AppUser {
       username: json['username'] as String?,
       avatarUrl: json['avatar_url'] as String?,
       friendCode: json['friend_code'] as String?,
+      postalCode: json['postal_code'] as String?,
+      phone: json['phone'] as String?,
       createdAt: DateTime.parse(json['created_at'] as String),
     );
   }
@@ -33,6 +39,8 @@ class AppUser {
       'username': username,
       'avatar_url': avatarUrl,
       'friend_code': friendCode,
+      'postal_code': postalCode,
+      'phone': phone,
       'created_at': createdAt.toIso8601String(),
     };
   }
