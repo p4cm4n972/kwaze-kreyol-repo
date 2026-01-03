@@ -462,13 +462,27 @@ class _GamesHomeScreenState extends State<GamesHomeScreen> {
                 ),
 
                 const SizedBox(height: 24),
-                Text(
-                  '© 2025 ITMade Studio',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.white.withOpacity(0.5),
-                  ),
-                  textAlign: TextAlign.center,
+                Column(
+                  children: [
+                    Text(
+                      'Version Beta',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Colors.white.withOpacity(0.4),
+                        fontWeight: FontWeight.w500,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '© 2025 ITMade Studio',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.white.withOpacity(0.5),
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
                 ),
               ],
             ),
