@@ -87,7 +87,7 @@ CREATE TRIGGER update_dictionary_words_updated_at
     FOR EACH ROW
     EXECUTE FUNCTION update_updated_at_column();
 
--- RLS (Row Level Security) - Lecture publique, modification par admin seulement
+-- RLS (Row Level Security) - Lecture publique pour les mots
 ALTER TABLE dictionary_words ENABLE ROW LEVEL SECURITY;
 ALTER TABLE dictionary_contributions ENABLE ROW LEVEL SECURITY;
 
@@ -95,13 +95,6 @@ ALTER TABLE dictionary_contributions ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Anyone can read official words"
     ON dictionary_words FOR SELECT
     USING (is_official = true);
-
--- Seuls les administrateurs peuvent insérer/modifier/supprimer des mots
-CREATE POLICY "Only admins can modify words"
-    ON dictionary_words FOR ALL
-    USING (auth.uid() IN (
-        SELECT id FROM users WHERE role = 'admin'
-    ));
 
 -- Les utilisateurs connectés peuvent soumettre des contributions
 CREATE POLICY "Authenticated users can submit contributions"
@@ -111,13 +104,9 @@ CREATE POLICY "Authenticated users can submit contributions"
 -- Les utilisateurs peuvent voir leurs propres contributions
 CREATE POLICY "Users can view their own contributions"
     ON dictionary_contributions FOR SELECT
-    USING (auth.uid() = user_id OR auth.uid() IN (
-        SELECT id FROM users WHERE role = 'admin'
-    ));
+    USING (auth.uid() = user_id);
 
--- Seuls les administrateurs peuvent modifier/approuver/rejeter les contributions
-CREATE POLICY "Only admins can modify contributions"
-    ON dictionary_contributions FOR UPDATE
-    USING (auth.uid() IN (
-        SELECT id FROM users WHERE role = 'admin'
-    ));
+-- Note: Les modifications des mots du dictionnaire (INSERT/UPDATE/DELETE)
+-- doivent être faites via le service_role key ou en SQL directement
+-- pour éviter les modifications non autorisées.
+-- Les contributions seront approuvées manuellement par un admin.
