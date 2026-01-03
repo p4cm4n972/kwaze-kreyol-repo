@@ -805,7 +805,7 @@ class _MotsMawonScreenState extends State<MotsMawonScreen> {
                 child: Text(
                   _gameData!.grid[row][col],
                   style: TextStyle(
-                    fontFamily: 'Permanent_Marker',
+                    fontFamily: 'Open_Sans',
                     fontSize: isMobile ? 14 : 20,
                     fontWeight: FontWeight.bold,
                     color: isInFoundWord || isSelected

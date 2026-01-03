@@ -41,3 +41,6 @@ flutter:
     - family: Permanent_Marker
       fonts:
         - asset: assets/fonts/Permanent_Marker/PermanentMarker-Regular.ttf
+    - family: Open_Sans
+      fonts:
+        - asset: assets/fonts/Open_Sans/OpenSans-VariableFont.ttf
