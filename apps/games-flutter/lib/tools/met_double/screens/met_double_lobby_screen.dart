@@ -401,6 +401,7 @@ class _MetDoubleLobbyScreenState extends State<MetDoubleLobbyScreen> {
                         style: ElevatedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           backgroundColor: const Color(0xFFFFD700),
+                          foregroundColor: Colors.black87,
                         ),
                       ),
                     ),
