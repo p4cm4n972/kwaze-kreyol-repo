@@ -17,22 +17,10 @@ class _AuthScreenState extends State<AuthScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _usernameController = TextEditingController();
-  final _postalCodeController = TextEditingController();
-  final _phoneController = TextEditingController();
   final _guestNameController = TextEditingController();
 
   bool _isLogin = true;
   bool _isLoading = false;
-  String _phonePrefix = '+590'; // Guadeloupe/Martinique par défaut
-
-  final List<Map<String, String>> _phonePrefixes = [
-    {'code': '+590', 'label': '🇬🇵 +590 (Guadeloupe)'},
-    {'code': '+596', 'label': '🇲🇶 +596 (Martinique)'},
-    {'code': '+594', 'label': '🇬🇫 +594 (Guyane)'},
-    {'code': '+262', 'label': '🇷🇪 +262 (Réunion)'},
-    {'code': '+33', 'label': '🇫🇷 +33 (France)'},
-    {'code': '+1', 'label': '🇺🇸 +1 (USA/Canada)'},
-  ];
 
   /// Convertit les erreurs Supabase en messages utilisateur
   String _getErrorMessage(dynamic error) {
@@ -97,8 +85,6 @@ class _AuthScreenState extends State<AuthScreen> {
     _emailController.dispose();
     _passwordController.dispose();
     _usernameController.dispose();
-    _postalCodeController.dispose();
-    _phoneController.dispose();
     _guestNameController.dispose();
     super.dispose();
   }
@@ -109,6 +95,17 @@ class _AuthScreenState extends State<AuthScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Email et mot de passe requis'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    // Validation pseudo (si inscription)
+    if (!_isLogin && _usernameController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Le pseudo est obligatoire'),
           backgroundColor: Colors.orange,
         ),
       );
@@ -138,34 +135,6 @@ class _AuthScreenState extends State<AuthScreen> {
       return;
     }
 
-    // Validation code postal (si inscription)
-    if (!_isLogin && _postalCodeController.text.trim().isNotEmpty) {
-      if (_postalCodeController.text.trim().length != 5 ||
-          !RegExp(r'^\d{5}$').hasMatch(_postalCodeController.text.trim())) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Le code postal doit contenir exactement 5 chiffres'),
-            backgroundColor: Colors.orange,
-          ),
-        );
-        return;
-      }
-    }
-
-    // Validation téléphone (si inscription)
-    if (!_isLogin && _phoneController.text.trim().isNotEmpty) {
-      final phoneDigits = _phoneController.text.replaceAll(RegExp(r'[^\d]'), '');
-      if (phoneDigits.length < 10) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Le numéro de téléphone doit contenir au moins 10 chiffres'),
-            backgroundColor: Colors.orange,
-          ),
-        );
-        return;
-      }
-    }
-
     setState(() => _isLoading = true);
 
     try {
@@ -176,17 +145,11 @@ class _AuthScreenState extends State<AuthScreen> {
           password: _passwordController.text,
         );
       } else {
-        // Inscription - Concatener le préfixe au numéro de téléphone
-        final phoneNumber = _phoneController.text.trim().isNotEmpty
-            ? '$_phonePrefix${_phoneController.text.trim()}'
-            : '';
-
+        // Inscription
         await _authService.signUpWithEmail(
           email: _emailController.text.trim(),
           password: _passwordController.text,
           username: _usernameController.text.trim(),
-          postalCode: _postalCodeController.text.trim(),
-          phone: phoneNumber,
         );
       }
 
@@ -315,23 +278,9 @@ class _AuthScreenState extends State<AuthScreen> {
                   if (!_isLogin) ...[
                     _buildStyledTextField(
                       controller: _usernameController,
-                      labelText: 'Nom d\'utilisateur (optionnel)',
+                      labelText: 'Pseudo',
                       prefixIcon: Icons.person,
                     ),
-                    const SizedBox(height: 16),
-
-                    // Code postal
-                    _buildStyledTextField(
-                      controller: _postalCodeController,
-                      labelText: 'Code postal',
-                      prefixIcon: Icons.location_on,
-                      keyboardType: TextInputType.number,
-                      maxLength: 5,
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Téléphone avec sélecteur de préfixe
-                    _buildPhoneField(),
                     const SizedBox(height: 16),
                   ],
 
@@ -470,78 +419,6 @@ class _AuthScreenState extends State<AuthScreen> {
     );
   }
 
-  /// Construit le champ téléphone avec sélecteur de préfixe
-  Widget _buildPhoneField() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          // Sélecteur de préfixe
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: DropdownButton<String>(
-              value: _phonePrefix,
-              underline: const SizedBox(),
-              items: _phonePrefixes.map((prefix) {
-                return DropdownMenuItem<String>(
-                  value: prefix['code'],
-                  child: Text(
-                    prefix['label']!,
-                    style: const TextStyle(fontSize: 14),
-                  ),
-                );
-              }).toList(),
-              onChanged: (value) {
-                if (value != null) {
-                  setState(() {
-                    _phonePrefix = value;
-                  });
-                }
-              },
-            ),
-          ),
-
-          // Séparateur
-          Container(
-            height: 40,
-            width: 1,
-            color: Colors.grey[300],
-          ),
-
-          // Champ de saisie du numéro
-          Expanded(
-            child: TextField(
-              controller: _phoneController,
-              decoration: InputDecoration(
-                labelText: 'Numéro',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
-                ),
-                filled: true,
-                fillColor: Colors.white,
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 16,
-                ),
-              ),
-              keyboardType: TextInputType.phone,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 }
 
 /// CustomPainter pour dessiner les waves madras
