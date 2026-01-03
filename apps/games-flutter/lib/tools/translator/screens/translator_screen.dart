@@ -87,6 +87,10 @@ class _TranslatorScreenState extends State<TranslatorScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context),
+        ),
         title: const Text('Traducteur Kréyol'),
         backgroundColor: Theme.of(context).colorScheme.primary,
         actions: [
