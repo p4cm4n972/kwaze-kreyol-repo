@@ -448,8 +448,8 @@ class _TranslatorScreenState extends State<TranslatorScreen> {
               ),
             ),
 
-            // Exemple
-            if (word.example != null) ...[
+            // Exemple en créole
+            if (word.exampleCreole != null) ...[
               const SizedBox(height: 12),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -461,15 +461,62 @@ class _TranslatorScreenState extends State<TranslatorScreen> {
                   ),
                   const SizedBox(width: 8),
                   Expanded(
-                    child: Text(
-                      word.example!,
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontStyle: FontStyle.italic,
-                        color: Colors.grey[700],
-                      ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          word.exampleCreole!,
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontStyle: FontStyle.italic,
+                            color: Colors.grey[700],
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        if (word.exampleFrancais != null) ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            word.exampleFrancais!,
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontStyle: FontStyle.italic,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                   ),
+                ],
+              ),
+            ],
+
+            // Variantes et synonymes
+            if ((word.variantes != null && word.variantes!.isNotEmpty) ||
+                (word.synonymes != null && word.synonymes!.isNotEmpty)) ...[
+              const SizedBox(height: 12),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  if (word.variantes != null)
+                    ...word.variantes!.map((v) => Chip(
+                          label: Text('var. $v'),
+                          backgroundColor: Colors.purple.withOpacity(0.1),
+                          labelStyle: TextStyle(
+                            fontSize: 12,
+                            color: Colors.purple[700],
+                          ),
+                        )),
+                  if (word.synonymes != null)
+                    ...word.synonymes!.map((s) => Chip(
+                          label: Text('syn. $s'),
+                          backgroundColor: Colors.green.withOpacity(0.1),
+                          labelStyle: TextStyle(
+                            fontSize: 12,
+                            color: Colors.green[700],
+                          ),
+                        )),
                 ],
               ),
             ],

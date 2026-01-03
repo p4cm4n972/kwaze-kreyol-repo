@@ -3,8 +3,13 @@ class DictionaryWord {
   final String word;
   final String language; // 'creole' ou 'francais'
   final String translation;
-  final String? nature; // Nom, verbe, adjectif...
-  final String? example;
+  final String? nature; // v., prep., nom., adj...
+  final String? exampleCreole;
+  final String? exampleFrancais;
+  final List<String>? synonymes;
+  final List<String>? variantes;
+  final int sensNum; // Numéro du sens (1, 2, 3...)
+  final String? explicationUsage;
   final String? source;
   final bool isOfficial;
   final DateTime createdAt;
@@ -15,11 +20,21 @@ class DictionaryWord {
     required this.language,
     required this.translation,
     this.nature,
-    this.example,
+    this.exampleCreole,
+    this.exampleFrancais,
+    this.synonymes,
+    this.variantes,
+    this.sensNum = 1,
+    this.explicationUsage,
     this.source,
     this.isOfficial = true,
     required this.createdAt,
   });
+
+  // Helper pour obtenir l'exemple dans la bonne langue
+  String? get example {
+    return language == 'creole' ? exampleCreole : exampleFrancais;
+  }
 
   factory DictionaryWord.fromJson(Map<String, dynamic> json) {
     return DictionaryWord(
@@ -28,7 +43,16 @@ class DictionaryWord {
       language: json['language'] as String? ?? 'creole',
       translation: json['translation'] as String,
       nature: json['nature'] as String?,
-      example: json['example'] as String?,
+      exampleCreole: json['example_creole'] as String?,
+      exampleFrancais: json['example_francais'] as String?,
+      synonymes: json['synonymes'] != null
+          ? List<String>.from(json['synonymes'] as List)
+          : null,
+      variantes: json['variantes'] != null
+          ? List<String>.from(json['variantes'] as List)
+          : null,
+      sensNum: json['sens_num'] as int? ?? 1,
+      explicationUsage: json['explication_usage'] as String?,
       source: json['source'] as String?,
       isOfficial: json['is_official'] as bool? ?? true,
       createdAt: DateTime.parse(json['created_at'] as String),

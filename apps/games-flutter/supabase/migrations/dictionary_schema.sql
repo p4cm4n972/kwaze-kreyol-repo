@@ -1,15 +1,22 @@
 -- Table pour les mots du dictionnaire créole-français
+-- Structure simplifiée : un mot peut avoir plusieurs définitions
 CREATE TABLE IF NOT EXISTS dictionary_words (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     word TEXT NOT NULL,
     language TEXT NOT NULL CHECK (language IN ('creole', 'francais')),
     translation TEXT NOT NULL,
-    nature TEXT,  -- Nom, Verbe, Adjectif, etc.
-    example TEXT,
+    nature TEXT,  -- v., prep., nom., adj., etc.
+    example_creole TEXT,
+    example_francais TEXT,
+    synonymes TEXT[], -- Array de synonymes
+    variantes TEXT[], -- Array de variantes
+    sens_num INTEGER DEFAULT 1,
+    explication_usage TEXT,
     source TEXT,
     is_official BOOLEAN DEFAULT true,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    UNIQUE(word, language, sens_num) -- Un mot peut avoir plusieurs sens
 );
 
 -- Index pour améliorer les performances de recherche
