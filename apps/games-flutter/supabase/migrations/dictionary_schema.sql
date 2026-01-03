@@ -47,6 +47,9 @@ CREATE TABLE IF NOT EXISTS dictionary_contributions (
 CREATE INDEX IF NOT EXISTS idx_dictionary_contributions_user_id ON dictionary_contributions(user_id);
 CREATE INDEX IF NOT EXISTS idx_dictionary_contributions_status ON dictionary_contributions(status);
 
+-- Supprimer l'ancienne fonction si elle existe (pour éviter les conflits de type de retour)
+DROP FUNCTION IF EXISTS get_random_word(TEXT);
+
 -- Fonction pour obtenir un mot aléatoire
 CREATE OR REPLACE FUNCTION get_random_word(p_language TEXT DEFAULT NULL)
 RETURNS SETOF dictionary_words
