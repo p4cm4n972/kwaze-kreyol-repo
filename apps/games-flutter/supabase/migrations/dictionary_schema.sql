@@ -84,36 +84,6 @@ CREATE TRIGGER update_dictionary_words_updated_at
     FOR EACH ROW
     EXECUTE FUNCTION update_updated_at_column();
 
--- Ajouter quelques mots d'exemple pour tester
-INSERT INTO dictionary_words (word, language, translation, nature, example) VALUES
-('bonjou', 'creole', 'bonjour', 'interjection', 'Bonjou tout moun !'),
-('mèsi', 'creole', 'merci', 'interjection', 'Mèsi anpil pou èd-la'),
-('lanmè', 'creole', 'mer', 'nom', 'An ka alé lanmè jodi-la'),
-('kay', 'creole', 'maison', 'nom', 'Kay-mwen bèl'),
-('manzé', 'creole', 'manger', 'verbe', 'Nou ka manzé lanmori'),
-('bèl', 'creole', 'beau/belle', 'adjectif', 'Sé on bèl ti fi'),
-('piti', 'creole', 'petit', 'adjectif', 'Sé on piti kay'),
-('gwo', 'creole', 'gros/grand', 'adjectif', 'Sé on gwo pyébwa'),
-('dlo', 'creole', 'eau', 'nom', 'Bay mwen on ti dlo souplé'),
-('mwen', 'creole', 'je/moi', 'pronom', 'Mwen ka alé lékol'),
-('ou', 'creole', 'tu/toi', 'pronom', 'Ou ka vini ?'),
-('li', 'creole', 'il/elle/lui', 'pronom', 'Li ka dòmi'),
-('nou', 'creole', 'nous', 'pronom', 'Nou ka jwé'),
-('zòt', 'creole', 'vous', 'pronom', 'Zòt ka maché'),
-('yo', 'creole', 'ils/elles/eux', 'pronom', 'Yo ka chanté'),
-('bonjour', 'francais', 'bonjou', 'interjection', NULL),
-('merci', 'francais', 'mèsi', 'interjection', NULL),
-('mer', 'francais', 'lanmè', 'nom', NULL),
-('maison', 'francais', 'kay', 'nom', NULL),
-('manger', 'francais', 'manzé', 'verbe', NULL),
-('beau', 'francais', 'bèl', 'adjectif', NULL),
-('belle', 'francais', 'bèl', 'adjectif', NULL),
-('petit', 'francais', 'piti', 'adjectif', NULL),
-('grand', 'francais', 'gwo', 'adjectif', NULL),
-('gros', 'francais', 'gwo', 'adjectif', NULL),
-('eau', 'francais', 'dlo', 'nom', NULL)
-ON CONFLICT DO NOTHING;
-
 -- RLS (Row Level Security) - Lecture publique, modification par admin seulement
 ALTER TABLE dictionary_words ENABLE ROW LEVEL SECURITY;
 ALTER TABLE dictionary_contributions ENABLE ROW LEVEL SECURITY;
