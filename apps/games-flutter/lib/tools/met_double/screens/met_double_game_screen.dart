@@ -167,6 +167,7 @@ class _MetDoubleGameScreenState extends State<MetDoubleGameScreen> {
             onPressed: () => Navigator.pop(context, true),
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.orange,
+              foregroundColor: Colors.black87,
             ),
             child: const Text('Enregistrer la chirée'),
           ),
@@ -240,6 +241,7 @@ class _MetDoubleGameScreenState extends State<MetDoubleGameScreen> {
             onPressed: () => Navigator.pop(context, 'restart'),
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.amber,
+              foregroundColor: Colors.black87,
             ),
             child: const Text('Valider et Nouvelle manche'),
           ),
@@ -395,6 +397,7 @@ class _MetDoubleGameScreenState extends State<MetDoubleGameScreen> {
             onPressed: () => Navigator.pop(context),
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.orange,
+              foregroundColor: Colors.black87,
             ),
             child: const Text('OK'),
           ),

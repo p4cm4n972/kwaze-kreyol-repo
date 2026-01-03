@@ -399,6 +399,7 @@ class _MetDoubleHomeScreenState extends State<MetDoubleHomeScreen> {
             label: const Text('Rejoindre'),
             heroTag: 'join',
             backgroundColor: Colors.blue,
+            foregroundColor: Colors.white,
           ),
           const SizedBox(height: 16),
           FloatingActionButton.extended(
@@ -406,6 +407,7 @@ class _MetDoubleHomeScreenState extends State<MetDoubleHomeScreen> {
             icon: const Icon(Icons.add),
             label: const Text('Nouvelle session'),
             heroTag: 'create',
+            foregroundColor: Colors.black87,
           ),
         ],
       ),
