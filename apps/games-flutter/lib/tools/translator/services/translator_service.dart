@@ -11,6 +11,8 @@ class TranslatorService {
     String? language, // 'creole' ou 'francais'
   }) async {
     try {
+      print('🔍 Recherche de "$query" en langue: $language');
+
       var queryBuilder = _supabase
           .from('dictionary_words')
           .select()
@@ -25,10 +27,18 @@ class TranslatorService {
           .order('word', ascending: true)
           .limit(20);
 
-      return (response as List)
-          .map((json) => DictionaryWord.fromJson(json))
+      print('📊 Résultats trouvés: ${(response as List).length}');
+
+      final results = (response as List)
+          .map((json) {
+            print('📝 Mot trouvé: ${json['word']} -> ${json['translation']}');
+            return DictionaryWord.fromJson(json);
+          })
           .toList();
+
+      return results;
     } catch (e) {
+      print('❌ Erreur recherche: $e');
       throw Exception('Erreur lors de la recherche: $e');
     }
   }
