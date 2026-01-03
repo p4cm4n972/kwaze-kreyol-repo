@@ -1,6 +1,9 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 import '../services/auth_service.dart';
+import '../services/storage_service.dart';
 import '../services/supabase_service.dart';
 import '../models/user.dart';
 
@@ -13,6 +16,8 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   final AuthService _authService = AuthService();
+  final StorageService _storageService = StorageService();
+  final ImagePicker _imagePicker = ImagePicker();
   final _formKey = GlobalKey<FormState>();
 
   final _usernameController = TextEditingController();
@@ -22,6 +27,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   AppUser? _currentUser;
   bool _isLoading = true;
   bool _isSaving = false;
+  bool _isUploadingImage = false;
   String _phonePrefix = '+590'; // Guadeloupe/Martinique par défaut
 
   final List<Map<String, String>> _phonePrefixes = [
@@ -154,6 +160,94 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
+  Future<void> _changeProfilePicture() async {
+    try {
+      // Demander à l'utilisateur de choisir la source
+      final source = await showDialog<ImageSource>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Choisir une photo'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.camera_alt),
+                title: const Text('Prendre une photo'),
+                onTap: () => Navigator.pop(context, ImageSource.camera),
+              ),
+              ListTile(
+                leading: const Icon(Icons.photo_library),
+                title: const Text('Choisir depuis la galerie'),
+                onTap: () => Navigator.pop(context, ImageSource.gallery),
+              ),
+            ],
+          ),
+        ),
+      );
+
+      if (source == null) return;
+
+      // Sélectionner l'image
+      final XFile? image = await _imagePicker.pickImage(
+        source: source,
+        maxWidth: 512,
+        maxHeight: 512,
+        imageQuality: 85,
+      );
+
+      if (image == null) return;
+
+      setState(() => _isUploadingImage = true);
+
+      try {
+        // Uploader l'image
+        final avatarUrl = await _storageService.uploadAvatar(
+          userId: _currentUser!.id,
+          imageFile: File(image.path),
+        );
+
+        // Mettre à jour l'URL dans la base de données
+        await _storageService.updateUserAvatar(
+          userId: _currentUser!.id,
+          avatarUrl: avatarUrl,
+        );
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Photo de profil mise à jour'),
+              backgroundColor: Colors.green,
+            ),
+          );
+          // Recharger les données
+          await _loadUserData();
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Erreur: $e'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      } finally {
+        if (mounted) {
+          setState(() => _isUploadingImage = false);
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erreur: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -182,43 +276,47 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       Center(
                         child: Stack(
                           children: [
-                            CircleAvatar(
-                              radius: 60,
-                              backgroundColor: Theme.of(context).colorScheme.primary,
-                              child: const Icon(
-                                Icons.person,
-                                size: 60,
-                                color: Colors.white,
-                              ),
-                            ),
-                            Positioned(
-                              bottom: 0,
-                              right: 0,
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  shape: BoxShape.circle,
-                                  border: Border.all(
-                                    color: Theme.of(context).colorScheme.primary,
-                                    width: 2,
+                            _isUploadingImage
+                                ? const CircleAvatar(
+                                    radius: 60,
+                                    child: CircularProgressIndicator(),
+                                  )
+                                : CircleAvatar(
+                                    radius: 60,
+                                    backgroundColor: Theme.of(context).colorScheme.primary,
+                                    backgroundImage: _currentUser?.avatarUrl != null
+                                        ? NetworkImage(_currentUser!.avatarUrl!)
+                                        : null,
+                                    child: _currentUser?.avatarUrl == null
+                                        ? const Icon(
+                                            Icons.person,
+                                            size: 60,
+                                            color: Colors.white,
+                                          )
+                                        : null,
+                                  ),
+                            if (!_isUploadingImage)
+                              Positioned(
+                                bottom: 0,
+                                right: 0,
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: Theme.of(context).colorScheme.primary,
+                                      width: 2,
+                                    ),
+                                  ),
+                                  child: IconButton(
+                                    icon: Icon(
+                                      Icons.camera_alt,
+                                      color: Theme.of(context).colorScheme.primary,
+                                    ),
+                                    onPressed: _changeProfilePicture,
                                   ),
                                 ),
-                                child: IconButton(
-                                  icon: Icon(
-                                    Icons.camera_alt,
-                                    color: Theme.of(context).colorScheme.primary,
-                                  ),
-                                  onPressed: () {
-                                    // TODO: Implémenter changement de photo
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text('Changement de photo à venir'),
-                                      ),
-                                    );
-                                  },
-                                ),
                               ),
-                            ),
                           ],
                         ),
                       ),
