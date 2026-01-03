@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../../services/auth_service.dart';
 import '../services/translator_service.dart';
 import '../models/dictionary_word.dart';
@@ -89,7 +90,10 @@ class _TranslatorScreenState extends State<TranslatorScreen> {
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () {
+            context.go('/');
+          },
+          tooltip: 'Retour aux jeux',
         ),
         title: const Text('Traducteur Kréyol'),
         backgroundColor: Theme.of(context).colorScheme.primary,
