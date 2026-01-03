@@ -230,6 +230,21 @@ class _AuthScreenState extends State<AuthScreen> {
             ),
           ),
 
+          // Bouton retour
+          Positioned(
+            top: 16,
+            left: 8,
+            child: SafeArea(
+              child: IconButton(
+                icon: const Icon(Icons.arrow_back, color: Colors.white, size: 28),
+                onPressed: () {
+                  context.go('/');
+                },
+                tooltip: 'Retour',
+              ),
+            ),
+          ),
+
           // Contenu principal
           SafeArea(
             child: SingleChildScrollView(
