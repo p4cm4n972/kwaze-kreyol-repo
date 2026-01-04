@@ -764,16 +764,30 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                _madrasColors[0].withOpacity(0.1),
-                _madrasColors[2].withOpacity(0.1),
-                _madrasColors[4].withOpacity(0.1),
+                const Color(0xFF1a1a2e),
+                const Color(0xFF16213e),
+                const Color(0xFF0f3460),
               ],
             ),
           ),
-          child: SafeArea(
-            child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : _buildGameContent(),
+          child: Stack(
+            children: [
+              // Pattern madras en arrière-plan
+              Positioned.fill(
+                child: CustomPaint(
+                  painter: MadrasPatternPainter(
+                    colors: _madrasColors,
+                    opacity: 0.05,
+                  ),
+                ),
+              ),
+              // Contenu du jeu
+              SafeArea(
+                child: _isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : _buildGameContent(),
+              ),
+            ],
           ),
         ),
       ),
@@ -801,41 +815,120 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
 
   Widget _buildAppBar() {
     return Container(
-      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.all(8),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            Colors.black.withOpacity(0.3),
+            Colors.black.withOpacity(0.1),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: const Color(0xFFFFD700).withOpacity(0.2),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.3),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
       child: Row(
         children: [
           IconButton(
-            icon: const Icon(Icons.arrow_back),
+            icon: const Icon(Icons.arrow_back, color: Colors.white),
             onPressed: _onBackPressed,
           ),
-          const Text(
-            'Skrabb',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
+          const SizedBox(width: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  const Color(0xFFFFD700),
+                  const Color(0xFFFF8C00),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(8),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFFFFD700).withOpacity(0.3),
+                  blurRadius: 4,
+                ),
+              ],
+            ),
+            child: const Text(
+              'Skrabb',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+              ),
             ),
           ),
           const Spacer(),
-          Text(
-            'Score: $_score',
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: Colors.black.withOpacity(0.3),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: Colors.amber.withOpacity(0.3),
+                width: 1,
+              ),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.stars, color: Colors.amber, size: 20),
+                const SizedBox(width: 6),
+                Text(
+                  '$_score',
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              ],
             ),
           ),
-          const SizedBox(width: 16),
-          Text(
-            _formatTime(_timeElapsed),
-            style: const TextStyle(fontSize: 16),
+          const SizedBox(width: 12),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: Colors.black.withOpacity(0.3),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: Colors.blue.withOpacity(0.3),
+                width: 1,
+              ),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.timer, color: Colors.blue, size: 20),
+                const SizedBox(width: 6),
+                Text(
+                  _formatTime(_timeElapsed),
+                  style: const TextStyle(
+                    fontSize: 16,
+                    color: Colors.white,
+                  ),
+                ),
+              ],
+            ),
           ),
           const SizedBox(width: 8),
           IconButton(
-            icon: const Icon(Icons.emoji_events, color: Colors.amber),
+            icon: const Icon(Icons.emoji_events, color: Colors.amber, size: 28),
             tooltip: 'Classement',
             onPressed: () => context.go('/skrabb/leaderboard'),
           ),
           IconButton(
-            icon: const Icon(Icons.help_outline),
+            icon: const Icon(Icons.help_outline, color: Colors.white70, size: 28),
             tooltip: 'Aide',
             onPressed: () => context.go('/skrabb/help'),
           ),
@@ -899,28 +992,64 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
       child: Container(
         margin: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: const Color(0xFFFFD700).withOpacity(0.3),
+            width: 3,
+          ),
           boxShadow: [
+            // Ombre principale
             BoxShadow(
-              color: Colors.black.withOpacity(0.2),
+              color: Colors.black.withOpacity(0.5),
+              blurRadius: 20,
+              offset: const Offset(0, 8),
+              spreadRadius: 2,
+            ),
+            // Ombre intérieure (effet 3D)
+            BoxShadow(
+              color: Colors.black.withOpacity(0.3),
               blurRadius: 10,
               offset: const Offset(0, 4),
+            ),
+            // Lueur dorée subtile
+            BoxShadow(
+              color: const Color(0xFFFFD700).withOpacity(0.1),
+              blurRadius: 15,
+              spreadRadius: -5,
             ),
           ],
         ),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(8),
-          child: GridView.builder(
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: Board.size,
+          borderRadius: BorderRadius.circular(14),
+          child: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  const Color(0xFF2c3e50),
+                  const Color(0xFF34495e),
+                ],
+              ),
             ),
-            itemCount: Board.size * Board.size,
-            itemBuilder: (context, index) {
-              final row = index ~/ Board.size;
-              final col = index % Board.size;
-              return _buildBoardSquare(row, col);
-            },
+            padding: const EdgeInsets.all(2),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: GridView.builder(
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: Board.size,
+                  mainAxisSpacing: 1,
+                  crossAxisSpacing: 1,
+                ),
+                itemCount: Board.size * Board.size,
+                itemBuilder: (context, index) {
+                  final row = index ~/ Board.size;
+                  final col = index % Board.size;
+                  return _buildBoardSquare(row, col);
+                },
+              ),
+            ),
           ),
         ),
       ),
@@ -979,27 +1108,77 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
           onTap: () => _onBoardSquareTapped(row, col),
           child: Container(
             decoration: BoxDecoration(
-              color: isHovering
-                  ? _getSquareColor(square).withOpacity(0.7)
-                  : _getSquareColor(square),
+              gradient: isHovering
+                  ? LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        _getSquareColor(square),
+                        _getSquareColor(square).withOpacity(0.7),
+                      ],
+                    )
+                  : null,
+              color: isHovering ? null : _getSquareColor(square),
               border: Border.all(
                 color: isHovering
-                    ? Colors.amber.withOpacity(0.8)
-                    : Colors.black.withOpacity(0.1),
+                    ? const Color(0xFFFFD700).withOpacity(0.8)
+                    : Colors.black.withOpacity(0.15),
                 width: isHovering ? 2 : 0.5,
               ),
+              boxShadow: isHovering
+                  ? [
+                      BoxShadow(
+                        color: const Color(0xFFFFD700).withOpacity(0.3),
+                        blurRadius: 4,
+                        spreadRadius: 1,
+                      ),
+                    ]
+                  : [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 1,
+                        offset: const Offset(0, 1),
+                      ),
+                    ],
             ),
             child: square.placedTile != null
                 ? _buildAnimatedTile(row, col, square.placedTile!, square.isLocked)
-                : Center(
-                    child: Text(
-                      square.bonusType.shortName,
-                      style: TextStyle(
-                        fontSize: 8,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white.withOpacity(0.7),
+                : Stack(
+                    children: [
+                      // Effet de profondeur subtil pour les cases bonus
+                      if (square.bonusType != BonusType.none)
+                        Positioned.fill(
+                          child: Container(
+                            decoration: BoxDecoration(
+                              gradient: RadialGradient(
+                                center: Alignment.center,
+                                radius: 0.8,
+                                colors: [
+                                  Colors.white.withOpacity(0.1),
+                                  Colors.transparent,
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      // Label du bonus
+                      Center(
+                        child: Text(
+                          square.bonusType.shortName,
+                          style: TextStyle(
+                            fontSize: 8,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white.withOpacity(0.8),
+                            shadows: [
+                              Shadow(
+                                color: Colors.black.withOpacity(0.5),
+                                blurRadius: 2,
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
-                    ),
+                    ],
                   ),
           ),
         );
@@ -1512,4 +1691,52 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
       ),
     );
   }
+}
+
+/// Painter pour créer un pattern madras en arrière-plan
+class MadrasPatternPainter extends CustomPainter {
+  final List<Color> colors;
+  final double opacity;
+
+  MadrasPatternPainter({
+    required this.colors,
+    this.opacity = 0.05,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()..style = PaintingStyle.fill;
+
+    // Dessiner des rayures diagonales colorées
+    final stripWidth = size.width / 20;
+
+    for (int i = 0; i < 40; i++) {
+      paint.color = colors[i % colors.length].withOpacity(opacity);
+
+      final path = Path();
+      final startX = i * stripWidth - size.height;
+
+      path.moveTo(startX, 0);
+      path.lineTo(startX + stripWidth, 0);
+      path.lineTo(startX + stripWidth + size.height, size.height);
+      path.lineTo(startX + size.height, size.height);
+      path.close();
+
+      canvas.drawPath(path, paint);
+    }
+
+    // Ajouter des rayures horizontales subtiles
+    for (int i = 0; i < 15; i++) {
+      paint.color = colors[i % colors.length].withOpacity(opacity * 0.5);
+
+      final y = i * (size.height / 15);
+      canvas.drawRect(
+        Rect.fromLTWH(0, y, size.width, stripWidth / 2),
+        paint,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
