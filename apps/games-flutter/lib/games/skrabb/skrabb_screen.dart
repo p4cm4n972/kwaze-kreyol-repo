@@ -11,6 +11,7 @@ import 'models/move.dart';
 import 'models/letter_distribution.dart';
 import 'services/skrabb_service.dart';
 import 'services/word_validator.dart';
+import 'services/sound_service.dart';
 import 'utils/scrabble_scoring.dart';
 import 'utils/move_validator.dart';
 import 'utils/tile_bag_manager.dart';
@@ -27,6 +28,7 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
   final SkrabbService _skrabbService = SkrabbService();
   final WordValidator _wordValidator = WordValidator();
   final TileBagManager _tileBagManager = TileBagManager();
+  final SoundService _soundService = SoundService();
 
   // État du jeu
   SkrabbGame? _currentGame;
@@ -69,7 +71,13 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
   void initState() {
     super.initState();
     _setLandscapeOrientation();
+    _initializeSound();
     _checkAuthAndLoadGame();
+  }
+
+  /// Initialise le service audio
+  Future<void> _initializeSound() async {
+    await _soundService.initialize();
   }
 
   /// Force l'orientation paysage (compatible mobile, web, desktop)
@@ -356,6 +364,9 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
 
     // Animer le placement
     _animateTilePlacement(row, col);
+
+    // Jouer le son de placement
+    _soundService.playTilePlacement();
   }
 
   /// Annule les placements en attente
@@ -372,6 +383,9 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
       _pendingPlacements.clear();
       _errorMessage = null;
     });
+
+    // Jouer le son d'annulation
+    _soundService.playUndo();
   }
 
   /// Mélange les tuiles du chevalet
@@ -382,6 +396,9 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
       _selectedRackTile = null;
       _selectedRackIndex = null;
     });
+
+    // Jouer le son de mélange
+    _soundService.playShuffle();
   }
 
   /// Valide le coup
@@ -411,6 +428,8 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
           _errorMessage = validationResult.errorMessage;
           _isValidating = false;
         });
+        // Jouer le son d'erreur
+        _soundService.playError();
         return;
       }
 
@@ -428,6 +447,9 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
         isBingo: _pendingPlacements.length == 7,
         timestamp: DateTime.now(),
       );
+
+      // Jouer le son de validation
+      _soundService.playValidation();
 
       // Animer les tuiles validées
       for (final placement in _pendingPlacements) {
@@ -496,6 +518,9 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
       // Arrêter les timers
       _timer?.cancel();
       _autoSaveTimer?.cancel();
+
+      // Jouer le son de victoire
+      _soundService.playVictory();
 
       // Afficher dialogue de félicitations
       if (mounted) {
@@ -692,6 +717,9 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
       _errorMessage = message;
       _shakeError = true;
     });
+
+    // Jouer le son d'erreur
+    _soundService.playError();
 
     // Arrêter l'animation shake après 500ms
     Future.delayed(const Duration(milliseconds: 500), () {
@@ -940,6 +968,9 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
 
         // Animer le placement
         _animateTilePlacement(row, col);
+
+        // Jouer le son de placement
+        _soundService.playTilePlacement();
       },
       builder: (context, candidateData, rejectedData) {
         final isHovering = candidateData.isNotEmpty;

@@ -24,6 +24,7 @@ dependencies:
   flutter_svg: ^2.0.10+1
   image_picker: ^1.0.7
   google_fonts: ^6.1.0
+  audioplayers: ^6.1.0
 
 dev_dependencies:
   flutter_test:
@@ -37,6 +38,7 @@ flutter:
     - assets/icons/
     - assets/images/
     - assets/data/
+    - assets/sounds/
 
   fonts:
     - family: Permanent_Marker
