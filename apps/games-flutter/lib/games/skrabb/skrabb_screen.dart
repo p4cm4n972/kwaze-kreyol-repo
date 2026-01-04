@@ -764,9 +764,10 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                const Color(0xFF1a1a2e),
-                const Color(0xFF16213e),
-                const Color(0xFF0f3460),
+                const Color(0xFFFF6B6B), // Coral rose
+                const Color(0xFFFFB347), // Orange pastel
+                const Color(0xFFFFD93D), // Jaune doré
+                const Color(0xFFFF8C94), // Rose saumon
               ],
             ),
           ),
@@ -777,7 +778,7 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
                 child: CustomPaint(
                   painter: MadrasPatternPainter(
                     colors: _madrasColors,
-                    opacity: 0.05,
+                    opacity: 0.08,
                   ),
                 ),
               ),
@@ -814,126 +815,153 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
   }
 
   Widget _buildAppBar() {
-    return Container(
-      margin: const EdgeInsets.all(8),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            Colors.black.withOpacity(0.3),
-            Colors.black.withOpacity(0.1),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: const Color(0xFFFFD700).withOpacity(0.2),
-          width: 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.3),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isMobile = constraints.maxWidth < 600;
+
+        return Container(
+          margin: EdgeInsets.all(isMobile ? 4 : 8),
+          padding: EdgeInsets.symmetric(
+            horizontal: isMobile ? 8 : 16,
+            vertical: isMobile ? 8 : 12,
           ),
-        ],
-      ),
-      child: Row(
-        children: [
-          IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.white),
-            onPressed: _onBackPressed,
-          ),
-          const SizedBox(width: 8),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  const Color(0xFFFFD700),
-                  const Color(0xFFFF8C00),
-                ],
-              ),
-              borderRadius: BorderRadius.circular(8),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFFFFD700).withOpacity(0.3),
-                  blurRadius: 4,
-                ),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                Colors.black.withOpacity(0.3),
+                Colors.black.withOpacity(0.1),
               ],
             ),
-            child: const Text(
-              'Skrabb',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
-              ),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: const Color(0xFFFFD700).withOpacity(0.2),
+              width: 1,
             ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.3),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
-          const Spacer(),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: Colors.black.withOpacity(0.3),
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(
-                color: Colors.amber.withOpacity(0.3),
-                width: 1,
+          child: Row(
+            children: [
+              IconButton(
+                icon: Icon(Icons.arrow_back, color: Colors.white, size: isMobile ? 20 : 24),
+                onPressed: _onBackPressed,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
               ),
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.stars, color: Colors.amber, size: 20),
-                const SizedBox(width: 6),
-                Text(
-                  '$_score',
-                  style: const TextStyle(
-                    fontSize: 18,
+              SizedBox(width: isMobile ? 4 : 8),
+              Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: isMobile ? 6 : 12,
+                  vertical: isMobile ? 4 : 6,
+                ),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      const Color(0xFFFFD700),
+                      const Color(0xFFFF8C00),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(8),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFFFFD700).withOpacity(0.3),
+                      blurRadius: 4,
+                    ),
+                  ],
+                ),
+                child: Text(
+                  'Skrabb',
+                  style: TextStyle(
+                    fontSize: isMobile ? 16 : 24,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: Colors.black,
                   ),
                 ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 12),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: Colors.black.withOpacity(0.3),
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(
-                color: Colors.blue.withOpacity(0.3),
-                width: 1,
               ),
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.timer, color: Colors.blue, size: 20),
-                const SizedBox(width: 6),
-                Text(
-                  _formatTime(_timeElapsed),
-                  style: const TextStyle(
-                    fontSize: 16,
-                    color: Colors.white,
+              const Spacer(),
+              Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: isMobile ? 6 : 12,
+                  vertical: isMobile ? 4 : 6,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.3),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: Colors.amber.withOpacity(0.3),
+                    width: 1,
                   ),
                 ),
-              ],
-            ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.stars, color: Colors.amber, size: isMobile ? 16 : 20),
+                    SizedBox(width: isMobile ? 4 : 6),
+                    Text(
+                      '$_score',
+                      style: TextStyle(
+                        fontSize: isMobile ? 14 : 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(width: isMobile ? 6 : 12),
+              Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: isMobile ? 6 : 12,
+                  vertical: isMobile ? 4 : 6,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.3),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: Colors.blue.withOpacity(0.3),
+                    width: 1,
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.timer, color: Colors.blue, size: isMobile ? 16 : 20),
+                    SizedBox(width: isMobile ? 4 : 6),
+                    Text(
+                      _formatTime(_timeElapsed),
+                      style: TextStyle(
+                        fontSize: isMobile ? 12 : 16,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(width: isMobile ? 4 : 8),
+              IconButton(
+                icon: Icon(Icons.emoji_events, color: Colors.amber, size: isMobile ? 20 : 28),
+                tooltip: 'Classement',
+                onPressed: () => context.go('/skrabb/leaderboard'),
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+              ),
+              SizedBox(width: isMobile ? 4 : 0),
+              IconButton(
+                icon: Icon(Icons.help_outline, color: Colors.white70, size: isMobile ? 20 : 28),
+                tooltip: 'Aide',
+                onPressed: () => context.go('/skrabb/help'),
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+              ),
+            ],
           ),
-          const SizedBox(width: 8),
-          IconButton(
-            icon: const Icon(Icons.emoji_events, color: Colors.amber, size: 28),
-            tooltip: 'Classement',
-            onPressed: () => context.go('/skrabb/leaderboard'),
-          ),
-          IconButton(
-            icon: const Icon(Icons.help_outline, color: Colors.white70, size: 28),
-            tooltip: 'Aide',
-            onPressed: () => context.go('/skrabb/help'),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -1674,19 +1702,20 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 4),
               child: ElevatedButton.icon(
                 onPressed: _pendingPlacements.isEmpty ? null : _onUndoPlacements,
-                icon: const Icon(Icons.undo, size: 20),
+                icon: const Icon(Icons.undo, size: 18),
                 label: const Text(
                   'Annuler',
                   style: TextStyle(
-                    fontSize: 16,
+                    fontSize: 13,
                     fontWeight: FontWeight.bold,
                   ),
+                  overflow: TextOverflow.ellipsis,
                 ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFFE74C3C),
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
+                    horizontal: 8,
                     vertical: 14,
                   ),
                   elevation: 4,
@@ -1705,19 +1734,20 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 4),
               child: ElevatedButton.icon(
                 onPressed: _rack.isEmpty ? null : _onShuffleRack,
-                icon: const Icon(Icons.shuffle, size: 20),
+                icon: const Icon(Icons.shuffle, size: 18),
                 label: const Text(
                   'Mélanger',
                   style: TextStyle(
-                    fontSize: 16,
+                    fontSize: 13,
                     fontWeight: FontWeight.bold,
                   ),
+                  overflow: TextOverflow.ellipsis,
                 ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF9B59B6),
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
+                    horizontal: 8,
                     vertical: 14,
                   ),
                   elevation: 4,
@@ -1741,26 +1771,27 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
                         : _onValidateMove,
                 icon: _isValidating
                     ? const SizedBox(
-                        width: 18,
-                        height: 18,
+                        width: 16,
+                        height: 16,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
                           color: Colors.white,
                         ),
                       )
-                    : const Icon(Icons.check, size: 20),
+                    : const Icon(Icons.check, size: 18),
                 label: const Text(
                   'Valider',
                   style: TextStyle(
-                    fontSize: 16,
+                    fontSize: 13,
                     fontWeight: FontWeight.bold,
                   ),
+                  overflow: TextOverflow.ellipsis,
                 ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF27AE60),
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
+                    horizontal: 8,
                     vertical: 14,
                   ),
                   elevation: 4,
