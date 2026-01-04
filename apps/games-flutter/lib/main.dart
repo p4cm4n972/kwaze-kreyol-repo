@@ -61,6 +61,14 @@ final _router = GoRouter(
       ),
     ),
     GoRoute(
+      path: '/login',
+      builder: (context, state) => AuthScreen(
+        onSuccess: () {
+          // Callback après connexion réussie
+        },
+      ),
+    ),
+    GoRoute(
       path: '/mots-mawon',
       builder: (context, state) => const MotsMawonScreen(),
     ),
