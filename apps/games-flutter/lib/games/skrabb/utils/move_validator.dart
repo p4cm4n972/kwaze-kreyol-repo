@@ -79,7 +79,7 @@ class MoveValidator {
 
     // 3. Premier coup: vérifier case centrale
     if (isFirstMove) {
-      if (!_crossesCenter(newTiles)) {
+      if (!MoveValidator._crossesCenter(newTiles)) {
         return MoveValidationResult.invalid(
           'Le premier mot doit traverser la case centrale (★)',
         );
@@ -109,11 +109,6 @@ class MoveValidator {
 
     // Tout est valide!
     return MoveValidationResult.valid(formedWords);
-  }
-
-  /// Vérifie si les tuiles traversent la case centrale (7,7)
-  bool _crossesCenter(List<PlacedTile> tiles) {
-    return tiles.any((tile) => tile.row == 7 && tile.col == 7);
   }
 
   /// Vérifie si les nouvelles tuiles se connectent à un mot existant

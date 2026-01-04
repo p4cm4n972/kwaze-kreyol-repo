@@ -108,7 +108,7 @@ class _GamesHomeScreenState extends State<GamesHomeScreen> {
         'description':
             'Scrabble créole ! Forme des mots en créole et marque un maximum de points.',
         'iconPath': 'assets/icons/skrabb.png',
-        'available': false,
+        'available': true,
       },
       {
         'id': 'endorlisseur',
