@@ -8,6 +8,7 @@ import 'models/skrabb_game.dart';
 import 'models/board.dart';
 import 'models/tile.dart';
 import 'models/move.dart';
+import 'models/letter_distribution.dart';
 import 'services/skrabb_service.dart';
 import 'services/word_validator.dart';
 import 'utils/scrabble_scoring.dart';
@@ -45,6 +46,11 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
   bool _isSaving = false;
   bool _isGameComplete = false;
   String? _errorMessage;
+
+  // Animations
+  final Map<String, bool> _animatingTiles = {}; // "row,col" -> isAnimating
+  final Map<String, bool> _validatedTiles = {}; // "row,col" -> isValidated (pour pulse)
+  bool _shakeError = false; // Pour animation shake en cas d'erreur
 
   // Timers
   Timer? _timer;
@@ -265,8 +271,25 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
     });
   }
 
+  /// Déclenche l'animation de placement d'une tuile
+  void _animateTilePlacement(int row, int col) {
+    final key = '$row,$col';
+    setState(() {
+      _animatingTiles[key] = true;
+    });
+
+    // Arrêter l'animation après 300ms
+    Future.delayed(const Duration(milliseconds: 300), () {
+      if (mounted) {
+        setState(() {
+          _animatingTiles[key] = false;
+        });
+      }
+    });
+  }
+
   /// Gère le placement d'une tuile sur le plateau
-  void _onBoardSquareTapped(int row, int col) {
+  Future<void> _onBoardSquareTapped(int row, int col) async {
     if (_board == null) return;
 
     final square = _board!.getSquare(row, col);
@@ -287,6 +310,9 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
           (p) => p.row == row && p.col == col,
         );
 
+        // Retirer de la liste d'animation
+        _animatingTiles.remove('$row,$col');
+
         _errorMessage = null;
       });
       return;
@@ -301,11 +327,22 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
       return;
     }
 
+    // Si c'est un joker, demander la lettre
+    Tile tileToPlace = _selectedRackTile!;
+    if (tileToPlace.isBlank && tileToPlace.assignedLetter == null) {
+      final selectedLetter = await _showBlankTileDialog();
+      if (selectedLetter == null) {
+        // L'utilisateur a annulé
+        return;
+      }
+      tileToPlace = tileToPlace.copyWith(assignedLetter: selectedLetter);
+    }
+
     // Placer la tuile
     setState(() {
-      _board!.placeTile(row, col, _selectedRackTile!);
+      _board!.placeTile(row, col, tileToPlace);
       _pendingPlacements.add(
-        PlacedTile(row: row, col: col, tile: _selectedRackTile!),
+        PlacedTile(row: row, col: col, tile: tileToPlace),
       );
 
       // Retirer du chevalet
@@ -316,6 +353,9 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
       _selectedRackIndex = null;
       _errorMessage = null;
     });
+
+    // Animer le placement
+    _animateTilePlacement(row, col);
   }
 
   /// Annule les placements en attente
@@ -389,6 +429,17 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
         timestamp: DateTime.now(),
       );
 
+      // Animer les tuiles validées
+      for (final placement in _pendingPlacements) {
+        final key = '${placement.row},${placement.col}';
+        setState(() {
+          _validatedTiles[key] = true;
+        });
+      }
+
+      // Attendre l'animation
+      await Future.delayed(const Duration(milliseconds: 500));
+
       // Appliquer le coup
       setState(() {
         // Verrouiller les tuiles sur le plateau
@@ -404,8 +455,9 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
         final newTiles = _tileBagManager.refillRack(_tileBag, _rack);
         _rack.addAll(newTiles);
 
-        // Réinitialiser les placements en attente
+        // Réinitialiser les placements en attente et animations
         _pendingPlacements.clear();
+        _validatedTiles.clear();
 
         // Vérifier fin de partie
         if (_tileBag.isEmpty && _rack.isEmpty) {
@@ -540,10 +592,114 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
     );
   }
 
+  /// Affiche un dialogue pour choisir la lettre d'un joker
+  Future<String?> _showBlankTileDialog() async {
+    final distribution = LetterDistribution.creole();
+    final allLetters = distribution.allLetters;
+
+    return showDialog<String>(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: const Color(0xFFF5E6D3),
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(color: Colors.amber, width: 2),
+              ),
+              child: const Center(
+                child: Text(
+                  '?',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.amber,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            const Expanded(
+              child: Text(
+                'Choisir une lettre',
+                style: TextStyle(fontSize: 18),
+              ),
+            ),
+          ],
+        ),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: GridView.builder(
+            shrinkWrap: true,
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 6,
+              mainAxisSpacing: 8,
+              crossAxisSpacing: 8,
+              childAspectRatio: 1.0,
+            ),
+            itemCount: allLetters.length,
+            itemBuilder: (context, index) {
+              final letter = allLetters[index];
+              return InkWell(
+                onTap: () => Navigator.of(context).pop(letter),
+                borderRadius: BorderRadius.circular(8),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF5E6D3),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.black26),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 2,
+                        offset: const Offset(0, 1),
+                      ),
+                    ],
+                  ),
+                  child: Center(
+                    child: Text(
+                      letter,
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(null),
+            child: const Text('Annuler'),
+          ),
+        ],
+      ),
+    );
+  }
+
   /// Affiche un message d'erreur
   void _showError(String message) {
     setState(() {
       _errorMessage = message;
+      _shakeError = true;
+    });
+
+    // Arrêter l'animation shake après 500ms
+    Future.delayed(const Duration(milliseconds: 500), () {
+      if (mounted) {
+        setState(() {
+          _shakeError = false;
+        });
+      }
     });
   }
 
@@ -751,10 +907,20 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
         // Accepter uniquement si la case est vide
         return square.placedTile == null;
       },
-      onAcceptWithDetails: (details) {
+      onAcceptWithDetails: (details) async {
         final data = details.data;
-        final tile = data['tile'] as Tile;
+        Tile tile = data['tile'] as Tile;
         final rackIndex = data['rackIndex'] as int;
+
+        // Si c'est un joker, demander la lettre
+        if (tile.isBlank && tile.assignedLetter == null) {
+          final selectedLetter = await _showBlankTileDialog();
+          if (selectedLetter == null) {
+            // L'utilisateur a annulé
+            return;
+          }
+          tile = tile.copyWith(assignedLetter: selectedLetter);
+        }
 
         // Placer la tuile via drag & drop
         setState(() {
@@ -771,6 +937,9 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
           _selectedRackIndex = null;
           _errorMessage = null;
         });
+
+        // Animer le placement
+        _animateTilePlacement(row, col);
       },
       builder: (context, candidateData, rejectedData) {
         final isHovering = candidateData.isNotEmpty;
@@ -790,7 +959,7 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
               ),
             ),
             child: square.placedTile != null
-                ? _buildTileWidget(square.placedTile!, isOnBoard: true)
+                ? _buildAnimatedTile(row, col, square.placedTile!, square.isLocked)
                 : Center(
                     child: Text(
                       square.bonusType.shortName,
@@ -824,12 +993,107 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
     }
   }
 
+  /// Widget de tuile avec animation
+  Widget _buildAnimatedTile(int row, int col, Tile tile, bool isLocked) {
+    final key = '$row,$col';
+    final isAnimating = _animatingTiles[key] ?? false;
+    final isValidated = _validatedTiles[key] ?? false;
+
+    return AnimatedScale(
+      scale: isAnimating ? 1.2 : 1.0,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.elasticOut,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        margin: const EdgeInsets.all(2),
+        decoration: BoxDecoration(
+          color: isValidated
+              ? const Color(0xFFFFD700).withOpacity(0.3)
+              : const Color(0xFFF5E6D3),
+          borderRadius: BorderRadius.circular(4),
+          border: isValidated
+              ? Border.all(color: const Color(0xFFFFD700), width: 2)
+              : tile.isBlank
+                  ? Border.all(color: Colors.amber, width: 2)
+                  : null,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.2),
+              blurRadius: isAnimating ? 6 : 2,
+              offset: Offset(0, isAnimating ? 3 : 1),
+            ),
+          ],
+        ),
+        child: Stack(
+          children: [
+            // Lettre au centre
+            Center(
+              child: Text(
+                tile.displayLetter,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+              ),
+            ),
+            // Indicateur joker en haut à gauche
+            if (tile.isBlank)
+              Positioned(
+                top: 1,
+                left: 2,
+                child: Container(
+                  width: 10,
+                  height: 10,
+                  decoration: const BoxDecoration(
+                    color: Colors.amber,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Center(
+                    child: Text(
+                      '?',
+                      style: TextStyle(
+                        fontSize: 7,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            // Points dans le coin inférieur droit
+            Positioned(
+              bottom: 2,
+              right: 3,
+              child: Text(
+                '${tile.value}',
+                style: const TextStyle(
+                  fontSize: 8,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black54,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildTileWidget(Tile tile, {required bool isOnBoard}) {
+    // Pour les jokers sans lettre assignée, afficher un "?"
+    final displayText = tile.isBlank && tile.assignedLetter == null
+        ? '?'
+        : tile.displayLetter;
+
     return Container(
       margin: const EdgeInsets.all(2),
       decoration: BoxDecoration(
         color: const Color(0xFFF5E6D3),
         borderRadius: BorderRadius.circular(4),
+        border: tile.isBlank
+            ? Border.all(color: Colors.amber, width: 2)
+            : null,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.2),
@@ -843,14 +1107,38 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
           // Lettre au centre
           Center(
             child: Text(
-              tile.displayLetter,
-              style: const TextStyle(
+              displayText,
+              style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: Colors.black87,
+                color: tile.isBlank ? Colors.amber.shade700 : Colors.black87,
               ),
             ),
           ),
+          // Indicateur joker en haut à gauche (seulement si assigné)
+          if (tile.isBlank && tile.assignedLetter != null)
+            Positioned(
+              top: 1,
+              left: 2,
+              child: Container(
+                width: 10,
+                height: 10,
+                decoration: const BoxDecoration(
+                  color: Colors.amber,
+                  shape: BoxShape.circle,
+                ),
+                child: const Center(
+                  child: Text(
+                    '?',
+                    style: TextStyle(
+                      fontSize: 7,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+            ),
           // Points dans le coin inférieur droit
           Positioned(
             bottom: 2,
@@ -886,11 +1174,37 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
           ),
           const SizedBox(height: 8),
           if (_errorMessage != null)
-            Text(
-              _errorMessage!,
-              style: const TextStyle(
-                color: Colors.red,
-                fontWeight: FontWeight.bold,
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 100),
+              curve: Curves.elasticOut,
+              transform: Matrix4.translationValues(
+                _shakeError ? 10.0 : 0.0,
+                0.0,
+                0.0,
+              ),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Colors.red.shade100,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.red.shade300, width: 2),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.error_outline, color: Colors.red, size: 20),
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Text(
+                        _errorMessage!,
+                        style: const TextStyle(
+                          color: Colors.red,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           if (_isGameComplete)
@@ -936,6 +1250,11 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
     final isSelected = _selectedRackIndex == index;
     final tile = _rack[index];
 
+    // Pour les jokers sans lettre assignée, afficher un "?"
+    final displayText = tile.isBlank && tile.assignedLetter == null
+        ? '?'
+        : tile.displayLetter;
+
     final tileWidget = Container(
       width: tileSize,
       height: tileSize,
@@ -946,7 +1265,11 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
             : const Color(0xFFF5E6D3),
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
-          color: isSelected ? Colors.black : Colors.transparent,
+          color: isSelected
+              ? Colors.black
+              : tile.isBlank
+                  ? Colors.amber
+                  : Colors.transparent,
           width: 2,
         ),
         boxShadow: [
@@ -962,13 +1285,38 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
           // Lettre au centre
           Center(
             child: Text(
-              tile.displayLetter,
+              displayText,
               style: TextStyle(
                 fontSize: tileSize * 0.4,
                 fontWeight: FontWeight.bold,
+                color: tile.isBlank ? Colors.amber.shade700 : Colors.black87,
               ),
             ),
           ),
+          // Indicateur joker en haut à gauche (seulement si assigné)
+          if (tile.isBlank && tile.assignedLetter != null)
+            Positioned(
+              top: 2,
+              left: 4,
+              child: Container(
+                width: tileSize * 0.2,
+                height: tileSize * 0.2,
+                decoration: const BoxDecoration(
+                  color: Colors.amber,
+                  shape: BoxShape.circle,
+                ),
+                child: Center(
+                  child: Text(
+                    '?',
+                    style: TextStyle(
+                      fontSize: tileSize * 0.12,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+            ),
           // Points dans le coin inférieur droit
           Positioned(
             bottom: 4,
@@ -998,6 +1346,9 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
             decoration: BoxDecoration(
               color: _madrasColors[1],
               borderRadius: BorderRadius.circular(8),
+              border: tile.isBlank
+                  ? Border.all(color: Colors.amber, width: 2)
+                  : null,
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withOpacity(0.3),
@@ -1011,13 +1362,38 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
                 // Lettre au centre
                 Center(
                   child: Text(
-                    tile.displayLetter,
+                    displayText,
                     style: TextStyle(
                       fontSize: tileSize * 0.4,
                       fontWeight: FontWeight.bold,
+                      color: tile.isBlank ? Colors.amber.shade700 : Colors.black87,
                     ),
                   ),
                 ),
+                // Indicateur joker en haut à gauche (seulement si assigné)
+                if (tile.isBlank && tile.assignedLetter != null)
+                  Positioned(
+                    top: 2,
+                    left: 4,
+                    child: Container(
+                      width: tileSize * 0.2,
+                      height: tileSize * 0.2,
+                      decoration: const BoxDecoration(
+                        color: Colors.amber,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Center(
+                        child: Text(
+                          '?',
+                          style: TextStyle(
+                            fontSize: tileSize * 0.12,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
                 // Points dans le coin inférieur droit
                 Positioned(
                   bottom: 4,
