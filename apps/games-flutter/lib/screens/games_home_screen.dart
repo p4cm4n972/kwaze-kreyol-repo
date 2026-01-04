@@ -119,12 +119,12 @@ class _GamesHomeScreenState extends State<GamesHomeScreen> {
         'available': false,
       },
       {
-        'id': 'double-siz',
-        'name': 'Double Siz',
+        'id': 'domino',
+        'name': 'Dominos',
         'description':
             'Jeu de dominos aux règles martiniquaises. Affronte tes adversaires !',
         'iconPath': 'assets/icons/double-siz.png',
-        'available': false,
+        'available': true,
       },
       {
         'id': 'koze-kwaze',

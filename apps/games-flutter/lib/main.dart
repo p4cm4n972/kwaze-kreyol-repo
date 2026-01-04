@@ -14,6 +14,10 @@ import 'games/skrabb/screens/skrabb_help_screen.dart';
 import 'tools/met_double/screens/met_double_home_screen.dart';
 import 'tools/met_double/screens/met_double_general_stats_screen.dart';
 import 'tools/translator/screens/translator_screen.dart';
+import 'games/domino/screens/domino_home_screen.dart';
+import 'games/domino/screens/domino_lobby_screen.dart';
+import 'games/domino/screens/domino_game_screen.dart';
+import 'games/domino/screens/domino_results_screen.dart';
 import 'config/supabase_config.dart';
 import 'services/supabase_service.dart';
 
@@ -101,6 +105,31 @@ final _router = GoRouter(
     GoRoute(
       path: '/koze-kwaze',
       builder: (context, state) => const TranslatorScreen(),
+    ),
+    GoRoute(
+      path: '/domino',
+      builder: (context, state) => const DominoHomeScreen(),
+    ),
+    GoRoute(
+      path: '/domino/lobby/:sessionId',
+      builder: (context, state) {
+        final sessionId = state.pathParameters['sessionId']!;
+        return DominoLobbyScreen(sessionId: sessionId);
+      },
+    ),
+    GoRoute(
+      path: '/domino/game/:sessionId',
+      builder: (context, state) {
+        final sessionId = state.pathParameters['sessionId']!;
+        return DominoGameScreen(sessionId: sessionId);
+      },
+    ),
+    GoRoute(
+      path: '/domino/results/:sessionId',
+      builder: (context, state) {
+        final sessionId = state.pathParameters['sessionId']!;
+        return DominoResultsScreen(sessionId: sessionId);
+      },
     ),
     GoRoute(
       path: '/profile',
