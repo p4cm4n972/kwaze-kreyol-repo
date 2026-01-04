@@ -3,6 +3,7 @@ import 'dart:async';
 import 'supabase_service.dart';
 import '../tools/met_double/models/met_double_game.dart';
 import '../models/friend_request.dart';
+import '../games/domino/models/domino_session.dart';
 
 class RealtimeService {
   final SupabaseClient _supabase = SupabaseService.client;
@@ -248,6 +249,120 @@ class RealtimeService {
   /// Unsubscribe from friend requests
   Future<void> unsubscribeFromFriendRequests(String userId) async {
     final channelName = 'friend_requests_$userId';
+    final channel = _channels[channelName];
+
+    if (channel != null) {
+      await _supabase.removeChannel(channel);
+      _channels.remove(channelName);
+    }
+  }
+
+  // ============================================================================
+  // DOMINOS - Realtime subscription
+  // ============================================================================
+
+  /// S'abonner aux changements d'une session de dominos
+  Stream<DominoSession> subscribeToDominoSession(String sessionId) {
+    final controller = StreamController<DominoSession>.broadcast();
+
+    // Créer un canal unique pour cette session
+    final channelName = 'domino_session_$sessionId';
+
+    if (_channels.containsKey(channelName)) {
+      // Si déjà abonné, retirer l'ancien canal
+      unsubscribeFromDominoSession(sessionId);
+    }
+
+    final channel = _supabase
+        .channel(channelName)
+        .onPostgresChanges(
+          event: PostgresChangeEvent.all,
+          schema: 'public',
+          table: 'domino_sessions',
+          filter: PostgresChangeFilter(
+            type: PostgresChangeFilterType.eq,
+            column: 'id',
+            value: sessionId,
+          ),
+          callback: (payload) async {
+            // Recharger toute la session avec les relations
+            await _loadAndEmitDominoSession(sessionId, controller);
+          },
+        )
+        .onPostgresChanges(
+          event: PostgresChangeEvent.all,
+          schema: 'public',
+          table: 'domino_participants',
+          filter: PostgresChangeFilter(
+            type: PostgresChangeFilterType.eq,
+            column: 'session_id',
+            value: sessionId,
+          ),
+          callback: (payload) async {
+            await _loadAndEmitDominoSession(sessionId, controller);
+          },
+        )
+        .onPostgresChanges(
+          event: PostgresChangeEvent.all,
+          schema: 'public',
+          table: 'domino_rounds',
+          filter: PostgresChangeFilter(
+            type: PostgresChangeFilterType.eq,
+            column: 'session_id',
+            value: sessionId,
+          ),
+          callback: (payload) async {
+            await _loadAndEmitDominoSession(sessionId, controller);
+          },
+        )
+        .subscribe();
+
+    _channels[channelName] = channel;
+
+    // Charger la session initiale
+    _loadAndEmitDominoSession(sessionId, controller);
+
+    return controller.stream;
+  }
+
+  /// Charger et émettre la session complète de dominos
+  Future<void> _loadAndEmitDominoSession(
+    String sessionId,
+    StreamController<DominoSession> controller,
+  ) async {
+    try {
+      final response = await _supabase
+          .from('domino_sessions')
+          .select('''
+            *,
+            domino_participants (
+              *,
+              users (username)
+            ),
+            domino_rounds (*)
+          ''')
+          .eq('id', sessionId)
+          .single();
+
+      // Mapper les noms d'utilisateur
+      if (response['domino_participants'] != null) {
+        for (var participant in response['domino_participants']) {
+          if (participant['users'] != null) {
+            participant['user_name'] = participant['users']['username'];
+          }
+        }
+      }
+
+      final session = DominoSession.fromJson(response);
+      controller.add(session);
+    } catch (e) {
+      controller.addError(e);
+    }
+  }
+
+  /// Unsubscribe from domino session
+  Future<void> unsubscribeFromDominoSession(String sessionId) async {
+    final channelName = 'domino_session_$sessionId';
     final channel = _channels[channelName];
 
     if (channel != null) {
