@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'dart:async';
+import 'dart:math';
 import '../../services/auth_service.dart';
 import 'models/skrabb_game.dart';
 import 'models/board.dart';
@@ -60,7 +62,21 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
   @override
   void initState() {
     super.initState();
+    _setLandscapeOrientation();
     _checkAuthAndLoadGame();
+  }
+
+  /// Force l'orientation paysage (compatible mobile, web, desktop)
+  Future<void> _setLandscapeOrientation() async {
+    try {
+      await SystemChrome.setPreferredOrientations([
+        DeviceOrientation.landscapeLeft,
+        DeviceOrientation.landscapeRight,
+      ]);
+    } catch (e) {
+      // Ignoré si la plateforme ne supporte pas (certains navigateurs)
+      debugPrint('Orientation lock not supported: $e');
+    }
   }
 
   @override
@@ -71,7 +87,24 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
     if (_currentGame != null && !_isGameComplete && !_isSaving) {
       _saveProgressSync();
     }
+    // Note: L'orientation est restaurée dans _onBackPressed() avant navigation
+    // Ne pas restaurer ici car dispose() est synchrone et trop tardif
     super.dispose();
+  }
+
+  /// Restaure toutes les orientations (retour à l'état par défaut)
+  Future<void> _restoreAllOrientations() async {
+    try {
+      await SystemChrome.setPreferredOrientations([
+        DeviceOrientation.portraitUp,
+        DeviceOrientation.portraitDown,
+        DeviceOrientation.landscapeLeft,
+        DeviceOrientation.landscapeRight,
+      ]);
+    } catch (e) {
+      // Ignoré si la plateforme ne supporte pas
+      debugPrint('Orientation unlock not supported: $e');
+    }
   }
 
   /// Sauvegarde synchrone sans mise à jour UI (pour dispose)
@@ -234,9 +267,33 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
 
   /// Gère le placement d'une tuile sur le plateau
   void _onBoardSquareTapped(int row, int col) {
-    if (_selectedRackTile == null || _board == null) return;
+    if (_board == null) return;
 
     final square = _board!.getSquare(row, col);
+
+    // Si la case contient une tuile non verrouillée, la retirer
+    if (square.placedTile != null && !square.isLocked) {
+      setState(() {
+        final tile = square.placedTile!;
+
+        // Retirer la tuile du plateau
+        _board!.removeTile(row, col);
+
+        // Remettre la tuile dans le chevalet
+        _rack.add(tile);
+
+        // Retirer de la liste des placements en attente
+        _pendingPlacements.removeWhere(
+          (p) => p.row == row && p.col == col,
+        );
+
+        _errorMessage = null;
+      });
+      return;
+    }
+
+    // Si aucune tuile sélectionnée, ne rien faire
+    if (_selectedRackTile == null) return;
 
     // Vérifier que la case est vide
     if (square.placedTile != null) {
@@ -274,6 +331,16 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
 
       _pendingPlacements.clear();
       _errorMessage = null;
+    });
+  }
+
+  /// Mélange les tuiles du chevalet
+  void _onShuffleRack() {
+    setState(() {
+      _rack.shuffle(Random());
+      // Désélectionner si une tuile était sélectionnée
+      _selectedRackTile = null;
+      _selectedRackIndex = null;
     });
   }
 
@@ -377,9 +444,100 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
       // Arrêter les timers
       _timer?.cancel();
       _autoSaveTimer?.cancel();
+
+      // Afficher dialogue de félicitations
+      if (mounted) {
+        _showGameCompletedDialog();
+      }
     } catch (e) {
       debugPrint('Erreur lors de la finalisation: $e');
     }
+  }
+
+  /// Affiche le dialogue de fin de partie
+  void _showGameCompletedDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            const Icon(Icons.celebration, color: Colors.amber, size: 32),
+            const SizedBox(width: 12),
+            const Text('Partie terminée!'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Félicitations! Vous avez terminé la partie.',
+              style: TextStyle(fontSize: 16),
+            ),
+            const SizedBox(height: 16),
+            const Divider(),
+            const SizedBox(height: 16),
+            _buildStatRow('Score final', '$_score pts', Icons.stars),
+            const SizedBox(height: 12),
+            _buildStatRow(
+              'Temps total',
+              _formatTime(_timeElapsed),
+              Icons.timer,
+            ),
+            const SizedBox(height: 12),
+            _buildStatRow(
+              'Mots formés',
+              '${_moveHistory.length}',
+              Icons.spellcheck,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              context.go('/');
+            },
+            child: const Text('Accueil'),
+          ),
+          ElevatedButton.icon(
+            onPressed: () {
+              Navigator.of(context).pop();
+              context.go('/skrabb/leaderboard');
+            },
+            icon: const Icon(Icons.emoji_events),
+            label: const Text('Voir Classement'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.amber,
+              foregroundColor: Colors.black87,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatRow(String label, String value, IconData icon) {
+    return Row(
+      children: [
+        Icon(icon, size: 20, color: const Color(0xFFE74C3C)),
+        const SizedBox(width: 12),
+        Text(
+          label,
+          style: const TextStyle(fontWeight: FontWeight.w500),
+        ),
+        const Spacer(),
+        Text(
+          value,
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
+          ),
+        ),
+      ],
+    );
   }
 
   /// Affiche un message d'erreur
@@ -396,25 +554,43 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
     return '${minutes.toString().padLeft(2, '0')}:${secs.toString().padLeft(2, '0')}';
   }
 
+  /// Gère le bouton retour (restaure orientation avant navigation)
+  Future<void> _onBackPressed() async {
+    // Restaurer l'orientation avant de naviguer
+    await _restoreAllOrientations();
+    // Naviguer vers l'écran d'accueil
+    if (mounted) {
+      context.go('/');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              _madrasColors[0].withOpacity(0.1),
-              _madrasColors[2].withOpacity(0.1),
-              _madrasColors[4].withOpacity(0.1),
-            ],
+    return PopScope(
+      canPop: false,
+      onPopInvoked: (didPop) async {
+        if (!didPop) {
+          await _onBackPressed();
+        }
+      },
+      child: Scaffold(
+        body: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                _madrasColors[0].withOpacity(0.1),
+                _madrasColors[2].withOpacity(0.1),
+                _madrasColors[4].withOpacity(0.1),
+              ],
+            ),
           ),
-        ),
-        child: SafeArea(
-          child: _isLoading
-              ? const Center(child: CircularProgressIndicator())
-              : _buildGameContent(),
+          child: SafeArea(
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : _buildGameContent(),
+          ),
         ),
       ),
     );
@@ -446,7 +622,7 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
         children: [
           IconButton(
             icon: const Icon(Icons.arrow_back),
-            onPressed: () => context.go('/games'),
+            onPressed: _onBackPressed,
           ),
           const Text(
             'Skrabb',
@@ -467,6 +643,17 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
           Text(
             _formatTime(_timeElapsed),
             style: const TextStyle(fontSize: 16),
+          ),
+          const SizedBox(width: 8),
+          IconButton(
+            icon: const Icon(Icons.emoji_events, color: Colors.amber),
+            tooltip: 'Classement',
+            onPressed: () => context.go('/skrabb/leaderboard'),
+          ),
+          IconButton(
+            icon: const Icon(Icons.help_outline),
+            tooltip: 'Aide',
+            onPressed: () => context.go('/skrabb/help'),
           ),
         ],
       ),
@@ -559,29 +746,64 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
   Widget _buildBoardSquare(int row, int col) {
     final square = _board!.getSquare(row, col);
 
-    return GestureDetector(
-      onTap: () => _onBoardSquareTapped(row, col),
-      child: Container(
-        decoration: BoxDecoration(
-          color: _getSquareColor(square),
-          border: Border.all(
-            color: Colors.black.withOpacity(0.1),
-            width: 0.5,
-          ),
-        ),
-        child: square.placedTile != null
-            ? _buildTileWidget(square.placedTile!, isOnBoard: true)
-            : Center(
-                child: Text(
-                  square.bonusType.shortName,
-                  style: TextStyle(
-                    fontSize: 8,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white.withOpacity(0.7),
-                  ),
-                ),
+    return DragTarget<Map<String, dynamic>>(
+      onWillAcceptWithDetails: (details) {
+        // Accepter uniquement si la case est vide
+        return square.placedTile == null;
+      },
+      onAcceptWithDetails: (details) {
+        final data = details.data;
+        final tile = data['tile'] as Tile;
+        final rackIndex = data['rackIndex'] as int;
+
+        // Placer la tuile via drag & drop
+        setState(() {
+          _board!.placeTile(row, col, tile);
+          _pendingPlacements.add(
+            PlacedTile(row: row, col: col, tile: tile),
+          );
+
+          // Retirer du chevalet
+          _rack.removeAt(rackIndex);
+
+          // Désélectionner
+          _selectedRackTile = null;
+          _selectedRackIndex = null;
+          _errorMessage = null;
+        });
+      },
+      builder: (context, candidateData, rejectedData) {
+        final isHovering = candidateData.isNotEmpty;
+
+        return GestureDetector(
+          onTap: () => _onBoardSquareTapped(row, col),
+          child: Container(
+            decoration: BoxDecoration(
+              color: isHovering
+                  ? _getSquareColor(square).withOpacity(0.7)
+                  : _getSquareColor(square),
+              border: Border.all(
+                color: isHovering
+                    ? Colors.amber.withOpacity(0.8)
+                    : Colors.black.withOpacity(0.1),
+                width: isHovering ? 2 : 0.5,
               ),
-      ),
+            ),
+            child: square.placedTile != null
+                ? _buildTileWidget(square.placedTile!, isOnBoard: true)
+                : Center(
+                    child: Text(
+                      square.bonusType.shortName,
+                      style: TextStyle(
+                        fontSize: 8,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white.withOpacity(0.7),
+                      ),
+                    ),
+                  ),
+          ),
+        );
+      },
     );
   }
 
@@ -616,15 +838,33 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
           ),
         ],
       ),
-      child: Center(
-        child: Text(
-          tile.displayLetter,
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: Colors.black87,
+      child: Stack(
+        children: [
+          // Lettre au centre
+          Center(
+            child: Text(
+              tile.displayLetter,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
+            ),
           ),
-        ),
+          // Points dans le coin inférieur droit
+          Positioned(
+            bottom: 2,
+            right: 3,
+            child: Text(
+              '${tile.value}',
+              style: const TextStyle(
+                fontSize: 8,
+                fontWeight: FontWeight.bold,
+                color: Colors.black54,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -671,62 +911,146 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
     return Container(
       height: 80,
       margin: const EdgeInsets.symmetric(horizontal: 16),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: List.generate(7, (index) {
-          if (index < _rack.length) {
-            return _buildRackTile(index);
-          } else {
-            return _buildEmptyRackSlot();
-          }
-        }),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          // Calculer la taille optimale des tuiles selon la largeur disponible
+          final availableWidth = constraints.maxWidth;
+          final tileSize = ((availableWidth - 56) / 7).clamp(40.0, 60.0);
+
+          return Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: List.generate(7, (index) {
+              if (index < _rack.length) {
+                return _buildRackTile(index, tileSize);
+              } else {
+                return _buildEmptyRackSlot(tileSize);
+              }
+            }),
+          );
+        },
       ),
     );
   }
 
-  Widget _buildRackTile(int index) {
+  Widget _buildRackTile(int index, double tileSize) {
     final isSelected = _selectedRackIndex == index;
+    final tile = _rack[index];
 
-    return GestureDetector(
-      onTap: () => _onRackTileSelected(index),
-      child: Container(
-        width: 60,
-        height: 60,
-        margin: const EdgeInsets.all(4),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? _madrasColors[1]
-              : const Color(0xFFF5E6D3),
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: isSelected ? Colors.black : Colors.transparent,
-            width: 2,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.2),
-              blurRadius: 4,
-              offset: const Offset(0, 2),
-            ),
-          ],
+    final tileWidget = Container(
+      width: tileSize,
+      height: tileSize,
+      margin: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: isSelected
+            ? _madrasColors[1]
+            : const Color(0xFFF5E6D3),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: isSelected ? Colors.black : Colors.transparent,
+          width: 2,
         ),
-        child: Center(
-          child: Text(
-            _rack[index].displayLetter,
-            style: const TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.2),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Stack(
+        children: [
+          // Lettre au centre
+          Center(
+            child: Text(
+              tile.displayLetter,
+              style: TextStyle(
+                fontSize: tileSize * 0.4,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          // Points dans le coin inférieur droit
+          Positioned(
+            bottom: 4,
+            right: 6,
+            child: Text(
+              '${tile.value}',
+              style: TextStyle(
+                fontSize: tileSize * 0.15,
+                fontWeight: FontWeight.bold,
+                color: Colors.black54,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    return Draggable<Map<String, dynamic>>(
+      data: {'tile': tile, 'rackIndex': index},
+      feedback: Material(
+        color: Colors.transparent,
+        child: Opacity(
+          opacity: 0.7,
+          child: Container(
+            width: tileSize,
+            height: tileSize,
+            decoration: BoxDecoration(
+              color: _madrasColors[1],
+              borderRadius: BorderRadius.circular(8),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.3),
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Stack(
+              children: [
+                // Lettre au centre
+                Center(
+                  child: Text(
+                    tile.displayLetter,
+                    style: TextStyle(
+                      fontSize: tileSize * 0.4,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                // Points dans le coin inférieur droit
+                Positioned(
+                  bottom: 4,
+                  right: 6,
+                  child: Text(
+                    '${tile.value}',
+                    style: TextStyle(
+                      fontSize: tileSize * 0.15,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black54,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ),
       ),
+      childWhenDragging: Opacity(
+        opacity: 0.3,
+        child: tileWidget,
+      ),
+      child: GestureDetector(
+        onTap: () => _onRackTileSelected(index),
+        child: tileWidget,
+      ),
     );
   }
 
-  Widget _buildEmptyRackSlot() {
+  Widget _buildEmptyRackSlot(double tileSize) {
     return Container(
-      width: 60,
-      height: 60,
+      width: tileSize,
+      height: tileSize,
       margin: const EdgeInsets.all(4),
       decoration: BoxDecoration(
         color: Colors.grey.shade300,
@@ -749,6 +1073,15 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
             onPressed: _pendingPlacements.isEmpty ? null : _onUndoPlacements,
             icon: const Icon(Icons.undo),
             label: const Text('Annuler'),
+          ),
+          ElevatedButton.icon(
+            onPressed: _rack.isEmpty ? null : _onShuffleRack,
+            icon: const Icon(Icons.shuffle),
+            label: const Text('Mélanger'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF9B59B6), // Violet madras
+              foregroundColor: Colors.white,
+            ),
           ),
           ElevatedButton.icon(
             onPressed:

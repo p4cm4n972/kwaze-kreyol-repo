@@ -9,6 +9,8 @@ import 'screens/email_invitation_screen.dart';
 import 'games/mots_mawon/mots_mawon_screen.dart';
 import 'games/mots_mawon/screens/mots_mawon_leaderboard_screen.dart';
 import 'games/skrabb/skrabb_screen.dart';
+import 'games/skrabb/screens/skrabb_leaderboard_screen.dart';
+import 'games/skrabb/screens/skrabb_help_screen.dart';
 import 'tools/met_double/screens/met_double_home_screen.dart';
 import 'tools/met_double/screens/met_double_general_stats_screen.dart';
 import 'tools/translator/screens/translator_screen.dart';
@@ -79,6 +81,14 @@ final _router = GoRouter(
     GoRoute(
       path: '/skrabb',
       builder: (context, state) => const SkrabbScreen(),
+    ),
+    GoRoute(
+      path: '/skrabb/leaderboard',
+      builder: (context, state) => const SkrabbLeaderboardScreen(),
+    ),
+    GoRoute(
+      path: '/skrabb/help',
+      builder: (context, state) => const SkrabbHelpScreen(),
     ),
     GoRoute(
       path: '/met-double',

@@ -121,7 +121,8 @@ class SkrabbGame {
   /// Convertit la partie en JSON pour Supabase
   Map<String, dynamic> toJson() {
     return {
-      'id': id,
+      // Ne pas inclure l'id si vide (Supabase le génèrera)
+      if (id.isNotEmpty) 'id': id,
       'user_id': userId,
       'status': status,
       'board_data': board.toJson(),

@@ -173,6 +173,45 @@ class SkrabbService {
     }
   }
 
+  /// Récupère le rang d'un joueur dans le classement
+  Future<int?> getPlayerRank([String? userId]) async {
+    try {
+      final playerId = userId ?? _supabase.auth.currentUser?.id;
+      if (playerId == null) {
+        throw Exception('Utilisateur non authentifié');
+      }
+
+      // Récupérer le meilleur score du joueur
+      final bestGame = await _supabase
+          .from('skrabb_games')
+          .select('score')
+          .eq('user_id', playerId)
+          .eq('status', 'completed')
+          .order('score', ascending: false)
+          .order('time_elapsed', ascending: true)
+          .limit(1)
+          .maybeSingle();
+
+      if (bestGame == null) return null;
+
+      final bestScore = bestGame['score'] as int;
+
+      // Compter combien de joueurs ont un meilleur score
+      final result = await _supabase.rpc(
+        'get_skrabb_player_rank',
+        params: {
+          'player_id': playerId,
+          'player_score': bestScore,
+        },
+      ) as int;
+
+      return result;
+    } catch (e) {
+      // Si le joueur n'a aucune partie complétée, retourner null
+      return null;
+    }
+  }
+
   /// Récupère toutes les parties d'un utilisateur
   Future<List<SkrabbGame>> getUserGames({
     String? status,

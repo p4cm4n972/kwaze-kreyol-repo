@@ -15,13 +15,13 @@ extension BonusTypeExtension on BonusType {
   String get shortName {
     switch (this) {
       case BonusType.doubleLetter:
-        return 'DL';
+        return 'LD'; // Lettre Double
       case BonusType.tripleLetter:
-        return 'TL';
+        return 'LT'; // Lettre Triple
       case BonusType.doubleWord:
-        return 'DW';
+        return 'MD'; // Mot Double
       case BonusType.tripleWord:
-        return 'TW';
+        return 'MT'; // Mot Triple
       case BonusType.center:
         return '★';
       case BonusType.none:

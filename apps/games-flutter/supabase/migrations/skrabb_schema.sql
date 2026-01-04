@@ -167,6 +167,41 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- ================================================
+-- PLAYER RANK FUNCTION
+-- ================================================
+
+CREATE OR REPLACE FUNCTION get_skrabb_player_rank(
+  player_id UUID,
+  player_score INTEGER
+)
+RETURNS INTEGER AS $$
+DECLARE
+  player_rank INTEGER;
+BEGIN
+  -- Compter combien de joueurs ont un meilleur score
+  -- (score plus élevé OU même score mais temps plus rapide)
+  SELECT COUNT(DISTINCT sg.user_id) + 1 INTO player_rank
+  FROM skrabb_games sg
+  WHERE sg.status = 'completed'
+    AND (
+      sg.score > player_score
+      OR (
+        sg.score = player_score
+        AND sg.time_elapsed < (
+          SELECT MIN(time_elapsed)
+          FROM skrabb_games
+          WHERE user_id = player_id
+            AND status = 'completed'
+            AND score = player_score
+        )
+      )
+    );
+
+  RETURN player_rank;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- ================================================
 -- COMMENTS
 -- ================================================
 
