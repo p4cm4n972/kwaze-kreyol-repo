@@ -8,6 +8,7 @@ import 'screens/add_friend_screen.dart';
 import 'screens/email_invitation_screen.dart';
 import 'games/mots_mawon/mots_mawon_screen.dart';
 import 'games/mots_mawon/screens/mots_mawon_leaderboard_screen.dart';
+import 'games/skrabb/skrabb_screen.dart';
 import 'tools/met_double/screens/met_double_home_screen.dart';
 import 'tools/met_double/screens/met_double_general_stats_screen.dart';
 import 'tools/translator/screens/translator_screen.dart';
@@ -66,6 +67,10 @@ final _router = GoRouter(
     GoRoute(
       path: '/mots-mawon/leaderboard',
       builder: (context, state) => const MotsMawonLeaderboardScreen(),
+    ),
+    GoRoute(
+      path: '/skrabb',
+      builder: (context, state) => const SkrabbScreen(),
     ),
     GoRoute(
       path: '/met-double',
