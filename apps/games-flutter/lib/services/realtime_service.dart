@@ -353,6 +353,10 @@ class RealtimeService {
         }
       }
 
+      // Renommer les clés pour matcher le modèle DominoSession
+      response['participants'] = response['domino_participants'];
+      response['rounds'] = response['domino_rounds'];
+
       final session = DominoSession.fromJson(response);
       controller.add(session);
     } catch (e) {

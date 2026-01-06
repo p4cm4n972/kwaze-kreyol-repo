@@ -6,9 +6,61 @@ import '../services/domino_service.dart';
 import '../models/domino_session.dart';
 import '../models/domino_tile.dart';
 import '../models/domino_participant.dart';
-import '../models/domino_game_state.dart';
+import '../models/domino_round.dart';
 import '../utils/domino_logic.dart';
-import '../utils/domino_scoring.dart';
+import '../widgets/domino_tile_painter.dart';
+import '../widgets/domino_board_widget.dart';
+
+/// Extension pour les valeurs responsive
+extension ResponsiveExtension on BuildContext {
+  /// Largeur de l'écran
+  double get screenWidth => MediaQuery.of(this).size.width;
+
+  /// Hauteur de l'écran
+  double get screenHeight => MediaQuery.of(this).size.height;
+
+  /// Vérifie si c'est un très petit écran (< 400)
+  bool get isVerySmallScreen => screenWidth < 400;
+
+  /// Vérifie si c'est un mobile (< 600)
+  bool get isMobile => screenWidth < 600;
+
+  /// Vérifie si c'est une tablette (600-1200)
+  bool get isTablet => screenWidth >= 600 && screenWidth < 1200;
+
+  /// Vérifie si c'est un desktop (>= 1200)
+  bool get isDesktop => screenWidth >= 1200;
+
+  /// Retourne une valeur adaptée à la taille de l'écran
+  /// [verySmall] pour < 400, [mobile] pour < 600, [tablet] pour 600-1200, [desktop] pour >= 1200
+  T responsive<T>({
+    required T mobile,
+    T? verySmall,
+    T? tablet,
+    T? desktop,
+  }) {
+    if (isVerySmallScreen) return verySmall ?? mobile;
+    if (isMobile) return mobile;
+    if (isTablet) return tablet ?? mobile;
+    return desktop ?? tablet ?? mobile;
+  }
+
+  /// Taille de texte responsive
+  double responsiveFontSize(double base) {
+    if (isVerySmallScreen) return base * 0.8;
+    if (isMobile) return base;
+    if (isTablet) return base * 1.1;
+    return base * 1.2;
+  }
+
+  /// Padding responsive
+  double responsivePadding(double base) {
+    if (isVerySmallScreen) return base * 0.6;
+    if (isMobile) return base;
+    if (isTablet) return base * 1.2;
+    return base * 1.5;
+  }
+}
 
 /// Écran principal du jeu de dominos
 /// Gère le jeu en temps réel avec affichage du plateau et des mains
@@ -24,7 +76,8 @@ class DominoGameScreen extends StatefulWidget {
   State<DominoGameScreen> createState() => _DominoGameScreenState();
 }
 
-class _DominoGameScreenState extends State<DominoGameScreen> {
+class _DominoGameScreenState extends State<DominoGameScreen>
+    with TickerProviderStateMixin {
   final DominoService _dominoService = DominoService();
   final RealtimeService _realtimeService = RealtimeService();
   final AuthService _authService = AuthService();
@@ -33,6 +86,13 @@ class _DominoGameScreenState extends State<DominoGameScreen> {
   DominoTile? _selectedTile;
   String? _errorMessage;
   bool _isLoading = false;
+  bool _isAnimatingPlacement = false;
+  int? _lastSeenRoundNumber; // Pour détecter les changements de manche
+
+  late AnimationController _pulseController;
+  late AnimationController _fadeController;
+  late Animation<double> _pulseAnimation;
+  late Animation<double> _fadeAnimation;
 
   String? get _currentUserId => _authService.getUserIdOrNull();
 
@@ -77,11 +137,28 @@ class _DominoGameScreenState extends State<DominoGameScreen> {
   @override
   void initState() {
     super.initState();
+    _pulseController = AnimationController(
+      duration: const Duration(milliseconds: 1500),
+      vsync: this,
+    )..repeat(reverse: true);
+    _fadeController = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
+    _pulseAnimation = Tween<double>(begin: 1.0, end: 1.1).animate(
+      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
+    );
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _fadeController, curve: Curves.easeOut),
+    );
+    _fadeController.forward();
     _subscribeToSession();
   }
 
   @override
   void dispose() {
+    _pulseController.dispose();
+    _fadeController.dispose();
     _realtimeService.unsubscribeFromDominoSession(widget.sessionId);
     super.dispose();
   }
@@ -89,12 +166,27 @@ class _DominoGameScreenState extends State<DominoGameScreen> {
   void _subscribeToSession() {
     _realtimeService.subscribeToDominoSession(widget.sessionId).listen(
       (session) {
+        final currentRound = session.currentGameState?.roundNumber;
+
+        // Détecter si une nouvelle manche a commencé
+        if (_lastSeenRoundNumber != null &&
+            currentRound != null &&
+            currentRound > _lastSeenRoundNumber! &&
+            session.rounds.isNotEmpty) {
+          // Une nouvelle manche a commencé - afficher le récap de la précédente
+          final lastRound = session.rounds.last;
+          _showRoundEndDialog(session, lastRound);
+        }
+
+        // Mettre à jour le numéro de manche vu
+        _lastSeenRoundNumber = currentRound;
+
         setState(() {
           _session = session;
         });
 
         // Navigation automatique vers les résultats si la partie est terminée
-        if (session.status == 'completed' && mounted) {
+        if ((session.status == 'completed' || session.status == 'chiree') && mounted) {
           context.go('/domino/results/${widget.sessionId}');
         }
       },
@@ -106,35 +198,172 @@ class _DominoGameScreenState extends State<DominoGameScreen> {
     );
   }
 
-  Future<void> _placeTile(String side) async {
-    if (_selectedTile == null || _currentParticipant == null) return;
+  /// Affiche le dialog de fin de manche
+  void _showRoundEndDialog(DominoSession session, DominoRound round) {
+    if (!mounted) return;
+
+    // Trouver le gagnant
+    final winner = round.winnerParticipantId != null
+        ? session.participants.firstWhere(
+            (p) => p.id == round.winnerParticipantId,
+            orElse: () => session.participants.first,
+          )
+        : null;
+
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) => AlertDialog(
+        backgroundColor: Colors.grey.shade900,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(
+          children: [
+            Icon(
+              round.isCapot ? Icons.emoji_events : Icons.block,
+              color: round.isCapot ? Colors.amber : Colors.orange,
+              size: 32,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                'Manche ${round.roundNumber} terminée !',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Type de fin
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: round.isCapot ? Colors.green.shade800 : Colors.orange.shade800,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                round.isCapot ? 'CAPOT !' : 'Partie bloquée',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // Gagnant
+            if (winner != null) ...[
+              Text(
+                'Gagnant: ${winner.displayName}',
+                style: const TextStyle(
+                  color: Colors.lightGreenAccent,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
+
+            // Scores de chaque joueur
+            const Text(
+              'Points restants:',
+              style: TextStyle(
+                color: Colors.white70,
+                fontSize: 14,
+              ),
+            ),
+            const SizedBox(height: 8),
+            ...session.participants.map((p) {
+              final score = round.finalScores[p.id] ?? 0;
+              final isWinner = p.id == round.winnerParticipantId;
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: Row(
+                  children: [
+                    if (isWinner)
+                      const Icon(Icons.star, color: Colors.amber, size: 20)
+                    else
+                      const SizedBox(width: 20),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        p.displayName,
+                        style: TextStyle(
+                          color: isWinner ? Colors.lightGreenAccent : Colors.white,
+                          fontWeight: isWinner ? FontWeight.bold : FontWeight.normal,
+                        ),
+                      ),
+                    ),
+                    Text(
+                      '$score pts',
+                      style: TextStyle(
+                        color: isWinner ? Colors.lightGreenAccent : Colors.white70,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text(
+              'Continuer',
+              style: TextStyle(
+                color: Colors.lightGreenAccent,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _placeTile(String side, DominoTile tile) async {
+    if (_currentParticipant == null || _isAnimatingPlacement) return;
 
     setState(() {
+      _isAnimatingPlacement = true;
       _isLoading = true;
       _errorMessage = null;
     });
 
     try {
+      // Enregistrer le coup
       await _dominoService.placeTile(
         sessionId: widget.sessionId,
         participantId: _currentParticipant!.id,
-        tile: _selectedTile!,
+        tile: tile,
         side: side,
       );
 
-      setState(() {
-        _selectedTile = null;
-      });
+      if (mounted) {
+        setState(() {
+          _selectedTile = null;
+        });
+      }
     } catch (e) {
       if (mounted) {
         setState(() {
-          _errorMessage = e.toString();
+          _errorMessage = 'Erreur: $e';
         });
       }
     } finally {
       if (mounted) {
         setState(() {
           _isLoading = false;
+          _isAnimatingPlacement = false;
         });
       }
     }
@@ -171,8 +400,26 @@ class _DominoGameScreenState extends State<DominoGameScreen> {
   @override
   Widget build(BuildContext context) {
     if (_session == null) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
+      return Scaffold(
+        body: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                const Color(0xFF1A237E),
+                const Color(0xFF283593),
+                const Color(0xFF3949AB),
+              ],
+            ),
+          ),
+          child: const Center(
+            child: CircularProgressIndicator(
+              color: Colors.white,
+              strokeWidth: 3,
+            ),
+          ),
+        ),
       );
     }
 
@@ -183,27 +430,31 @@ class _DominoGameScreenState extends State<DominoGameScreen> {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              const Color(0xFF2C3E50),
-              const Color(0xFF34495E),
-              const Color(0xFF2C3E50),
+              const Color(0xFF1A237E),
+              const Color(0xFF283593),
+              const Color(0xFF3949AB),
+              const Color(0xFF5C6BC0),
             ],
           ),
         ),
         child: SafeArea(
-          child: Column(
-            children: [
-              _buildHeader(),
-              if (_errorMessage != null) _buildErrorBanner(),
-              Expanded(
-                child: Column(
-                  children: [
-                    _buildOpponents(),
-                    Expanded(child: _buildBoard()),
-                    _buildMyHand(),
-                  ],
+          child: FadeTransition(
+            opacity: _fadeAnimation,
+            child: Column(
+              children: [
+                _buildHeader(),
+                if (_errorMessage != null) _buildErrorBanner(),
+                Expanded(
+                  child: Column(
+                    children: [
+                      _buildOpponents(),
+                      Expanded(child: _buildBoard()),
+                      _buildMyHand(),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -215,8 +466,11 @@ class _DominoGameScreenState extends State<DominoGameScreen> {
     final roundNumber = gameState?.roundNumber ?? 1;
 
     return Container(
-      margin: const EdgeInsets.all(8),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      margin: EdgeInsets.all(context.responsivePadding(12)),
+      padding: EdgeInsets.symmetric(
+        horizontal: context.responsivePadding(20),
+        vertical: context.responsivePadding(16),
+      ),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
@@ -224,49 +478,141 @@ class _DominoGameScreenState extends State<DominoGameScreen> {
             Colors.black.withOpacity(0.2),
           ],
         ),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: Colors.white.withOpacity(0.2),
-          width: 1,
+          color: Colors.white.withOpacity(0.3),
+          width: 2,
         ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.3),
+            blurRadius: 15,
+            offset: const Offset(0, 5),
+          ),
+        ],
       ),
       child: Row(
         children: [
-          IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.white),
-            onPressed: () => context.go('/domino'),
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.2),
+              shape: BoxShape.circle,
+            ),
+            child: IconButton(
+              icon: Icon(
+                Icons.arrow_back,
+                color: Colors.white,
+                size: context.responsive(mobile: 20.0, tablet: 24.0, desktop: 28.0),
+              ),
+              onPressed: () => context.go('/domino'),
+            ),
           ),
+          SizedBox(width: context.responsivePadding(16)),
           Expanded(
             child: Column(
               children: [
-                Text(
-                  'Manche $roundNumber',
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: context.responsivePadding(16),
+                    vertical: context.responsivePadding(8),
+                  ),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        const Color(0xFFFFD700),
+                        const Color(0xFFFF8C00),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFFFF8C00).withOpacity(0.5),
+                        blurRadius: 8,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
+                  ),
+                  child: Text(
+                    '🎲 Manche $roundNumber/3',
+                    style: TextStyle(
+                      fontSize: context.responsiveFontSize(18),
+                      fontWeight: FontWeight.w900,
+                      color: Colors.black,
+                      letterSpacing: 0.5,
+                    ),
                   ),
                 ),
-                const SizedBox(height: 4),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: _session!.participants.map((p) {
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                      child: Text(
-                        '${p.displayName}: ${p.roundsWon}',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: p.id == _currentParticipant?.id
-                              ? Colors.amber
-                              : Colors.white70,
-                          fontWeight: p.id == _currentParticipant?.id
-                              ? FontWeight.bold
-                              : FontWeight.normal,
+                SizedBox(height: context.responsivePadding(12)),
+                // Sur mobile, afficher les joueurs en ligne avec scroll horizontal si nécessaire
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: _session!.participants.map((p) {
+                      final isCurrentPlayer = p.id == _currentParticipant?.id;
+                      return Padding(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: context.responsivePadding(4),
                         ),
-                      ),
-                    );
-                  }).toList(),
+                        child: Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: context.responsivePadding(10),
+                            vertical: context.responsivePadding(4),
+                          ),
+                          decoration: BoxDecoration(
+                            color: isCurrentPlayer
+                                ? Colors.amber.withOpacity(0.3)
+                                : Colors.white.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: isCurrentPlayer
+                                  ? Colors.amber
+                                  : Colors.white.withOpacity(0.3),
+                              width: 2,
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                // Tronquer le nom si trop long sur mobile
+                                context.isMobile && p.displayName.length > 8
+                                    ? '${p.displayName.substring(0, 8)}...'
+                                    : p.displayName,
+                                style: TextStyle(
+                                  fontSize: context.responsiveFontSize(12),
+                                  color: isCurrentPlayer
+                                      ? Colors.amber
+                                      : Colors.white,
+                                  fontWeight: isCurrentPlayer
+                                      ? FontWeight.bold
+                                      : FontWeight.w600,
+                                ),
+                              ),
+                              SizedBox(width: context.responsivePadding(4)),
+                              Container(
+                                padding: EdgeInsets.all(context.responsivePadding(3)),
+                                decoration: BoxDecoration(
+                                  color: p.roundsWon > 0
+                                      ? Colors.green.withOpacity(0.8)
+                                      : Colors.grey.withOpacity(0.5),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Text(
+                                  '${p.roundsWon}',
+                                  style: TextStyle(
+                                    fontSize: context.responsiveFontSize(10),
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
                 ),
               ],
             ),
@@ -278,25 +624,39 @@ class _DominoGameScreenState extends State<DominoGameScreen> {
 
   Widget _buildErrorBanner() {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      padding: const EdgeInsets.all(12),
+      margin: EdgeInsets.symmetric(
+        horizontal: context.responsivePadding(16),
+        vertical: context.responsivePadding(8),
+      ),
+      padding: EdgeInsets.all(context.responsivePadding(16)),
       decoration: BoxDecoration(
-        color: Colors.red.withOpacity(0.2),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.red),
+        color: Colors.red.shade700,
+        borderRadius: BorderRadius.circular(15),
+        border: Border.all(color: Colors.white, width: 2),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.red.shade900.withOpacity(0.4),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Row(
         children: [
-          const Icon(Icons.error_outline, color: Colors.white),
+          const Icon(Icons.error_outline, color: Colors.white, size: 28),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
               _errorMessage!,
-              style: const TextStyle(color: Colors.white),
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
           IconButton(
-            icon: const Icon(Icons.close, color: Colors.white),
+            icon: const Icon(Icons.close, color: Colors.white, size: 24),
             onPressed: () => setState(() => _errorMessage = null),
           ),
         ],
@@ -312,86 +672,144 @@ class _DominoGameScreenState extends State<DominoGameScreen> {
     final gameState = _session!.currentGameState;
 
     return Container(
-      margin: const EdgeInsets.all(16),
+      margin: EdgeInsets.all(context.responsivePadding(16)),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: otherPlayers.map((player) {
-          final tileCount =
-              gameState?.playerHands[player.id]?.length ?? 0;
-          final isTheirTurn =
-              gameState?.currentTurnParticipantId == player.id;
+          final tileCount = gameState?.playerHands[player.id]?.length ?? 0;
+          final isTheirTurn = gameState?.currentTurnParticipantId == player.id;
 
-          return Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: isTheirTurn
-                    ? [
-                        Colors.amber.withOpacity(0.3),
-                        Colors.amber.withOpacity(0.1),
-                      ]
-                    : [
-                        Colors.black.withOpacity(0.3),
-                        Colors.black.withOpacity(0.1),
-                      ],
-              ),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: isTheirTurn
-                    ? Colors.amber
-                    : Colors.white.withOpacity(0.2),
-                width: isTheirTurn ? 2 : 1,
-              ),
-            ),
-            child: Column(
-              children: [
-                CircleAvatar(
-                  backgroundColor: player.isHost
+          return ScaleTransition(
+            scale: isTheirTurn ? _pulseAnimation : const AlwaysStoppedAnimation(1.0),
+            child: Container(
+              padding: EdgeInsets.all(context.responsivePadding(12)),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: isTheirTurn
+                      ? [
+                          const Color(0xFFFFD700),
+                          const Color(0xFFFF8C00),
+                        ]
+                      : [
+                          Colors.black.withOpacity(0.4),
+                          Colors.black.withOpacity(0.2),
+                        ],
+                ),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: isTheirTurn
                       ? Colors.amber
-                      : Colors.grey.withOpacity(0.5),
-                  child: Text(
-                    player.displayName[0].toUpperCase(),
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      : Colors.white.withOpacity(0.3),
+                  width: isTheirTurn ? 3 : 2,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: isTheirTurn
+                        ? Colors.amber.withOpacity(0.5)
+                        : Colors.black.withOpacity(0.3),
+                    blurRadius: isTheirTurn ? 15 : 10,
+                    offset: const Offset(0, 5),
+                  ),
+                ],
+              ),
+              child: Column(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(3),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: player.isHost
+                          ? LinearGradient(
+                              colors: [
+                                const Color(0xFFFFD700),
+                                const Color(0xFFFF8C00),
+                              ],
+                            )
+                          : null,
+                      color: player.isHost ? null : Colors.white.withOpacity(0.3),
+                    ),
+                    child: CircleAvatar(
+                      radius: context.responsive(mobile: 18.0, tablet: 24.0, desktop: 28.0),
+                      backgroundColor: Colors.white.withOpacity(0.2),
+                      child: Text(
+                        player.displayName[0].toUpperCase(),
+                        style: TextStyle(
+                          fontSize: context.responsiveFontSize(20),
+                          fontWeight: FontWeight.w900,
+                          color: isTheirTurn ? Colors.black : Colors.white,
+                        ),
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  player.displayName,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
+                  SizedBox(height: context.responsivePadding(8)),
+                  Text(
+                    // Tronquer le nom si trop long sur mobile
+                    context.isMobile && player.displayName.length > 10
+                        ? '${player.displayName.substring(0, 10)}...'
+                        : player.displayName,
+                    style: TextStyle(
+                      color: isTheirTurn ? Colors.black : Colors.white,
+                      fontSize: context.responsiveFontSize(13),
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    const Icon(Icons.casino, color: Colors.white70, size: 16),
-                    const SizedBox(width: 4),
-                    Text(
-                      '$tileCount',
-                      style: const TextStyle(
-                        color: Colors.white70,
-                        fontSize: 14,
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isTheirTurn
+                          ? Colors.black.withOpacity(0.3)
+                          : Colors.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.casino,
+                          color: isTheirTurn ? Colors.black : Colors.white,
+                          size: 18,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          '$tileCount',
+                          style: TextStyle(
+                            color: isTheirTurn ? Colors.black : Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (isTheirTurn) ...[
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.3),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Text(
+                        '⏳ Son tour',
+                        style: TextStyle(
+                          color: Colors.black,
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   ],
-                ),
-                if (isTheirTurn) ...[
-                  const SizedBox(height: 4),
-                  const Text(
-                    'Son tour',
-                    style: TextStyle(
-                      color: Colors.amber,
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
                 ],
-              ],
+              ),
             ),
           );
         }).toList(),
@@ -401,166 +819,144 @@ class _DominoGameScreenState extends State<DominoGameScreen> {
 
   Widget _buildBoard() {
     final gameState = _session?.currentGameState;
+
+    // Aucun état de jeu = afficher le chargement
     if (gameState == null) {
-      return const Center(
-        child: Text(
-          'Chargement...',
-          style: TextStyle(color: Colors.white),
-        ),
-      );
-    }
-
-    if (gameState.board.isEmpty) {
-      return Center(
-        child: Container(
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                Colors.black.withOpacity(0.3),
-                Colors.black.withOpacity(0.1),
-              ],
-            ),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: Colors.white.withOpacity(0.2),
-              width: 1,
-            ),
-          ),
-          child: const Text(
-            'Le plateau est vide.\nPlacez la première tuile!',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: Colors.white70,
-              fontSize: 16,
-            ),
-          ),
-        ),
-      );
-    }
-
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.all(16),
-      child: Row(
-        children: [
-          // Bouton gauche (si tuile sélectionnée et c'est mon tour)
-          if (_selectedTile != null && _isMyTurn) ...[
-            _buildPlacementButton('left', gameState.leftEnd),
-            const SizedBox(width: 8),
-          ],
-
-          // Chaîne de dominos
-          ...gameState.board.map((placedTile) {
-            return Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 2),
-              child: _buildTileWidget(placedTile.tile, false),
-            );
-          }),
-
-          // Bouton droit (si tuile sélectionnée et c'est mon tour)
-          if (_selectedTile != null && _isMyTurn) ...[
-            const SizedBox(width: 8),
-            _buildPlacementButton('right', gameState.rightEnd),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPlacementButton(String side, int? endValue) {
-    final canPlace = _selectedTile != null &&
-        endValue != null &&
-        _selectedTile!.canConnect(endValue);
-
-    return GestureDetector(
-      onTap: canPlace ? () => _placeTile(side) : null,
-      child: Container(
-        width: 60,
-        height: 120,
+      return Container(
+        margin: const EdgeInsets.symmetric(vertical: 16),
+        height: 400,
         decoration: BoxDecoration(
-          color: canPlace
-              ? Colors.green.withOpacity(0.3)
-              : Colors.grey.withOpacity(0.2),
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: canPlace ? Colors.green : Colors.grey,
-            width: 2,
+          gradient: LinearGradient(
+            colors: [
+              Colors.black.withOpacity(0.3),
+              Colors.black.withOpacity(0.1),
+            ],
           ),
+          borderRadius: BorderRadius.circular(20),
         ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              side == 'left' ? Icons.arrow_back : Icons.arrow_forward,
-              color: canPlace ? Colors.green : Colors.grey,
-              size: 32,
-            ),
-            const SizedBox(height: 8),
-            if (endValue != null)
-              Text(
-                '$endValue',
-                style: TextStyle(
-                  color: canPlace ? Colors.white : Colors.white54,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-          ],
+        child: const Center(
+          child: CircularProgressIndicator(color: Colors.white),
         ),
+      );
+    }
+
+    // Utiliser le nouveau widget de plateau modulaire
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 16),
+      child: DominoBoardWidget(
+        gameState: gameState,
+        isMyTurn: _isMyTurn,
+        onTilePlaced: (side, tile) => _placeTile(side, tile),
       ),
     );
   }
 
   Widget _buildMyHand() {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            Colors.black.withOpacity(0.3),
-            Colors.black.withOpacity(0.5),
+            Colors.black.withOpacity(0.4),
+            Colors.black.withOpacity(0.6),
           ],
         ),
         border: Border(
           top: BorderSide(
-            color: _isMyTurn ? Colors.amber : Colors.white.withOpacity(0.2),
-            width: _isMyTurn ? 3 : 1,
+            color: _isMyTurn ? const Color(0xFFFFD700) : Colors.white.withOpacity(0.3),
+            width: _isMyTurn ? 4 : 2,
           ),
         ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.3),
+            blurRadius: 10,
+            offset: const Offset(0, -5),
+          ),
+        ],
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           // Indicateur de tour
           if (_isMyTurn)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(
-                color: Colors.amber,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: const Text(
-                'C\'est votre tour!',
-                style: TextStyle(
-                  color: Colors.black,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
+            ScaleTransition(
+              scale: _pulseAnimation,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      const Color(0xFFFFD700),
+                      const Color(0xFFFF8C00),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(25),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFFFF8C00).withOpacity(0.5),
+                      blurRadius: 15,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: const [
+                    Icon(
+                      Icons.touch_app,
+                      color: Colors.black,
+                      size: 24,
+                    ),
+                    SizedBox(width: 12),
+                    Text(
+                      'C\'est votre tour!',
+                      style: TextStyle(
+                        color: Colors.black,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             )
           else
-            Text(
-              'En attente...',
-              style: TextStyle(
-                color: Colors.white.withOpacity(0.7),
-                fontSize: 14,
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: Colors.white.withOpacity(0.3),
+                  width: 2,
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.hourglass_empty,
+                    color: Colors.white.withOpacity(0.7),
+                    size: 20,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'En attente...',
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.7),
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
               ),
             ),
 
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
 
           // Main du joueur
           SingleChildScrollView(
@@ -571,42 +967,78 @@ class _DominoGameScreenState extends State<DominoGameScreen> {
                 final isPlayable = _playableTiles.any((t) => t.id == tile.id);
 
                 return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 4),
-                  child: GestureDetector(
-                    onTap: _isMyTurn && isPlayable
-                        ? () {
-                            setState(() {
-                              _selectedTile =
-                                  isSelected ? null : tile;
-                            });
-                          }
-                        : null,
-                    child: _buildTileWidget(
-                      tile,
-                      isSelected,
-                      isPlayable: isPlayable,
-                    ),
-                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 5),
+                  child: _isMyTurn && isPlayable
+                      ? Draggable<DominoTile>(
+                          data: tile,
+                          feedback: Transform.scale(
+                            scale: 1.2,
+                            child: Opacity(
+                              opacity: 0.8,
+                              child: _buildTileWidget(
+                                tile,
+                                false,
+                                isPlayable: true,
+                              ),
+                            ),
+                          ),
+                          childWhenDragging: Opacity(
+                            opacity: 0.3,
+                            child: _buildTileWidget(
+                              tile,
+                              false,
+                              isPlayable: true,
+                            ),
+                          ),
+                          child: GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                _selectedTile = isSelected ? null : tile;
+                              });
+                            },
+                            child: _buildTileWidget(
+                              tile,
+                              isSelected,
+                              isPlayable: isPlayable,
+                            ),
+                          ),
+                        )
+                      : _buildTileWidget(
+                          tile,
+                          isSelected,
+                          isPlayable: isPlayable,
+                        ),
                 );
               }).toList(),
             ),
           ),
 
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
 
           // Bouton Passer
           if (_isMyTurn && _playableTiles.isEmpty)
             ElevatedButton.icon(
               onPressed: _isLoading ? null : _passTurn,
-              icon: const Icon(Icons.skip_next),
-              label: const Text('Passer le tour'),
+              icon: const Icon(Icons.skip_next, size: 24),
+              label: const Text(
+                'Passer le tour',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.orange,
+                backgroundColor: const Color(0xFFFF6B6B),
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 12,
+                  horizontal: 32,
+                  vertical: 16,
                 ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                elevation: 8,
+                shadowColor: const Color(0xFFFF6B6B).withOpacity(0.5),
               ),
             ),
         ],
@@ -618,82 +1050,95 @@ class _DominoGameScreenState extends State<DominoGameScreen> {
     DominoTile tile,
     bool isSelected, {
     bool isPlayable = true,
+    bool isOnBoard = false, // Sur le plateau = horizontal, dans la main = vertical
   }) {
+    // Calculer la taille selon l'écran (responsive pour tous les appareils)
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+
+    // Breakpoints: très petit < 400, mobile < 600, tablette < 900, grand < 1200, desktop >= 1200
+    double width, height;
+    if (isOnBoard) {
+      // Sur le plateau: dominos horizontaux
+      if (screenWidth < 400) {
+        width = 50;
+        height = 25;
+      } else if (screenWidth < 600) {
+        width = 60;
+        height = 30;
+      } else if (screenWidth < 900) {
+        width = 70;
+        height = 35;
+      } else if (screenWidth < 1200) {
+        width = 80;
+        height = 40;
+      } else {
+        width = 96;
+        height = 48;
+      }
+    } else {
+      // Dans la main: dominos verticaux (hauteur > largeur)
+      // Adapter aussi à la hauteur de l'écran pour les écrans larges mais courts
+      final maxTileHeight = screenHeight * 0.15; // Max 15% de la hauteur de l'écran
+
+      if (screenWidth < 400) {
+        width = 40;
+        height = 80;
+      } else if (screenWidth < 600) {
+        width = 50;
+        height = 100;
+      } else if (screenWidth < 900) {
+        width = 60;
+        height = 120;
+      } else if (screenWidth < 1200) {
+        width = 70;
+        height = 140;
+      } else {
+        width = 80;
+        height = 160;
+      }
+
+      // Limiter la hauteur si l'écran est trop petit en hauteur
+      if (height > maxTileHeight) {
+        final scale = maxTileHeight / height;
+        width = width * scale;
+        height = maxTileHeight;
+      }
+    }
+
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
-      width: 50,
-      height: 100,
       decoration: BoxDecoration(
-        color: isSelected
-            ? Colors.amber
-            : (isPlayable ? Colors.white : Colors.grey.shade400),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: isSelected
-              ? Colors.amber.shade700
-              : (isPlayable ? Colors.black : Colors.grey.shade600),
-          width: isSelected ? 3 : 2,
-        ),
+        borderRadius: BorderRadius.circular(14),
+        border: isSelected
+            ? Border.all(
+                color: const Color(0xFFFFD700),
+                width: 4,
+              )
+            : null,
         boxShadow: isSelected
             ? [
                 BoxShadow(
-                  color: Colors.amber.withOpacity(0.5),
-                  blurRadius: 10,
-                  spreadRadius: 2,
+                  color: const Color(0xFFFFD700).withOpacity(0.6),
+                  blurRadius: 20,
+                  spreadRadius: 3,
                 ),
               ]
-            : [],
+            : null,
       ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          _buildDots(tile.value1, isPlayable),
-          Container(
-            height: 2,
-            color: isPlayable ? Colors.black : Colors.grey.shade600,
-          ),
-          _buildDots(tile.value2, isPlayable),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDots(int value, bool isPlayable) {
-    final color = isPlayable ? Colors.black : Colors.grey.shade600;
-
-    // Patterns de points pour chaque valeur (0-6)
-    final patterns = {
-      0: [],
-      1: [4],
-      2: [0, 8],
-      3: [0, 4, 8],
-      4: [0, 2, 6, 8],
-      5: [0, 2, 4, 6, 8],
-      6: [0, 2, 3, 5, 6, 8],
-    };
-
-    final dots = patterns[value] ?? [];
-
-    return SizedBox(
-      height: 40,
-      child: GridView.count(
-        crossAxisCount: 3,
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        children: List.generate(9, (index) {
-          return dots.contains(index)
-              ? Center(
-                  child: Container(
-                    width: 6,
-                    height: 6,
-                    decoration: BoxDecoration(
-                      color: color,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                )
-              : const SizedBox();
-        }),
+      child: DominoTileWidget(
+        value1: tile.value1,
+        value2: tile.value2,
+        width: width,
+        height: height,
+        isVertical: !isOnBoard, // Horizontal sur le plateau
+        baseColor: isPlayable
+            ? Colors.white
+            : Colors.grey.shade400,
+        dotColor: isPlayable
+            ? Colors.black87
+            : Colors.grey.shade700,
+        showShadow: !isSelected,
       ),
     );
   }

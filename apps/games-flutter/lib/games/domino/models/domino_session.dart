@@ -7,7 +7,7 @@ class DominoSession {
   final String id;
   final String hostId;
   final String? joinCode;              // Code à 6 chiffres pour rejoindre
-  final String status;                 // waiting, in_progress, completed, cancelled
+  final String status;                 // waiting, in_progress, completed, cancelled, chiree
   final DateTime createdAt;
   final DateTime? startedAt;
   final DateTime? completedAt;
@@ -46,6 +46,9 @@ class DominoSession {
   /// True si la partie est terminée
   bool get isCompleted => status == 'completed';
 
+  /// True si la partie est terminée en chirée (match nul)
+  bool get isChiree => status == 'chiree';
+
   /// True si la partie est annulée
   bool get isCancelled => status == 'cancelled';
 
@@ -69,12 +72,6 @@ class DominoSession {
 
   /// Nombre de places disponibles
   int get availableSlots => 3 - participants.length;
-
-  /// True si la partie est une "chirée" (tous ont ≥1 manche)
-  bool get isChiree {
-    if (participants.length != 3) return false;
-    return participants.every((p) => p.roundsWon >= 1);
-  }
 
   /// Liste des cochons (participants avec 0 manche à la fin)
   List<DominoParticipant> get cochons {

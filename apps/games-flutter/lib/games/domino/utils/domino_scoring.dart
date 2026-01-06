@@ -36,15 +36,25 @@ class DominoScoring {
   /// Vérifie si la partie est une "chirée"
   ///
   /// Une partie est chirée quand tous les joueurs ont gagné au moins
-  /// une manche (tous ont rounds_won ≥ 1)
+  /// une manche (tous ont rounds_won ≥ 1) ET aucun n'a atteint 3 manches.
   ///
-  /// Règle martiniquaise: c'est une égalité honorable
+  /// La chirée est une condition de fin de partie alternative (match nul).
+  /// Si tous les joueurs atteignent ≥1 manche, la partie s'arrête
+  /// immédiatement en égalité, sans attendre qu'un joueur atteigne 3.
+  ///
+  /// Règle martiniquaise: égalité honorable
   static bool isChiree(List<DominoParticipant> participants) {
     if (participants.length != 3) {
       return false;
     }
 
-    return participants.every((p) => p.roundsWon >= 1);
+    // Tous les joueurs doivent avoir au moins 1 manche
+    final allHaveAtLeastOne = participants.every((p) => p.roundsWon >= 1);
+
+    // Aucun joueur ne doit avoir atteint 3 manches (sinon c'est une victoire)
+    final noneHasThree = participants.every((p) => p.roundsWon < 3);
+
+    return allHaveAtLeastOne && noneHasThree;
   }
 
   /// Obtient le classement des joueurs par nombre de manches gagnées

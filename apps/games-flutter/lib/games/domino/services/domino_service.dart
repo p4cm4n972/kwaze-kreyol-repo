@@ -7,6 +7,7 @@ import '../models/domino_participant.dart';
 import '../models/domino_round.dart';
 import '../models/domino_game_state.dart';
 import '../models/domino_tile.dart';
+import '../utils/domino_scoring.dart';
 
 /// Service pour gérer les sessions de dominos martiniquais
 class DominoService {
@@ -73,6 +74,10 @@ class DominoService {
           }
         }
       }
+
+      // Renommer les clés pour matcher le modèle DominoSession
+      response['participants'] = response['domino_participants'];
+      response['rounds'] = response['domino_rounds'];
 
       return DominoSession.fromJson(response);
     } catch (e) {
@@ -443,15 +448,21 @@ class DominoService {
       );
 
       // Mettre à jour le plateau
-      final newBoard = List<PlacedTile>.from(gameState.board)..add(placedTile);
+      final newBoard = List<PlacedTile>.from(gameState.board);
+      if (gameState.board.isEmpty || side == 'right') {
+        newBoard.add(placedTile);
+      } else {
+        newBoard.insert(0, placedTile);
+      }
 
       // Mettre à jour les bouts
       int? newLeftEnd = gameState.leftEnd;
       int? newRightEnd = gameState.rightEnd;
 
       if (gameState.board.isEmpty) {
-        newLeftEnd = connectedValue;
-        newRightEnd = exposedValue;
+        // Première tuile: les deux bouts sont les valeurs de la tuile
+        newLeftEnd = tile.value1;
+        newRightEnd = tile.value2;
       } else if (side == 'left') {
         newLeftEnd = exposedValue;
       } else {
@@ -598,14 +609,18 @@ class DominoService {
         (p) => p.id == winnerParticipantId,
       );
 
-      // Vérifier si le gagnant a 3 manches
+      // Vérifier CHIRÉE (tous ont ≥1 manche ET aucun n'a 3)
+      final isChiree = DominoScoring.isChiree(updatedSession.participants);
+      if (isChiree) {
+        await _completeSessionWithChiree(sessionId);
+        return;
+      }
+
+      // Vérifier si le gagnant a atteint 3 manches (victoire classique)
       if (winner.roundsWon >= 3) {
         await _completeSession(sessionId, winner);
         return;
       }
-
-      // Vérifier chirée
-      final isChiree = updatedSession.participants.every((p) => p.roundsWon >= 1);
 
       // Démarrer nouvelle manche
       await startNewRound(sessionId);
@@ -614,7 +629,7 @@ class DominoService {
     }
   }
 
-  /// Termine la session (victoire)
+  /// Termine la session (victoire classique)
   Future<void> _completeSession(String sessionId, DominoParticipant winner) async {
     try {
       final session = await getSession(sessionId);
@@ -639,6 +654,28 @@ class DominoService {
       }).eq('id', sessionId);
     } catch (e) {
       throw Exception('Erreur fin de session: $e');
+    }
+  }
+
+  /// Termine la session en chirée (match nul)
+  Future<void> _completeSessionWithChiree(String sessionId) async {
+    try {
+      final session = await getSession(sessionId);
+
+      // Aucun cochon en cas de chirée (tous ont au moins 1 manche)
+      // Pas besoin de marquer les cochons
+
+      // Terminer la session avec status 'chiree'
+      await _supabase.from('domino_sessions').update({
+        'status': 'chiree',
+        'completed_at': DateTime.now().toIso8601String(),
+        'winner_id': null, // Pas de gagnant en chirée
+        'winner_name': 'CHIRÉE',
+        'total_rounds': session.rounds.length + 1,
+        'current_game_state': null,
+      }).eq('id', sessionId);
+    } catch (e) {
+      throw Exception('Erreur fin de session en chirée: $e');
     }
   }
 
@@ -682,21 +719,52 @@ class DominoService {
     int limit = 20,
   }) async {
     try {
+      // Étape 1: Récupérer les IDs des sessions où l'utilisateur participe
+      final participations = await _supabase
+          .from('domino_participants')
+          .select('session_id')
+          .eq('user_id', userId);
+
+      final sessionIds = (participations as List)
+          .map((p) => p['session_id'] as String)
+          .toList();
+
+      if (sessionIds.isEmpty) {
+        return [];
+      }
+
+      // Étape 2: Récupérer ces sessions avec TOUS leurs participants
       final response = await _supabase
           .from('domino_sessions')
           .select('''
             *,
-            domino_participants!inner (
+            domino_participants (
               *,
               users (username)
             ),
             domino_rounds (*)
           ''')
-          .eq('domino_participants.user_id', userId)
+          .inFilter('id', sessionIds)
           .order('created_at', ascending: false)
           .limit(limit);
 
-      return response.map((json) => DominoSession.fromJson(json)).toList();
+      // Mapper les noms pour correspondre au modèle
+      return (response as List).map((json) {
+        // Mapper les noms d'utilisateur
+        if (json['domino_participants'] != null) {
+          for (var participant in json['domino_participants']) {
+            if (participant['users'] != null) {
+              participant['user_name'] = participant['users']['username'];
+            }
+          }
+        }
+
+        // Renommer les clés pour matcher le modèle DominoSession
+        json['participants'] = json['domino_participants'];
+        json['rounds'] = json['domino_rounds'];
+
+        return DominoSession.fromJson(json);
+      }).toList();
     } catch (e) {
       throw Exception('Erreur: $e');
     }
