@@ -193,6 +193,7 @@ class _DominoBoardWidgetState extends State<DominoBoardWidget> {
           ),
         ),
       ),
+      ),
     );
   }
 
