@@ -103,6 +103,30 @@ class DominoLogic {
     return false;
   }
 
+  /// Vérifie si une tuile peut être placée sur un côté spécifique
+  ///
+  /// [side]: 'left' ou 'right'
+  /// [boardEmpty]: true si le plateau est vide
+  static bool canPlaceAt(
+    DominoTile tile,
+    int? endValue,
+    String side,
+    bool boardEmpty,
+  ) {
+    // Plateau vide: toujours possible
+    if (boardEmpty) {
+      return true;
+    }
+
+    // Pas de valeur de fin = impossible
+    if (endValue == null) {
+      return false;
+    }
+
+    // Vérifie connexion avec le bout spécifié
+    return tile.canConnect(endValue);
+  }
+
   /// Vérifie si un joueur peut jouer au moins une tuile
   static bool canPlayerPlay(
     List<DominoTile> hand,
