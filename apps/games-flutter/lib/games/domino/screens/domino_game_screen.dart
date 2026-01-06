@@ -542,77 +542,69 @@ class _DominoGameScreenState extends State<DominoGameScreen>
                     ),
                   ),
                 ),
-                SizedBox(height: context.responsivePadding(12)),
-                // Sur mobile, afficher les joueurs en ligne avec scroll horizontal si nécessaire
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: _session!.participants.map((p) {
-                      final isCurrentPlayer = p.id == _currentParticipant?.id;
-                      return Padding(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: context.responsivePadding(4),
+                SizedBox(height: context.responsivePadding(8)),
+                // Badges joueurs compacts
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: _session!.participants.map((p) {
+                    final isCurrentPlayer = p.id == _currentParticipant?.id;
+                    // Nom court: max 6 caractères sur mobile, 10 sinon
+                    final maxLen = context.isMobile ? 6 : 10;
+                    final shortName = p.displayName.length > maxLen
+                        ? p.displayName.substring(0, maxLen)
+                        : p.displayName;
+
+                    return Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 3),
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: isCurrentPlayer
+                            ? Colors.amber.withOpacity(0.3)
+                            : Colors.white.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: isCurrentPlayer
+                              ? Colors.amber
+                              : Colors.white.withOpacity(0.2),
+                          width: isCurrentPlayer ? 2 : 1,
                         ),
-                        child: Container(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: context.responsivePadding(10),
-                            vertical: context.responsivePadding(4),
-                          ),
-                          decoration: BoxDecoration(
-                            color: isCurrentPlayer
-                                ? Colors.amber.withOpacity(0.3)
-                                : Colors.white.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: isCurrentPlayer
-                                  ? Colors.amber
-                                  : Colors.white.withOpacity(0.3),
-                              width: 2,
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            shortName,
+                            style: TextStyle(
+                              fontSize: context.isMobile ? 11 : 13,
+                              color: isCurrentPlayer ? Colors.amber : Colors.white,
+                              fontWeight: isCurrentPlayer ? FontWeight.bold : FontWeight.w500,
                             ),
                           ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                // Tronquer le nom si trop long sur mobile
-                                context.isMobile && p.displayName.length > 8
-                                    ? '${p.displayName.substring(0, 8)}...'
-                                    : p.displayName,
-                                style: TextStyle(
-                                  fontSize: context.responsiveFontSize(12),
-                                  color: isCurrentPlayer
-                                      ? Colors.amber
-                                      : Colors.white,
-                                  fontWeight: isCurrentPlayer
-                                      ? FontWeight.bold
-                                      : FontWeight.w600,
+                          const SizedBox(width: 4),
+                          Container(
+                            width: 18,
+                            height: 18,
+                            decoration: BoxDecoration(
+                              color: p.roundsWon > 0
+                                  ? Colors.green.shade600
+                                  : Colors.grey.shade600,
+                              shape: BoxShape.circle,
+                            ),
+                            child: Center(
+                              child: Text(
+                                '${p.roundsWon}',
+                                style: const TextStyle(
+                                  fontSize: 10,
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
                                 ),
                               ),
-                              SizedBox(width: context.responsivePadding(4)),
-                              Container(
-                                padding: EdgeInsets.all(context.responsivePadding(3)),
-                                decoration: BoxDecoration(
-                                  color: p.roundsWon > 0
-                                      ? Colors.green.withOpacity(0.8)
-                                      : Colors.grey.withOpacity(0.5),
-                                  shape: BoxShape.circle,
-                                ),
-                                child: Text(
-                                  '${p.roundsWon}',
-                                  style: TextStyle(
-                                    fontSize: context.responsiveFontSize(10),
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                            ],
+                            ),
                           ),
-                        ),
-                      );
-                    }).toList(),
-                  ),
+                        ],
+                      ),
+                    );
+                  }).toList(),
                 ),
               ],
             ),

@@ -348,13 +348,7 @@ class _DominoBoardWidgetState extends State<DominoBoardWidget> {
         // Vérifier si on doit tourner (serpentin)
         bool shouldTurn = tilesInCurrentDirection >= _maxTilesBeforeTurn;
 
-        if (shouldTurn) {
-          // Tourner (sens horaire)
-          direction = _rotateDirection(direction);
-          tilesInCurrentDirection = 0;
-        }
-
-        // Avancer dans la direction actuelle
+        // Avancer d'abord selon la direction ACTUELLE (avant de tourner)
         switch (direction) {
           case ChainDirection.right:
             currentX += tileW + _spacing;
@@ -368,6 +362,49 @@ class _DominoBoardWidgetState extends State<DominoBoardWidget> {
           case ChainDirection.up:
             currentY -= tileH + _spacing;
             break;
+        }
+
+        // PUIS tourner si nécessaire (pour le prochain domino)
+        if (shouldTurn) {
+          // Ajuster la position pour le virage
+          // Quand on tourne, le prochain domino doit être aligné correctement
+          final nextTile = board[i + 1].tile;
+          final nextIsDouble = nextTile.isDouble;
+          final oldDirection = direction;
+
+          // Tourner (sens horaire)
+          direction = _rotateDirection(direction);
+          tilesInCurrentDirection = 0;
+
+          // Ajuster la position pour le changement de direction
+          // Si on passait de horizontal à vertical ou vice-versa
+          if (oldDirection == ChainDirection.right && direction == ChainDirection.down) {
+            // On était à droite, on descend maintenant
+            // Reculer X pour aligner avec le bord droit du dernier domino
+            currentX -= _spacing;
+            // Si le prochain n'est pas un double, ajuster Y
+            if (!nextIsDouble) {
+              currentY += (_tileWidth - _tileHeight) / 2;
+            }
+          } else if (oldDirection == ChainDirection.down && direction == ChainDirection.left) {
+            // On descendait, on va à gauche maintenant
+            currentY -= _spacing;
+            if (!nextIsDouble) {
+              currentX -= (_tileWidth - _tileHeight) / 2;
+            }
+          } else if (oldDirection == ChainDirection.left && direction == ChainDirection.up) {
+            // On allait à gauche, on monte maintenant
+            currentX += _spacing;
+            if (!nextIsDouble) {
+              currentY -= (_tileWidth - _tileHeight) / 2;
+            }
+          } else if (oldDirection == ChainDirection.up && direction == ChainDirection.right) {
+            // On montait, on va à droite maintenant
+            currentY += _spacing;
+            if (!nextIsDouble) {
+              currentX += (_tileWidth - _tileHeight) / 2;
+            }
+          }
         }
       }
 
