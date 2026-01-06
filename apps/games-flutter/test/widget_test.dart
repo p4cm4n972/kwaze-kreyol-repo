@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kwaze_kreyol_games/main.dart';
+import 'package:kwaze_kreyol_games/screens/splash_screen.dart';
 import 'package:kwaze_kreyol_games/services/supabase_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -12,11 +13,11 @@ void main() {
       anonKey: 'mock_anon_key',
     );
   });
-  testWidgets('GamesHomeScreen shows title', (WidgetTester tester) async {
+  testWidgets('App renders SplashScreen initially', (WidgetTester tester) async {
     // Build our app and trigger a frame.
     await tester.pumpWidget(const KwazeKreyolGamesApp());
 
-    // Verify that the title "Nos jeux" is displayed.
-    expect(find.text('Nos jeux'), findsOneWidget);
+    // Verify that the SplashScreen is displayed (app starts at '/')
+    expect(find.byType(SplashScreen), findsOneWidget);
   });
 }

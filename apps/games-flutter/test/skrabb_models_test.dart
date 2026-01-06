@@ -70,10 +70,10 @@ void main() {
     });
 
     test('devrait avoir les bons noms courts', () {
-      expect(BonusType.doubleLetter.shortName, 'DL');
-      expect(BonusType.tripleLetter.shortName, 'TL');
-      expect(BonusType.doubleWord.shortName, 'DW');
-      expect(BonusType.tripleWord.shortName, 'TW');
+      expect(BonusType.doubleLetter.shortName, 'LD'); // Lettre Double
+      expect(BonusType.tripleLetter.shortName, 'LT'); // Lettre Triple
+      expect(BonusType.doubleWord.shortName, 'MD');   // Mot Double
+      expect(BonusType.tripleWord.shortName, 'MT');   // Mot Triple
       expect(BonusType.center.shortName, '★');
     });
   });
