@@ -545,7 +545,7 @@ class _DominoGameScreenState extends State<DominoGameScreen>
                     ],
                   ),
                   child: Text(
-                    '🎲 Manche $roundNumber/3',
+                    '🎲 Manche $roundNumber',
                     style: TextStyle(
                       fontSize: context.responsiveFontSize(18),
                       fontWeight: FontWeight.w900,
@@ -786,7 +786,7 @@ class _DominoGameScreenState extends State<DominoGameScreen>
                   ),
                 ),
                 Text(
-                  '${player.roundsWon}/3',
+                  '${player.roundsWon} ★',
                   style: TextStyle(
                     color: isTheirTurn ? Colors.black54 : Colors.white60,
                     fontSize: 11,
