@@ -330,7 +330,7 @@ class _DominoHomeScreenState extends State<DominoHomeScreen>
           // Carte: Créer une partie
           _buildActionCard(
             title: 'Créer une partie',
-            icon: Icons.add_circle_rounded,
+            icon: Icons.add_circle,
             iconColor: const Color(0xFF4CAF50),
             gradientColors: [
               const Color(0xFF4CAF50),
@@ -353,7 +353,7 @@ class _DominoHomeScreenState extends State<DominoHomeScreen>
           // Carte: Rejoindre avec code
           _buildActionCard(
             title: 'Rejoindre une partie',
-            icon: Icons.login_rounded,
+            icon: Icons.group_add,
             iconColor: const Color(0xFF2196F3),
             gradientColors: [
               const Color(0xFF2196F3),
