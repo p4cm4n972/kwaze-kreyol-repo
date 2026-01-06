@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../services/auth_service.dart';
 import '../../../services/supabase_service.dart';
+import '../../../widgets/game_header.dart';
 import '../services/met_double_service.dart';
 import '../models/met_double_game.dart';
 import '../../../screens/auth_screen.dart';
@@ -299,97 +300,115 @@ class _MetDoubleHomeScreenState extends State<MetDoubleHomeScreen> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Mét Double'),
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            context.go('/');
-          },
-          tooltip: 'Retour aux jeux',
+  Widget _buildUserMenu() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.2),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: PopupMenuButton<String>(
+        icon: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              _isGuest ? Icons.person_outline : Icons.person,
+              size: 20,
+              color: Colors.white,
+            ),
+            const SizedBox(width: 4),
+            const Icon(Icons.arrow_drop_down, size: 20, color: Colors.white),
+          ],
         ),
-        actions: [
-          if (_displayName != null)
-            PopupMenuButton<String>(
-              icon: Row(
-                children: [
-                  Icon(
-                    _isGuest ? Icons.person_outline : Icons.person,
-                    size: 20,
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    _displayName!,
-                    style: const TextStyle(fontSize: 14),
-                  ),
-                  const SizedBox(width: 4),
-                  const Icon(Icons.arrow_drop_down, size: 20),
-                ],
-              ),
-              itemBuilder: (context) => <PopupMenuEntry<String>>[
-                PopupMenuItem<String>(
-                  enabled: false,
-                  value: 'profile',
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        _displayName!,
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      Text(
-                        _isGuest ? 'Invité' : 'Utilisateur',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey[600],
-                        ),
-                      ),
-                    ],
-                  ),
+        itemBuilder: (context) => <PopupMenuEntry<String>>[
+          PopupMenuItem<String>(
+            enabled: false,
+            value: 'profile',
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  _displayName!,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
-                const PopupMenuDivider(),
-                const PopupMenuItem<String>(
-                  value: 'stats',
-                  child: Row(
-                    children: [
-                      Icon(Icons.bar_chart),
-                      SizedBox(width: 8),
-                      Text('Statistiques'),
-                    ],
-                  ),
-                ),
-                const PopupMenuDivider(),
-                const PopupMenuItem<String>(
-                  value: 'logout',
-                  child: Row(
-                    children: [
-                      Icon(Icons.logout),
-                      SizedBox(width: 8),
-                      Text('Déconnexion'),
-                    ],
+                Text(
+                  _isGuest ? 'Invité' : 'Utilisateur',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey[600],
                   ),
                 ),
               ],
-              onSelected: (value) {
-                if (value == 'stats') {
-                  context.push('/met-double/stats');
-                } else if (value == 'logout') {
-                  _logout();
-                }
-              },
             ),
+          ),
+          const PopupMenuDivider(),
+          const PopupMenuItem<String>(
+            value: 'logout',
+            child: Row(
+              children: [
+                Icon(Icons.logout),
+                SizedBox(width: 8),
+                Text('Déconnexion'),
+              ],
+            ),
+          ),
         ],
+        onSelected: (value) {
+          if (value == 'logout') {
+            _logout();
+          }
+        },
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : RefreshIndicator(
-              onRefresh: _loadData,
-              child: _buildContent(),
-            ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              const Color(0xFF9B59B6).withOpacity(0.3), // Violet
+              const Color(0xFF8E44AD).withOpacity(0.3), // Violet foncé
+              const Color(0xFF3498DB).withOpacity(0.3), // Bleu
+            ],
+          ),
+        ),
+        child: SafeArea(
+          child: Column(
+            children: [
+              // Header unifié
+              GameHeader(
+                title: 'Mét Double',
+                emoji: '🎯',
+                onBack: () => context.go('/home'),
+                gradientColors: const [Color(0xFF9B59B6), Color(0xFF8E44AD)],
+                actions: [
+                  GameHeaderAction(
+                    icon: Icons.bar_chart,
+                    onPressed: () => context.push('/met-double/stats'),
+                    tooltip: 'Statistiques',
+                    iconColor: Colors.amber,
+                  ),
+                  if (_displayName != null)
+                    _buildUserMenu(),
+                ],
+              ),
+              // Contenu
+              Expanded(
+                child: _isLoading
+                    ? const Center(child: CircularProgressIndicator(color: Colors.white))
+                    : RefreshIndicator(
+                        onRefresh: _loadData,
+                        child: _buildContent(),
+                      ),
+              ),
+            ],
+          ),
+        ),
+      ),
       floatingActionButton: Column(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [

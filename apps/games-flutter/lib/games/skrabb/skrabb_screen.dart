@@ -820,44 +820,49 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
         final isMobile = constraints.maxWidth < 600;
 
         return Container(
-          margin: EdgeInsets.all(isMobile ? 4 : 8),
+          margin: EdgeInsets.all(isMobile ? 8 : 12),
           padding: EdgeInsets.symmetric(
-            horizontal: isMobile ? 8 : 16,
-            vertical: isMobile ? 8 : 12,
+            horizontal: isMobile ? 12 : 20,
+            vertical: isMobile ? 12 : 16,
           ),
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                Colors.black.withOpacity(0.3),
-                Colors.black.withOpacity(0.1),
+                Colors.black.withOpacity(0.4),
+                Colors.black.withOpacity(0.2),
               ],
             ),
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: const Color(0xFFFFD700).withOpacity(0.2),
-              width: 1,
+              color: Colors.white.withOpacity(0.3),
+              width: 2,
             ),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withOpacity(0.3),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
+                blurRadius: 15,
+                offset: const Offset(0, 5),
               ),
             ],
           ),
           child: Row(
             children: [
-              IconButton(
-                icon: Icon(Icons.arrow_back, color: Colors.white, size: isMobile ? 20 : 24),
-                onPressed: _onBackPressed,
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
+              // Bouton retour dans un cercle
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  shape: BoxShape.circle,
+                ),
+                child: IconButton(
+                  icon: Icon(Icons.arrow_back, color: Colors.white, size: isMobile ? 20 : 24),
+                  onPressed: _onBackPressed,
+                ),
               ),
-              SizedBox(width: isMobile ? 4 : 8),
+              SizedBox(width: isMobile ? 8 : 12),
               Container(
                 padding: EdgeInsets.symmetric(
-                  horizontal: isMobile ? 6 : 12,
-                  vertical: isMobile ? 4 : 6,
+                  horizontal: isMobile ? 12 : 16,
+                  vertical: isMobile ? 8 : 10,
                 ),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
@@ -866,19 +871,20 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
                       const Color(0xFFFF8C00),
                     ],
                   ),
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(15),
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFFFFD700).withOpacity(0.3),
-                      blurRadius: 4,
+                      color: const Color(0xFFFF8C00).withOpacity(0.5),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
                     ),
                   ],
                 ),
                 child: Text(
-                  'Skrabb',
+                  '🎰 Skrabb',
                   style: TextStyle(
-                    fontSize: isMobile ? 16 : 24,
-                    fontWeight: FontWeight.bold,
+                    fontSize: isMobile ? 18 : 24,
+                    fontWeight: FontWeight.w900,
                     color: Colors.black,
                   ),
                 ),

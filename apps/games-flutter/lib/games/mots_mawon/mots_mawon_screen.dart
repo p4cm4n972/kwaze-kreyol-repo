@@ -9,6 +9,7 @@ import '../../models/dictionary_entry.dart';
 import '../../services/dictionary_service.dart';
 import '../../services/auth_service.dart';
 import '../../utils/word_search_generator.dart';
+import '../../widgets/game_header.dart';
 import 'models/mots_mawon_game.dart';
 import 'services/mots_mawon_service.dart';
 import 'dart:async';
@@ -449,37 +450,6 @@ class _MotsMawonScreenState extends State<MotsMawonScreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.go('/'),
-        ),
-        title: Row(
-          children: [
-            const Text('Mots Mawon'),
-            if (_isSaving)
-              const Padding(
-                padding: EdgeInsets.only(left: 8.0),
-                child: SizedBox(
-                  width: 12,
-                  height: 12,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                  ),
-                ),
-              ),
-          ],
-        ),
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.leaderboard),
-            onPressed: () => context.go('/mots-mawon/leaderboard'),
-            tooltip: 'Classement',
-          ),
-        ],
-      ),
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -494,16 +464,50 @@ class _MotsMawonScreenState extends State<MotsMawonScreen> {
           ),
         ),
         child: SafeArea(
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              final isWide = constraints.maxWidth > 800;
+          child: Column(
+            children: [
+              // Header unifié
+              GameHeader(
+                title: 'Mots Mawon',
+                emoji: '🔍',
+                onBack: () => context.go('/home'),
+                gradientColors: const [Color(0xFFE74C3C), Color(0xFFF39C12)],
+                actions: [
+                  if (_isSaving)
+                    const Padding(
+                      padding: EdgeInsets.only(right: 8.0),
+                      child: SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                        ),
+                      ),
+                    ),
+                  GameHeaderAction(
+                    icon: Icons.leaderboard,
+                    onPressed: () => context.go('/mots-mawon/leaderboard'),
+                    tooltip: 'Classement',
+                    iconColor: Colors.amber,
+                  ),
+                ],
+              ),
+              // Contenu du jeu
+              Expanded(
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final isWide = constraints.maxWidth > 800;
 
-              if (isWide) {
-                return _buildWideLayout();
-              } else {
-                return _buildNarrowLayout();
-              }
-            },
+                    if (isWide) {
+                      return _buildWideLayout();
+                    } else {
+                      return _buildNarrowLayout();
+                    }
+                  },
+                ),
+              ),
+            ],
           ),
         ),
       ),

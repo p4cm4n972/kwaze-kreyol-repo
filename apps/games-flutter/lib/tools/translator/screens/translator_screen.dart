@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../services/auth_service.dart';
+import '../../../widgets/game_header.dart';
 import '../services/translator_service.dart';
 import '../models/dictionary_word.dart';
 import 'translator_contribute_screen.dart';
@@ -87,49 +88,73 @@ class _TranslatorScreenState extends State<TranslatorScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            context.go('/');
-          },
-          tooltip: 'Retour aux jeux',
-        ),
-        title: const Text('Traducteur Kréyol'),
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.star),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const WordOfDayScreen(),
-                ),
-              );
-            },
-            tooltip: 'Mot du jour',
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              const Color(0xFF1ABC9C).withOpacity(0.3), // Turquoise
+              const Color(0xFF16A085).withOpacity(0.3), // Turquoise foncé
+              const Color(0xFF3498DB).withOpacity(0.3), // Bleu
+            ],
           ),
-          if (!_isGuest)
-            IconButton(
-              icon: const Icon(Icons.add_circle),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const TranslatorContributeScreen(),
+        ),
+        child: SafeArea(
+          child: Column(
+            children: [
+              // Header unifié
+              GameHeader(
+                title: 'Kozé Kwazé',
+                emoji: '📖',
+                onBack: () => context.go('/home'),
+                gradientColors: const [Color(0xFF1ABC9C), Color(0xFF16A085)],
+                actions: [
+                  GameHeaderAction(
+                    icon: Icons.star,
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const WordOfDayScreen(),
+                        ),
+                      );
+                    },
+                    tooltip: 'Mot du jour',
+                    iconColor: Colors.amber,
                   ),
-                );
-              },
-              tooltip: 'Contribuer',
-            ),
-        ],
+                  if (!_isGuest)
+                    GameHeaderAction(
+                      icon: Icons.add_circle,
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const TranslatorContributeScreen(),
+                          ),
+                        );
+                      },
+                      tooltip: 'Contribuer',
+                      iconColor: Colors.lightGreenAccent,
+                    ),
+                ],
+              ),
+              // Contenu
+              Expanded(
+                child: _buildContent(context),
+              ),
+            ],
+          ),
+        ),
       ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Sélecteur de langue et barre de recherche
-            Container(
+    );
+  }
+
+  Widget _buildContent(BuildContext context) {
+    return Column(
+      children: [
+        // Sélecteur de langue et barre de recherche
+        Container(
               padding: const EdgeInsets.all(16),
               color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
               child: Column(
@@ -229,13 +254,11 @@ class _TranslatorScreenState extends State<TranslatorScreen> {
               ),
             ),
 
-            // Résultats
-            Expanded(
-              child: _buildResults(),
-            ),
-          ],
+        // Résultats
+        Expanded(
+          child: _buildResults(),
         ),
-      ),
+      ],
     );
   }
 
