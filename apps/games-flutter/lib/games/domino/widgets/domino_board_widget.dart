@@ -144,12 +144,14 @@ class _DominoBoardWidgetState extends State<DominoBoardWidget> {
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(12),
-        child: InteractiveViewer(
-          transformationController: _transformController,
-          minScale: 0.5,
-          maxScale: 3.0,
-          boundaryMargin: const EdgeInsets.all(200),
-          child: LayoutBuilder(
+        child: Padding(
+          padding: const EdgeInsets.all(12), // Marge interne pour les zones de drop
+          child: InteractiveViewer(
+            transformationController: _transformController,
+            minScale: 0.5,
+            maxScale: 3.0,
+            boundaryMargin: const EdgeInsets.all(300), // Plus d'espace pour scroller
+            child: LayoutBuilder(
             builder: (context, constraints) {
               // Centrer le contenu
               final centerX = (constraints.maxWidth - bounds.width) / 2 - bounds.left;

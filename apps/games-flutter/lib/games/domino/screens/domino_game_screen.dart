@@ -445,14 +445,26 @@ class _DominoGameScreenState extends State<DominoGameScreen>
                 _buildHeader(),
                 if (_errorMessage != null) _buildErrorBanner(),
                 Expanded(
-                  child: Column(
+                  child: Stack(
                     children: [
-                      _buildOpponents(),
-                      Expanded(child: _buildBoard()),
-                      _buildMyHand(),
+                      // Plateau de jeu (prend tout l'espace)
+                      Positioned.fill(
+                        child: Padding(
+                          padding: const EdgeInsets.only(top: 60), // Espace pour les adversaires
+                          child: _buildBoard(),
+                        ),
+                      ),
+                      // Adversaires en overlay en haut
+                      Positioned(
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        child: _buildOpponents(),
+                      ),
                     ],
                   ),
                 ),
+                _buildMyHand(),
               ],
             ),
           ),
