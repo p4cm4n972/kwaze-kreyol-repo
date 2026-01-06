@@ -205,7 +205,7 @@ Votre score final est sauvegardé dans le classement!''',
             decoration: BoxDecoration(
               color: color,
               borderRadius: BorderRadius.circular(6),
-              border: Border.all(color: Colors.black.withOpacity(0.2)),
+              border: Border.all(color: Colors.black.withValues(alpha: 0.2)),
             ),
             child: Center(
               child: Text(

@@ -46,12 +46,12 @@ class _MetDoubleStatsScreenState extends State<MetDoubleStatsScreen>
       final userId = _authService.getUserIdOrNull();
       if (userId != null) {
         try {
-          final donnés = await _metDoubleService.getCochonsDonnes(userId);
-          final reçus = await _metDoubleService.getCochonsRecus(userId);
+          final donnes = await _metDoubleService.getCochonsDonnes(userId);
+          final recus = await _metDoubleService.getCochonsRecus(userId);
 
           setState(() {
-            _cochonsDonnes = donnés;
-            _cochonsRecus = reçus;
+            _cochonsDonnes = donnes;
+            _cochonsRecus = recus;
           });
         } catch (e) {
           if (mounted) {
@@ -354,8 +354,8 @@ class _MetDoubleStatsScreenState extends State<MetDoubleStatsScreen>
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
             color: isDonne
-                ? Colors.green.withOpacity(0.2)
-                : Colors.red.withOpacity(0.2),
+                ? Colors.green.withValues(alpha: 0.2)
+                : Colors.red.withValues(alpha: 0.2),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Text(

@@ -53,7 +53,7 @@ class DominoTilePainter extends CustomPainter {
   /// Dessine l'ombre portée
   void _drawShadow(Canvas canvas, Size size, double cornerRadius) {
     final shadowPaint = Paint()
-      ..color = Colors.black.withOpacity(0.25)
+      ..color = Colors.black.withValues(alpha: 0.25)
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6);
 
     final shadowRect = RRect.fromRectAndRadius(
@@ -77,8 +77,8 @@ class DominoTilePainter extends CustomPainter {
       end: Alignment.bottomRight,
       colors: [
         baseColor,
-        baseColor.withOpacity(0.85),
-        baseColor.withOpacity(0.95),
+        baseColor.withValues(alpha: 0.85),
+        baseColor.withValues(alpha: 0.95),
       ],
       stops: const [0.0, 0.5, 1.0],
     );
@@ -90,7 +90,7 @@ class DominoTilePainter extends CustomPainter {
 
     // Surbrillance en haut à gauche pour effet brillant
     final highlightPaint = Paint()
-      ..color = Colors.white.withOpacity(0.3)
+      ..color = Colors.white.withValues(alpha: 0.3)
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
 
     canvas.drawCircle(
@@ -108,7 +108,7 @@ class DominoTilePainter extends CustomPainter {
     );
 
     final borderPaint = Paint()
-      ..color = Colors.black.withOpacity(0.2)
+      ..color = Colors.black.withValues(alpha: 0.2)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2.0;
 
@@ -121,7 +121,7 @@ class DominoTilePainter extends CustomPainter {
     );
 
     final innerBorderPaint = Paint()
-      ..color = Colors.white.withOpacity(0.5)
+      ..color = Colors.white.withValues(alpha: 0.5)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.0;
 
@@ -131,7 +131,7 @@ class DominoTilePainter extends CustomPainter {
   /// Dessine la ligne de séparation
   void _drawDivider(Canvas canvas, Size size) {
     final dividerPaint = Paint()
-      ..color = Colors.black.withOpacity(0.15)
+      ..color = Colors.black.withValues(alpha: 0.15)
       ..strokeWidth = 2.0
       ..strokeCap = StrokeCap.round;
 
@@ -169,7 +169,7 @@ class DominoTilePainter extends CustomPainter {
 
     // Ombre pour les points
     final dotShadowPaint = Paint()
-      ..color = Colors.black.withOpacity(0.3)
+      ..color = Colors.black.withValues(alpha: 0.3)
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2);
 
     final positions = _getDotPositions(value, centerX, centerY, spacing, isVerticalOrientation);
@@ -186,7 +186,7 @@ class DominoTilePainter extends CustomPainter {
 
       // Reflet sur le point pour effet brillant
       final highlightPaint = Paint()
-        ..color = Colors.white.withOpacity(0.4);
+        ..color = Colors.white.withValues(alpha: 0.4);
       canvas.drawCircle(
         Offset(pos.dx - dotRadius * 0.3, pos.dy - dotRadius * 0.3),
         dotRadius * 0.35,

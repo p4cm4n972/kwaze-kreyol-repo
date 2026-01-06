@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -456,10 +455,10 @@ class _MotsMawonScreenState extends State<MotsMawonScreen> {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              const Color(0xFFE74C3C).withOpacity(0.3), // Rouge madras
-              const Color(0xFFF39C12).withOpacity(0.3), // Jaune
-              const Color(0xFF27AE60).withOpacity(0.3), // Vert
-              const Color(0xFF3498DB).withOpacity(0.3), // Bleu
+              const Color(0xFFE74C3C).withValues(alpha: 0.3), // Rouge madras
+              const Color(0xFFF39C12).withValues(alpha: 0.3), // Jaune
+              const Color(0xFF27AE60).withValues(alpha: 0.3), // Vert
+              const Color(0xFF3498DB).withValues(alpha: 0.3), // Bleu
             ],
           ),
         ),
@@ -695,12 +694,12 @@ class _MotsMawonScreenState extends State<MotsMawonScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.9),
+        color: Colors.white.withValues(alpha: 0.9),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white.withOpacity(0.3), width: 1),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.3), width: 1),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -763,11 +762,9 @@ class _MotsMawonScreenState extends State<MotsMawonScreen> {
     } else if (isSelected) {
       cellColor = const Color(
         0xFFE74C3C,
-      ).withOpacity(0.7); // Rouge madras pour sélection
+      ).withValues(alpha: 0.7); // Rouge madras pour sélection
     } else {
-      cellColor = Colors.white.withOpacity(
-        0.3,
-      ); // Transparence pour glassmorphisme
+      cellColor = Colors.white.withValues(alpha: 0.3); // Transparence pour glassmorphisme
     }
 
     return GestureDetector(
@@ -779,12 +776,12 @@ class _MotsMawonScreenState extends State<MotsMawonScreen> {
           borderRadius: BorderRadius.circular(8),
           border: isSelected
               ? Border.all(color: const Color(0xFFE74C3C), width: 2)
-              : Border.all(color: Colors.white.withOpacity(0.2), width: 1),
+              : Border.all(color: Colors.white.withValues(alpha: 0.2), width: 1),
           // Ombre pour effet de profondeur
           boxShadow: isInFoundWord || isSelected
               ? [
                   BoxShadow(
-                    color: cellColor.withOpacity(0.3),
+                    color: cellColor.withValues(alpha: 0.3),
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                   ),
@@ -801,8 +798,8 @@ class _MotsMawonScreenState extends State<MotsMawonScreen> {
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    Colors.white.withOpacity(0.2),
-                    Colors.white.withOpacity(0.1),
+                    Colors.white.withValues(alpha: 0.2),
+                    Colors.white.withValues(alpha: 0.1),
                   ],
                 ),
               ),
@@ -838,11 +835,11 @@ class _MotsMawonScreenState extends State<MotsMawonScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.9),
+        color: Colors.white.withValues(alpha: 0.9),
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -916,9 +913,9 @@ class _MotsMawonScreenState extends State<MotsMawonScreen> {
                         ),
                         decoration: BoxDecoration(
                           color: isSelected
-                              ? wordColor.withOpacity(0.2)
+                              ? wordColor.withValues(alpha: 0.2)
                               : (isFound
-                                    ? wordColor.withOpacity(0.1)
+                                    ? wordColor.withValues(alpha: 0.1)
                                     : Colors.grey[50]),
                           borderRadius: BorderRadius.circular(8),
                           border: Border.all(

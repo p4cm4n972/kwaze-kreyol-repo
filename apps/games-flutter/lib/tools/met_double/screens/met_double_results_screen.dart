@@ -132,7 +132,7 @@ class _MetDoubleResultsScreenState extends State<MetDoubleResultsScreen> {
                           borderRadius: BorderRadius.circular(16),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.amber.withOpacity(0.3),
+                              color: Colors.amber.withValues(alpha: 0.3),
                               blurRadius: 10,
                               offset: const Offset(0, 4),
                             ),
@@ -215,7 +215,7 @@ class _MetDoubleResultsScreenState extends State<MetDoubleResultsScreen> {
                           borderRadius: BorderRadius.circular(16),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.green.withOpacity(0.3),
+                              color: Colors.green.withValues(alpha: 0.3),
                               blurRadius: 10,
                               offset: const Offset(0, 4),
                             ),
@@ -294,7 +294,7 @@ class _MetDoubleResultsScreenState extends State<MetDoubleResultsScreen> {
                           borderRadius: BorderRadius.circular(16),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.pink.withOpacity(0.3),
+                              color: Colors.pink.withValues(alpha: 0.3),
                               blurRadius: 10,
                               offset: const Offset(0, 4),
                             ),
@@ -538,7 +538,7 @@ class _MetDoubleResultsScreenState extends State<MetDoubleResultsScreen> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
-                color: _getVictoryColor(manchesGagnees).withOpacity(0.2),
+                color: _getVictoryColor(manchesGagnees).withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Row(

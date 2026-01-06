@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../services/auth_service.dart';
-import '../../../services/supabase_service.dart';
 import '../../../widgets/game_header.dart';
 import '../services/met_double_service.dart';
 import '../models/met_double_game.dart';
@@ -303,7 +302,7 @@ class _MetDoubleHomeScreenState extends State<MetDoubleHomeScreen> {
   Widget _buildUserMenu() {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.2),
+        color: Colors.white.withValues(alpha: 0.2),
         borderRadius: BorderRadius.circular(20),
       ),
       child: PopupMenuButton<String>(
@@ -370,9 +369,9 @@ class _MetDoubleHomeScreenState extends State<MetDoubleHomeScreen> {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              const Color(0xFF9B59B6).withOpacity(0.3), // Violet
-              const Color(0xFF8E44AD).withOpacity(0.3), // Violet foncé
-              const Color(0xFF3498DB).withOpacity(0.3), // Bleu
+              const Color(0xFF9B59B6).withValues(alpha: 0.3), // Violet
+              const Color(0xFF8E44AD).withValues(alpha: 0.3), // Violet foncé
+              const Color(0xFF3498DB).withValues(alpha: 0.3), // Bleu
             ],
           ),
         ),
@@ -607,7 +606,7 @@ class _MetDoubleHomeScreenState extends State<MetDoubleHomeScreen> {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 12, vertical: 6),
                         decoration: BoxDecoration(
-                          color: statusColor.withOpacity(0.2),
+                          color: statusColor.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(

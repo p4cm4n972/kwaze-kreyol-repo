@@ -321,7 +321,7 @@ class _MetDoubleLobbyScreenState extends State<MetDoubleLobbyScreen> {
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(24),
-              color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
               child: Column(
                 children: [
                   const Text(
@@ -443,7 +443,7 @@ class _MetDoubleLobbyScreenState extends State<MetDoubleLobbyScreen> {
                       width: double.infinity,
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: Colors.orange.withOpacity(0.2),
+                        color: Colors.orange.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: const Column(
@@ -499,7 +499,7 @@ class _MetDoubleLobbyScreenState extends State<MetDoubleLobbyScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(

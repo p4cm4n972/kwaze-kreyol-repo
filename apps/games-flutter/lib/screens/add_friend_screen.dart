@@ -210,7 +210,7 @@ class _AddFriendScreenState extends State<AddFriendScreen>
           // My friend code
           if (_myFriendCode != null) ...[
             Card(
-              color: const Color(0xFFFFD700).withOpacity(0.1),
+              color: const Color(0xFFFFD700).withValues(alpha: 0.1),
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(

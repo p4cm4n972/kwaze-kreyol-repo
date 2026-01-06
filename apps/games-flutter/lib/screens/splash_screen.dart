@@ -106,7 +106,7 @@ class _SplashScreenState extends State<SplashScreen>
                           shape: BoxShape.circle,
                           boxShadow: [
                             BoxShadow(
-                              color: const Color(0xFFFFD700).withOpacity(0.5),
+                              color: const Color(0xFFFFD700).withValues(alpha: 0.5),
                               blurRadius: 30,
                               spreadRadius: 10,
                             ),
@@ -168,7 +168,7 @@ class _SplashScreenState extends State<SplashScreen>
                         'Jeux 100% Créole',
                         style: TextStyle(
                           fontSize: 18,
-                          color: Colors.white.withOpacity(0.8),
+                          color: Colors.white.withValues(alpha: 0.8),
                           letterSpacing: 1,
                         ),
                       ),
@@ -181,7 +181,7 @@ class _SplashScreenState extends State<SplashScreen>
                         height: 40,
                         child: CircularProgressIndicator(
                           valueColor: AlwaysStoppedAnimation<Color>(
-                            const Color(0xFFFFD700).withOpacity(0.7),
+                            const Color(0xFFFFD700).withValues(alpha: 0.7),
                           ),
                           strokeWidth: 3,
                         ),

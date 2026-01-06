@@ -136,7 +136,7 @@ class _DominoBoardWidgetState extends State<DominoBoardWidget> {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.3),
+            color: Colors.black.withValues(alpha: 0.3),
             blurRadius: 10,
             offset: const Offset(0, 5),
           ),
@@ -230,13 +230,13 @@ class _DominoBoardWidgetState extends State<DominoBoardWidget> {
               padding: const EdgeInsets.all(32),
               decoration: BoxDecoration(
                 color: isHovering
-                    ? Colors.green.shade600.withOpacity(0.5)
+                    ? Colors.green.shade600.withValues(alpha: 0.5)
                     : Colors.transparent,
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
                   color: isHovering
                       ? Colors.white
-                      : Colors.white.withOpacity(0.3),
+                      : Colors.white.withValues(alpha: 0.3),
                   width: 2,
                   strokeAlign: BorderSide.strokeAlignOutside,
                 ),
@@ -590,17 +590,17 @@ class _DominoBoardWidgetState extends State<DominoBoardWidget> {
             height: dropH,
             decoration: BoxDecoration(
               color: isHovering
-                  ? Colors.lightGreenAccent.withOpacity(0.4)
+                  ? Colors.lightGreenAccent.withValues(alpha: 0.4)
                   : isRejected
-                      ? Colors.red.withOpacity(0.3)
-                      : Colors.white.withOpacity(0.08),
+                      ? Colors.red.withValues(alpha: 0.3)
+                      : Colors.white.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(8),
               border: Border.all(
                 color: isHovering
                     ? Colors.lightGreenAccent
                     : isRejected
                         ? Colors.red
-                        : Colors.white.withOpacity(0.2),
+                        : Colors.white.withValues(alpha: 0.2),
                 width: isHovering ? 2 : 1,
               ),
             ),
@@ -610,7 +610,7 @@ class _DominoBoardWidgetState extends State<DominoBoardWidget> {
                 style: TextStyle(
                   color: isHovering
                       ? Colors.lightGreenAccent
-                      : Colors.white.withOpacity(0.5),
+                      : Colors.white.withValues(alpha: 0.5),
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                 ),
@@ -630,7 +630,7 @@ class _TableTexturePainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     // Dessiner des lignes subtiles pour simuler le bois/feutre
     final paint = Paint()
-      ..color = Colors.green.shade700.withOpacity(0.1)
+      ..color = Colors.green.shade700.withValues(alpha: 0.1)
       ..strokeWidth = 1;
 
     const spacing = 20.0;

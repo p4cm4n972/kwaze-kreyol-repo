@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'supabase_service.dart';
 
@@ -45,7 +46,7 @@ class StorageService {
       await _supabase.storage.from(avatarsBucket).remove([path]);
     } catch (e) {
       // Silently fail - l'ancienne image peut ne pas exister
-      print('Erreur lors de la suppression de l\'avatar: $e');
+      debugPrint('Erreur lors de la suppression de l\'avatar: $e');
     }
   }
 

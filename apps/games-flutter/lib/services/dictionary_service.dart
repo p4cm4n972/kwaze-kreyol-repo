@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import '../models/dictionary_entry.dart';
@@ -18,10 +19,10 @@ class DictionaryService {
           .where((entry) => entry.mot.isNotEmpty) // Filtrer les entrées vides
           .toList();
 
-      print('Loaded ${entries.length} dictionary entries for letter $letter');
+      debugPrint('Loaded ${entries.length} dictionary entries for letter $letter');
       return entries;
     } catch (e) {
-      print('Error loading dictionary: $e');
+      debugPrint('Error loading dictionary: $e');
       return [];
     }
   }
@@ -41,7 +42,7 @@ class DictionaryService {
 
       return [];
     } catch (e) {
-      print('Error loading dictionary from URL: $e');
+      debugPrint('Error loading dictionary from URL: $e');
       return [];
     }
   }

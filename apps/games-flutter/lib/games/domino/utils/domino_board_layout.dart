@@ -1,5 +1,4 @@
 import 'dart:ui';
-import '../models/domino_tile.dart';
 
 /// Direction du placement d'un domino
 enum PlacementDirection {

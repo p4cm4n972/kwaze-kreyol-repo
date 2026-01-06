@@ -449,7 +449,7 @@ class _MetDoubleGeneralStatsScreenState extends State<MetDoubleGeneralStatsScree
         trailing: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           decoration: BoxDecoration(
-            color: Colors.green.withOpacity(0.2),
+            color: Colors.green.withValues(alpha: 0.2),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Row(
@@ -484,13 +484,13 @@ class _MetDoubleGeneralStatsScreenState extends State<MetDoubleGeneralStatsScree
     if (isTop) {
       switch (rank) {
         case 1:
-          cardColor = color.withOpacity(0.3);
+          cardColor = color.withValues(alpha: 0.3);
           break;
         case 2:
-          cardColor = color.withOpacity(0.15);
+          cardColor = color.withValues(alpha: 0.15);
           break;
         case 3:
-          cardColor = color.withOpacity(0.15);
+          cardColor = color.withValues(alpha: 0.15);
           break;
       }
     }
@@ -513,7 +513,7 @@ class _MetDoubleGeneralStatsScreenState extends State<MetDoubleGeneralStatsScree
         trailing: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           decoration: BoxDecoration(
-            color: color.withOpacity(0.2),
+            color: color.withValues(alpha: 0.2),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Row(

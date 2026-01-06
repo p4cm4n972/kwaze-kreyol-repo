@@ -680,7 +680,7 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
                     border: Border.all(color: Colors.black26),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
+                        color: Colors.black.withValues(alpha: 0.1),
                         blurRadius: 2,
                         offset: const Offset(0, 1),
                       ),
@@ -828,18 +828,18 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                Colors.black.withOpacity(0.4),
-                Colors.black.withOpacity(0.2),
+                Colors.black.withValues(alpha: 0.4),
+                Colors.black.withValues(alpha: 0.2),
               ],
             ),
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: Colors.white.withOpacity(0.3),
+              color: Colors.white.withValues(alpha: 0.3),
               width: 2,
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.3),
+                color: Colors.black.withValues(alpha: 0.3),
                 blurRadius: 15,
                 offset: const Offset(0, 5),
               ),
@@ -850,7 +850,7 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
               // Bouton retour dans un cercle
               Container(
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.white.withValues(alpha: 0.2),
                   shape: BoxShape.circle,
                 ),
                 child: IconButton(
@@ -876,7 +876,7 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
                     borderRadius: BorderRadius.circular(15),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFFFF8C00).withOpacity(0.5),
+                        color: const Color(0xFFFF8C00).withValues(alpha: 0.5),
                         blurRadius: 10,
                         offset: const Offset(0, 4),
                       ),
@@ -900,10 +900,10 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
                   vertical: isMobile ? 4 : 6,
                 ),
                 decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.3),
+                  color: Colors.black.withValues(alpha: 0.3),
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
-                    color: Colors.amber.withOpacity(0.3),
+                    color: Colors.amber.withValues(alpha: 0.3),
                     width: 1,
                   ),
                 ),
@@ -930,10 +930,10 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
                   vertical: isMobile ? 4 : 6,
                 ),
                 decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.3),
+                  color: Colors.black.withValues(alpha: 0.3),
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
-                    color: Colors.blue.withOpacity(0.3),
+                    color: Colors.blue.withValues(alpha: 0.3),
                     width: 1,
                   ),
                 ),
@@ -1032,26 +1032,26 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: const Color(0xFFFFD700).withOpacity(0.3),
+            color: const Color(0xFFFFD700).withValues(alpha: 0.3),
             width: 3,
           ),
           boxShadow: [
             // Ombre principale
             BoxShadow(
-              color: Colors.black.withOpacity(0.5),
+              color: Colors.black.withValues(alpha: 0.5),
               blurRadius: 20,
               offset: const Offset(0, 8),
               spreadRadius: 2,
             ),
             // Ombre intérieure (effet 3D)
             BoxShadow(
-              color: Colors.black.withOpacity(0.3),
+              color: Colors.black.withValues(alpha: 0.3),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
             // Lueur dorée subtile
             BoxShadow(
-              color: const Color(0xFFFFD700).withOpacity(0.1),
+              color: const Color(0xFFFFD700).withValues(alpha: 0.1),
               blurRadius: 15,
               spreadRadius: -5,
             ),
@@ -1152,28 +1152,28 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
                       end: Alignment.bottomRight,
                       colors: [
                         _getSquareColor(square),
-                        _getSquareColor(square).withOpacity(0.7),
+                        _getSquareColor(square).withValues(alpha: 0.7),
                       ],
                     )
                   : null,
               color: isHovering ? null : _getSquareColor(square),
               border: Border.all(
                 color: isHovering
-                    ? const Color(0xFFFFD700).withOpacity(0.8)
-                    : Colors.black.withOpacity(0.15),
+                    ? const Color(0xFFFFD700).withValues(alpha: 0.8)
+                    : Colors.black.withValues(alpha: 0.15),
                 width: isHovering ? 2 : 0.5,
               ),
               boxShadow: isHovering
                   ? [
                       BoxShadow(
-                        color: const Color(0xFFFFD700).withOpacity(0.3),
+                        color: const Color(0xFFFFD700).withValues(alpha: 0.3),
                         blurRadius: 4,
                         spreadRadius: 1,
                       ),
                     ]
                   : [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
+                        color: Colors.black.withValues(alpha: 0.1),
                         blurRadius: 1,
                         offset: const Offset(0, 1),
                       ),
@@ -1192,7 +1192,7 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
                                 center: Alignment.center,
                                 radius: 0.8,
                                 colors: [
-                                  Colors.white.withOpacity(0.1),
+                                  Colors.white.withValues(alpha: 0.1),
                                   Colors.transparent,
                                 ],
                               ),
@@ -1206,10 +1206,10 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
                           style: TextStyle(
                             fontSize: 8,
                             fontWeight: FontWeight.bold,
-                            color: Colors.white.withOpacity(0.8),
+                            color: Colors.white.withValues(alpha: 0.8),
                             shadows: [
                               Shadow(
-                                color: Colors.black.withOpacity(0.5),
+                                color: Colors.black.withValues(alpha: 0.5),
                                 blurRadius: 2,
                               ),
                             ],
@@ -1256,7 +1256,7 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
         margin: const EdgeInsets.all(2),
         decoration: BoxDecoration(
           color: isValidated
-              ? const Color(0xFFFFD700).withOpacity(0.3)
+              ? const Color(0xFFFFD700).withValues(alpha: 0.3)
               : const Color(0xFFF5E6D3),
           borderRadius: BorderRadius.circular(4),
           border: isValidated
@@ -1266,7 +1266,7 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
                   : null,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.2),
+              color: Colors.black.withValues(alpha: 0.2),
               blurRadius: isAnimating ? 6 : 2,
               offset: Offset(0, isAnimating ? 3 : 1),
             ),
@@ -1344,7 +1344,7 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
             : null,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.2),
+            color: Colors.black.withValues(alpha: 0.2),
             blurRadius: 2,
             offset: const Offset(0, 1),
           ),
@@ -1410,7 +1410,7 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.9),
+        color: Colors.white.withValues(alpha: 0.9),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -1522,7 +1522,7 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.2),
+            color: Colors.black.withValues(alpha: 0.2),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),
@@ -1599,7 +1599,7 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
                   : null,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.3),
+                  color: Colors.black.withValues(alpha: 0.3),
                   blurRadius: 8,
                   offset: const Offset(0, 4),
                 ),
@@ -1694,13 +1694,13 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            Colors.black.withOpacity(0.3),
-            Colors.black.withOpacity(0.1),
+            Colors.black.withValues(alpha: 0.3),
+            Colors.black.withValues(alpha: 0.1),
           ],
         ),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: Colors.white.withOpacity(0.1),
+          color: Colors.white.withValues(alpha: 0.1),
           width: 1,
         ),
       ),
@@ -1729,7 +1729,7 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
                     vertical: 14,
                   ),
                   elevation: 4,
-                  shadowColor: Colors.black.withOpacity(0.4),
+                  shadowColor: Colors.black.withValues(alpha: 0.4),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),
@@ -1761,7 +1761,7 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
                     vertical: 14,
                   ),
                   elevation: 4,
-                  shadowColor: Colors.black.withOpacity(0.4),
+                  shadowColor: Colors.black.withValues(alpha: 0.4),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),
@@ -1805,7 +1805,7 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
                     vertical: 14,
                   ),
                   elevation: 4,
-                  shadowColor: Colors.black.withOpacity(0.4),
+                  shadowColor: Colors.black.withValues(alpha: 0.4),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),
@@ -1839,7 +1839,7 @@ class MadrasPatternPainter extends CustomPainter {
     final stripWidth = size.width / 20;
 
     for (int i = 0; i < 40; i++) {
-      paint.color = colors[i % colors.length].withOpacity(opacity);
+      paint.color = colors[i % colors.length].withValues(alpha: opacity);
 
       final path = Path();
       final startX = i * stripWidth - size.height;
@@ -1855,7 +1855,7 @@ class MadrasPatternPainter extends CustomPainter {
 
     // Ajouter des rayures horizontales subtiles
     for (int i = 0; i < 15; i++) {
-      paint.color = colors[i % colors.length].withOpacity(opacity * 0.5);
+      paint.color = colors[i % colors.length].withValues(alpha: opacity * 0.5);
 
       final y = i * (size.height / 15);
       canvas.drawRect(

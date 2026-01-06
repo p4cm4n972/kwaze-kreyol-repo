@@ -64,11 +64,11 @@ class _MetDoubleGameScreenState extends State<MetDoubleGameScreen> {
       final allHaveAtLeastOne = _currentSession.participants.every((p) => p.victories >= 1);
 
       // Debug logs
-      print('🔍 Vérification chirée:');
-      print('   Tous >= 1 ? $allHaveAtLeastOne');
-      print('   Dialog déjà affiché ? $_chireeDialogShown');
+      debugPrint('🔍 Vérification chirée:');
+      debugPrint('   Tous >= 1 ? $allHaveAtLeastOne');
+      debugPrint('   Dialog déjà affiché ? $_chireeDialogShown');
       _currentSession.participants.forEach((p) {
-        print('   ${p.displayName}: ${p.victories} victoires');
+        debugPrint('   ${p.displayName}: ${p.victories} victoires');
       });
 
       // Réinitialiser le flag si quelqu'un est descendu en dessous de 1
@@ -78,7 +78,7 @@ class _MetDoubleGameScreenState extends State<MetDoubleGameScreen> {
 
       // Afficher le dialog si c'est une nouvelle situation de chirée (seulement pour l'hôte)
       if (allHaveAtLeastOne && !_chireeDialogShown && mounted && _isCurrentUserHost) {
-        print('✅ Affichage du dialog de chirée');
+        debugPrint('✅ Affichage du dialog de chirée');
         _chireeDialogShown = true;
         Future.delayed(const Duration(milliseconds: 500), () {
           if (mounted) {
@@ -97,7 +97,7 @@ class _MetDoubleGameScreenState extends State<MetDoubleGameScreen> {
 
       // Afficher le dialog de victoire si quelqu'un a gagné (seulement pour l'hôte)
       if (winner != null && !_victoryDialogShown && mounted && _isCurrentUserHost) {
-        print('🏆 Victoire détectée: ${winner.displayName} avec ${winner.victories} victoires');
+        debugPrint('🏆 Victoire détectée: ${winner.displayName} avec ${winner.victories} victoires');
         _victoryDialogShown = true;
         Future.delayed(const Duration(milliseconds: 500), () {
           if (mounted) {
@@ -147,9 +147,9 @@ class _MetDoubleGameScreenState extends State<MetDoubleGameScreen> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.orange.withOpacity(0.1),
+                color: Colors.orange.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.orange.withOpacity(0.3)),
+                border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
               ),
               child: const Text(
                 'Dans une chirée, aucun joueur ne marque de point pour cette manche.',
@@ -214,9 +214,9 @@ class _MetDoubleGameScreenState extends State<MetDoubleGameScreen> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.amber.withOpacity(0.1),
+                color: Colors.amber.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.amber.withOpacity(0.3)),
+                border: Border.all(color: Colors.amber.withValues(alpha: 0.3)),
               ),
               child: const Text(
                 'Valider enregistrera cette manche dans l\'historique.',
@@ -267,7 +267,7 @@ class _MetDoubleGameScreenState extends State<MetDoubleGameScreen> {
   Future<void> _recordVictoryRound(MetDoubleParticipant winner) async {
     // Protection contre les enregistrements multiples
     if (_isRecordingVictory) {
-      print('⚠️ Enregistrement déjà en cours, annulation...');
+      debugPrint('⚠️ Enregistrement déjà en cours, annulation...');
       return;
     }
 
@@ -281,7 +281,7 @@ class _MetDoubleGameScreenState extends State<MetDoubleGameScreen> {
       final cochonIds = cochonParticipants.map((p) => p.id).toList();
 
       final nextRoundNumber = _currentSession.rounds.length + 1;
-      print('📝 Enregistrement manche $nextRoundNumber - Gagnant: ${winner.displayName}');
+      debugPrint('📝 Enregistrement manche $nextRoundNumber - Gagnant: ${winner.displayName}');
 
       await _metDoubleService.recordRound(
         sessionId: _currentSession.id,
@@ -332,7 +332,7 @@ class _MetDoubleGameScreenState extends State<MetDoubleGameScreen> {
 
       return cochons;
     } catch (e) {
-      print('Erreur lors du marquage des cochons: $e');
+      debugPrint('Erreur lors du marquage des cochons: $e');
       return [];
     }
   }
@@ -379,9 +379,9 @@ class _MetDoubleGameScreenState extends State<MetDoubleGameScreen> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.orange.withOpacity(0.1),
+                color: Colors.orange.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.orange.withOpacity(0.3)),
+                border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
               ),
               child: Text(
                 cochons.length > 1
@@ -516,7 +516,7 @@ class _MetDoubleGameScreenState extends State<MetDoubleGameScreen> {
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(16),
-              color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
               child: Column(
                 children: [
                   const Text(
@@ -624,9 +624,9 @@ class _MetDoubleGameScreenState extends State<MetDoubleGameScreen> {
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: Colors.blue.withOpacity(0.1),
+                        color: Colors.blue.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.blue.withOpacity(0.3)),
+                        border: Border.all(color: Colors.blue.withValues(alpha: 0.3)),
                       ),
                       child: Row(
                         children: [
@@ -924,7 +924,7 @@ class _MetDoubleGameScreenState extends State<MetDoubleGameScreen> {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       color: isLeading && participant.victories > 0
-          ? Colors.amber.withOpacity(0.1)
+          ? Colors.amber.withValues(alpha: 0.1)
           : null,
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -1005,7 +1005,7 @@ class _MetDoubleGameScreenState extends State<MetDoubleGameScreen> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     decoration: BoxDecoration(
-                      color: _getVictoryColor(participant.victories).withOpacity(0.2),
+                      color: _getVictoryColor(participant.victories).withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
@@ -1034,7 +1034,7 @@ class _MetDoubleGameScreenState extends State<MetDoubleGameScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 decoration: BoxDecoration(
-                  color: _getVictoryColor(participant.victories).withOpacity(0.2),
+                  color: _getVictoryColor(participant.victories).withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
@@ -1150,7 +1150,7 @@ class _RecordRoundDialogState extends State<_RecordRoundDialog> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.orange.withOpacity(0.1),
+                color: Colors.orange.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(color: Colors.orange),
               ),

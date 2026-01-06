@@ -486,18 +486,18 @@ class _DominoGameScreenState extends State<DominoGameScreen>
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            Colors.black.withOpacity(0.4),
-            Colors.black.withOpacity(0.2),
+            Colors.black.withValues(alpha: 0.4),
+            Colors.black.withValues(alpha: 0.2),
           ],
         ),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: Colors.white.withOpacity(0.3),
+          color: Colors.white.withValues(alpha: 0.3),
           width: 2,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.3),
+            color: Colors.black.withValues(alpha: 0.3),
             blurRadius: 15,
             offset: const Offset(0, 5),
           ),
@@ -507,7 +507,7 @@ class _DominoGameScreenState extends State<DominoGameScreen>
         children: [
           Container(
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
+              color: Colors.white.withValues(alpha: 0.2),
               shape: BoxShape.circle,
             ),
             child: IconButton(
@@ -538,7 +538,7 @@ class _DominoGameScreenState extends State<DominoGameScreen>
                     borderRadius: BorderRadius.circular(12),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFFFF8C00).withOpacity(0.5),
+                        color: const Color(0xFFFF8C00).withValues(alpha: 0.5),
                         blurRadius: 8,
                         offset: const Offset(0, 3),
                       ),
@@ -571,13 +571,13 @@ class _DominoGameScreenState extends State<DominoGameScreen>
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                       decoration: BoxDecoration(
                         color: isCurrentPlayer
-                            ? Colors.amber.withOpacity(0.3)
-                            : Colors.white.withOpacity(0.1),
+                            ? Colors.amber.withValues(alpha: 0.3)
+                            : Colors.white.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
                           color: isCurrentPlayer
                               ? Colors.amber
-                              : Colors.white.withOpacity(0.2),
+                              : Colors.white.withValues(alpha: 0.2),
                           width: isCurrentPlayer ? 2 : 1,
                         ),
                       ),
@@ -639,7 +639,7 @@ class _DominoGameScreenState extends State<DominoGameScreen>
         border: Border.all(color: Colors.white, width: 2),
         boxShadow: [
           BoxShadow(
-            color: Colors.red.shade900.withOpacity(0.4),
+            color: Colors.red.shade900.withValues(alpha: 0.4),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -710,7 +710,7 @@ class _DominoGameScreenState extends State<DominoGameScreen>
           gradient: LinearGradient(
             colors: isTheirTurn
                 ? [const Color(0xFFFFD700), const Color(0xFFFF8C00)]
-                : [Colors.black.withOpacity(0.6), Colors.black.withOpacity(0.4)],
+                : [Colors.black.withValues(alpha: 0.6), Colors.black.withValues(alpha: 0.4)],
           ),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
@@ -719,7 +719,7 @@ class _DominoGameScreenState extends State<DominoGameScreen>
           ),
           boxShadow: [
             BoxShadow(
-              color: isTheirTurn ? Colors.amber.withOpacity(0.4) : Colors.black26,
+              color: isTheirTurn ? Colors.amber.withValues(alpha: 0.4) : Colors.black26,
               blurRadius: 8,
               offset: const Offset(0, 3),
             ),
@@ -811,8 +811,8 @@ class _DominoGameScreenState extends State<DominoGameScreen>
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              Colors.black.withOpacity(0.3),
-              Colors.black.withOpacity(0.1),
+              Colors.black.withValues(alpha: 0.3),
+              Colors.black.withValues(alpha: 0.1),
             ],
           ),
           borderRadius: BorderRadius.circular(20),
@@ -842,19 +842,19 @@ class _DominoGameScreenState extends State<DominoGameScreen>
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            Colors.black.withOpacity(0.4),
-            Colors.black.withOpacity(0.6),
+            Colors.black.withValues(alpha: 0.4),
+            Colors.black.withValues(alpha: 0.6),
           ],
         ),
         border: Border(
           top: BorderSide(
-            color: _isMyTurn ? const Color(0xFFFFD700) : Colors.white.withOpacity(0.3),
+            color: _isMyTurn ? const Color(0xFFFFD700) : Colors.white.withValues(alpha: 0.3),
             width: _isMyTurn ? 4 : 2,
           ),
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.3),
+            color: Colors.black.withValues(alpha: 0.3),
             blurRadius: 10,
             offset: const Offset(0, -5),
           ),
@@ -879,7 +879,7 @@ class _DominoGameScreenState extends State<DominoGameScreen>
                   borderRadius: BorderRadius.circular(25),
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFFFF8C00).withOpacity(0.5),
+                      color: const Color(0xFFFF8C00).withValues(alpha: 0.5),
                       blurRadius: 15,
                       offset: const Offset(0, 4),
                     ),
@@ -911,10 +911,10 @@ class _DominoGameScreenState extends State<DominoGameScreen>
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.1),
+                color: Colors.white.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
-                  color: Colors.white.withOpacity(0.3),
+                  color: Colors.white.withValues(alpha: 0.3),
                   width: 2,
                 ),
               ),
@@ -923,14 +923,14 @@ class _DominoGameScreenState extends State<DominoGameScreen>
                 children: [
                   Icon(
                     Icons.hourglass_empty,
-                    color: Colors.white.withOpacity(0.7),
+                    color: Colors.white.withValues(alpha: 0.7),
                     size: 20,
                   ),
                   const SizedBox(width: 8),
                   Text(
                     'En attente...',
                     style: TextStyle(
-                      color: Colors.white.withOpacity(0.7),
+                      color: Colors.white.withValues(alpha: 0.7),
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
                     ),
@@ -1014,7 +1014,7 @@ class _DominoGameScreenState extends State<DominoGameScreen>
                   borderRadius: BorderRadius.circular(20),
                 ),
                 elevation: 8,
-                shadowColor: const Color(0xFFFF6B6B).withOpacity(0.5),
+                shadowColor: const Color(0xFFFF6B6B).withValues(alpha: 0.5),
               ),
             ),
         ],
@@ -1170,7 +1170,7 @@ class _DominoGameScreenState extends State<DominoGameScreen>
         boxShadow: isSelected
             ? [
                 BoxShadow(
-                  color: const Color(0xFFFFD700).withOpacity(0.6),
+                  color: const Color(0xFFFFD700).withValues(alpha: 0.6),
                   blurRadius: 20,
                   spreadRadius: 3,
                 ),

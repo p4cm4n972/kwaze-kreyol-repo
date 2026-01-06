@@ -147,18 +147,18 @@ class _DominoResultsScreenState extends State<DominoResultsScreen>
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            Colors.black.withOpacity(0.4),
-            Colors.black.withOpacity(0.2),
+            Colors.black.withValues(alpha: 0.4),
+            Colors.black.withValues(alpha: 0.2),
           ],
         ),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: Colors.white.withOpacity(0.3),
+          color: Colors.white.withValues(alpha: 0.3),
           width: 2,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.3),
+            color: Colors.black.withValues(alpha: 0.3),
             blurRadius: 15,
             offset: const Offset(0, 5),
           ),
@@ -168,7 +168,7 @@ class _DominoResultsScreenState extends State<DominoResultsScreen>
         children: [
           Container(
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
+              color: Colors.white.withValues(alpha: 0.2),
               shape: BoxShape.circle,
             ),
             child: IconButton(
@@ -190,7 +190,7 @@ class _DominoResultsScreenState extends State<DominoResultsScreen>
                 borderRadius: BorderRadius.circular(15),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFFFF8C00).withOpacity(0.5),
+                    color: const Color(0xFFFF8C00).withValues(alpha: 0.5),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
@@ -224,7 +224,7 @@ class _DominoResultsScreenState extends State<DominoResultsScreen>
           border: Border.all(color: Colors.white, width: 2),
           boxShadow: [
             BoxShadow(
-              color: Colors.red.shade900.withOpacity(0.4),
+              color: Colors.red.shade900.withValues(alpha: 0.4),
               blurRadius: 15,
               offset: const Offset(0, 5),
             ),
@@ -333,7 +333,7 @@ class _DominoResultsScreenState extends State<DominoResultsScreen>
         ),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFFFF8C00).withOpacity(0.6),
+            color: const Color(0xFFFF8C00).withValues(alpha: 0.6),
             blurRadius: 25,
             spreadRadius: 5,
             offset: const Offset(0, 8),
@@ -345,7 +345,7 @@ class _DominoResultsScreenState extends State<DominoResultsScreen>
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.3),
+              color: Colors.white.withValues(alpha: 0.3),
               shape: BoxShape.circle,
             ),
             child: const Icon(
@@ -389,7 +389,7 @@ class _DominoResultsScreenState extends State<DominoResultsScreen>
                     vertical: 8,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.2),
+                    color: Colors.black.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(15),
                   ),
                   child: const Text(
@@ -420,7 +420,7 @@ class _DominoResultsScreenState extends State<DominoResultsScreen>
                     vertical: 10,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.3),
+                    color: Colors.white.withValues(alpha: 0.3),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
@@ -448,18 +448,18 @@ class _DominoResultsScreenState extends State<DominoResultsScreen>
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            Colors.black.withOpacity(0.4),
-            Colors.black.withOpacity(0.2),
+            Colors.black.withValues(alpha: 0.4),
+            Colors.black.withValues(alpha: 0.2),
           ],
         ),
         borderRadius: BorderRadius.circular(25),
         border: Border.all(
-          color: Colors.white.withOpacity(0.3),
+          color: Colors.white.withValues(alpha: 0.3),
           width: 2,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.3),
+            color: Colors.black.withValues(alpha: 0.3),
             blurRadius: 15,
             offset: const Offset(0, 5),
           ),
@@ -472,8 +472,8 @@ class _DominoResultsScreenState extends State<DominoResultsScreen>
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  Colors.white.withOpacity(0.3),
-                  Colors.white.withOpacity(0.1),
+                  Colors.white.withValues(alpha: 0.3),
+                  Colors.white.withValues(alpha: 0.1),
                 ],
               ),
               borderRadius: BorderRadius.circular(15),
@@ -513,25 +513,25 @@ class _DominoResultsScreenState extends State<DominoResultsScreen>
                 gradient: LinearGradient(
                   colors: index == 0
                       ? [
-                          const Color(0xFFFFD700).withOpacity(0.3),
-                          const Color(0xFFFF8C00).withOpacity(0.2),
+                          const Color(0xFFFFD700).withValues(alpha: 0.3),
+                          const Color(0xFFFF8C00).withValues(alpha: 0.2),
                         ]
                       : [
-                          Colors.white.withOpacity(0.1),
-                          Colors.white.withOpacity(0.05),
+                          Colors.white.withValues(alpha: 0.1),
+                          Colors.white.withValues(alpha: 0.05),
                         ],
                 ),
                 borderRadius: BorderRadius.circular(15),
                 border: Border.all(
                   color: index == 0
                       ? const Color(0xFFFFD700)
-                      : Colors.white.withOpacity(0.3),
+                      : Colors.white.withValues(alpha: 0.3),
                   width: index == 0 ? 3 : 2,
                 ),
                 boxShadow: index == 0
                     ? [
                         BoxShadow(
-                          color: const Color(0xFFFF8C00).withOpacity(0.3),
+                          color: const Color(0xFFFF8C00).withValues(alpha: 0.3),
                           blurRadius: 10,
                           offset: const Offset(0, 4),
                         ),
@@ -543,7 +543,7 @@ class _DominoResultsScreenState extends State<DominoResultsScreen>
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
+                      color: Colors.white.withValues(alpha: 0.2),
                       shape: BoxShape.circle,
                     ),
                     child: Text(
@@ -571,7 +571,7 @@ class _DominoResultsScreenState extends State<DominoResultsScreen>
                             vertical: 4,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
+                            color: Colors.white.withValues(alpha: 0.2),
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: Text(
@@ -603,7 +603,7 @@ class _DominoResultsScreenState extends State<DominoResultsScreen>
                         border: Border.all(color: Colors.white, width: 2),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFFFF6B6B).withOpacity(0.5),
+                            color: const Color(0xFFFF6B6B).withValues(alpha: 0.5),
                             blurRadius: 8,
                             offset: const Offset(0, 3),
                           ),
@@ -643,18 +643,18 @@ class _DominoResultsScreenState extends State<DominoResultsScreen>
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            Colors.black.withOpacity(0.4),
-            Colors.black.withOpacity(0.2),
+            Colors.black.withValues(alpha: 0.4),
+            Colors.black.withValues(alpha: 0.2),
           ],
         ),
         borderRadius: BorderRadius.circular(25),
         border: Border.all(
-          color: Colors.white.withOpacity(0.3),
+          color: Colors.white.withValues(alpha: 0.3),
           width: 2,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.3),
+            color: Colors.black.withValues(alpha: 0.3),
             blurRadius: 15,
             offset: const Offset(0, 5),
           ),
@@ -667,8 +667,8 @@ class _DominoResultsScreenState extends State<DominoResultsScreen>
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  Colors.white.withOpacity(0.3),
-                  Colors.white.withOpacity(0.1),
+                  Colors.white.withValues(alpha: 0.3),
+                  Colors.white.withValues(alpha: 0.1),
                 ],
               ),
               borderRadius: BorderRadius.circular(15),
@@ -715,13 +715,13 @@ class _DominoResultsScreenState extends State<DominoResultsScreen>
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    Colors.white.withOpacity(0.15),
-                    Colors.white.withOpacity(0.05),
+                    Colors.white.withValues(alpha: 0.15),
+                    Colors.white.withValues(alpha: 0.05),
                   ],
                 ),
                 borderRadius: BorderRadius.circular(15),
                 border: Border.all(
-                  color: Colors.white.withOpacity(0.3),
+                  color: Colors.white.withValues(alpha: 0.3),
                   width: 2,
                 ),
               ),
@@ -739,7 +739,7 @@ class _DominoResultsScreenState extends State<DominoResultsScreen>
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFF4CAF50).withOpacity(0.3),
+                          color: const Color(0xFF4CAF50).withValues(alpha: 0.3),
                           blurRadius: 8,
                           offset: const Offset(0, 2),
                         ),
@@ -774,7 +774,7 @@ class _DominoResultsScreenState extends State<DominoResultsScreen>
                             vertical: 4,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
+                            color: Colors.white.withValues(alpha: 0.2),
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: Text(
@@ -820,7 +820,7 @@ class _DominoResultsScreenState extends State<DominoResultsScreen>
               borderRadius: BorderRadius.circular(20),
             ),
             elevation: 8,
-            shadowColor: const Color(0xFF4CAF50).withOpacity(0.5),
+            shadowColor: const Color(0xFF4CAF50).withValues(alpha: 0.5),
           ),
         ),
         const SizedBox(height: 16),
@@ -842,7 +842,7 @@ class _DominoResultsScreenState extends State<DominoResultsScreen>
               borderRadius: BorderRadius.circular(20),
             ),
             elevation: 8,
-            shadowColor: const Color(0xFF2196F3).withOpacity(0.5),
+            shadowColor: const Color(0xFF2196F3).withValues(alpha: 0.5),
           ),
         ),
       ],

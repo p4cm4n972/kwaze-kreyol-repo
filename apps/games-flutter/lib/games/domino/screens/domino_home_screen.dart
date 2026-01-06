@@ -214,18 +214,18 @@ class _DominoHomeScreenState extends State<DominoHomeScreen>
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            Colors.black.withOpacity(0.4),
-            Colors.black.withOpacity(0.2),
+            Colors.black.withValues(alpha: 0.4),
+            Colors.black.withValues(alpha: 0.2),
           ],
         ),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: Colors.white.withOpacity(0.3),
+          color: Colors.white.withValues(alpha: 0.3),
           width: 2,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.3),
+            color: Colors.black.withValues(alpha: 0.3),
             blurRadius: 15,
             offset: const Offset(0, 5),
           ),
@@ -235,7 +235,7 @@ class _DominoHomeScreenState extends State<DominoHomeScreen>
         children: [
           Container(
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
+              color: Colors.white.withValues(alpha: 0.2),
               shape: BoxShape.circle,
             ),
             child: IconButton(
@@ -257,7 +257,7 @@ class _DominoHomeScreenState extends State<DominoHomeScreen>
                 borderRadius: BorderRadius.circular(15),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFFFF8C00).withOpacity(0.5),
+                    color: const Color(0xFFFF8C00).withValues(alpha: 0.5),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
@@ -296,7 +296,7 @@ class _DominoHomeScreenState extends State<DominoHomeScreen>
                 border: Border.all(color: Colors.white, width: 2),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.red.shade900.withOpacity(0.4),
+                    color: Colors.red.shade900.withValues(alpha: 0.4),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
@@ -376,7 +376,7 @@ class _DominoHomeScreenState extends State<DominoHomeScreen>
                     borderRadius: BorderRadius.circular(15),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.2),
+                        color: Colors.black.withValues(alpha: 0.2),
                         blurRadius: 10,
                         offset: const Offset(0, 4),
                       ),
@@ -451,18 +451,18 @@ class _DominoHomeScreenState extends State<DominoHomeScreen>
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            Colors.black.withOpacity(0.4),
-            Colors.black.withOpacity(0.2),
+            Colors.black.withValues(alpha: 0.4),
+            Colors.black.withValues(alpha: 0.2),
           ],
         ),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: Colors.white.withOpacity(0.3),
+          color: Colors.white.withValues(alpha: 0.3),
           width: 2,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.3),
+            color: Colors.black.withValues(alpha: 0.3),
             blurRadius: 15,
             offset: const Offset(0, 5),
           ),
@@ -507,7 +507,7 @@ class _DominoHomeScreenState extends State<DominoHomeScreen>
                 boxShadow: [
                   BoxShadow(
                     color: (isWaiting ? const Color(0xFFFF8C00) : const Color(0xFF4CAF50))
-                        .withOpacity(0.4),
+                        .withValues(alpha: 0.4),
                     blurRadius: 8,
                     offset: const Offset(0, 3),
                   ),
@@ -547,7 +547,7 @@ class _DominoHomeScreenState extends State<DominoHomeScreen>
                                     Text(
                                       '$participantCount/3 joueurs',
                                       style: TextStyle(
-                                        color: Colors.white.withOpacity(0.9),
+                                        color: Colors.white.withValues(alpha: 0.9),
                                         fontSize: 14,
                                       ),
                                     ),
@@ -556,7 +556,7 @@ class _DominoHomeScreenState extends State<DominoHomeScreen>
                                       Text(
                                         'Code: ${session.joinCode}',
                                         style: TextStyle(
-                                          color: Colors.white.withOpacity(0.8),
+                                          color: Colors.white.withValues(alpha: 0.8),
                                           fontSize: 13,
                                           fontWeight: FontWeight.w600,
                                         ),
@@ -578,7 +578,7 @@ class _DominoHomeScreenState extends State<DominoHomeScreen>
                       if (isHost)
                         Container(
                           decoration: BoxDecoration(
-                            color: Colors.red.withOpacity(0.3),
+                            color: Colors.red.withValues(alpha: 0.3),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: IconButton(
@@ -642,7 +642,7 @@ class _DominoHomeScreenState extends State<DominoHomeScreen>
         borderRadius: BorderRadius.circular(25),
         boxShadow: [
           BoxShadow(
-            color: gradientColors[0].withOpacity(0.5),
+            color: gradientColors[0].withValues(alpha: 0.5),
             blurRadius: 20,
             offset: const Offset(0, 8),
           ),
@@ -667,7 +667,7 @@ class _DominoHomeScreenState extends State<DominoHomeScreen>
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.2),
+                            color: Colors.black.withValues(alpha: 0.2),
                             blurRadius: 10,
                             offset: const Offset(0, 4),
                           ),
@@ -713,18 +713,18 @@ class _DominoHomeScreenState extends State<DominoHomeScreen>
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Colors.black.withOpacity(0.4),
-            Colors.black.withOpacity(0.2),
+            Colors.black.withValues(alpha: 0.4),
+            Colors.black.withValues(alpha: 0.2),
           ],
         ),
         borderRadius: BorderRadius.circular(25),
         border: Border.all(
-          color: Colors.white.withOpacity(0.3),
+          color: Colors.white.withValues(alpha: 0.3),
           width: 2,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.3),
+            color: Colors.black.withValues(alpha: 0.3),
             blurRadius: 15,
             offset: const Offset(0, 5),
           ),

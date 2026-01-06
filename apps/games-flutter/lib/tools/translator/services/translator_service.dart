@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../services/supabase_service.dart';
 import '../models/dictionary_word.dart';
@@ -11,7 +12,7 @@ class TranslatorService {
     String? language, // 'creole' ou 'francais'
   }) async {
     try {
-      print('🔍 Recherche de "$query" en langue: $language');
+      debugPrint('🔍 Recherche de "$query" en langue: $language');
 
       var queryBuilder = _supabase
           .from('dictionary_words')
@@ -27,18 +28,18 @@ class TranslatorService {
           .order('word', ascending: true)
           .limit(20);
 
-      print('📊 Résultats trouvés: ${(response as List).length}');
+      debugPrint('📊 Résultats trouvés: ${(response as List).length}');
 
       final results = (response as List)
           .map((json) {
-            print('📝 Mot trouvé: ${json['word']} -> ${json['translation']}');
+            debugPrint('📝 Mot trouvé: ${json['word']} -> ${json['translation']}');
             return DictionaryWord.fromJson(json);
           })
           .toList();
 
       return results;
     } catch (e) {
-      print('❌ Erreur recherche: $e');
+      debugPrint('❌ Erreur recherche: $e');
       throw Exception('Erreur lors de la recherche: $e');
     }
   }

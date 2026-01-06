@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../services/auth_service.dart';
 import '../services/realtime_service.dart';
-import '../models/friend_request.dart';
 import 'auth_screen.dart';
 
 class GamesHomeScreen extends StatefulWidget {
@@ -291,7 +290,7 @@ class _GamesHomeScreenState extends State<GamesHomeScreen> {
                     shadows: [
                       Shadow(
                         blurRadius: 12,
-                        color: Colors.black.withOpacity(0.8),
+                        color: Colors.black.withValues(alpha: 0.8),
                       ),
                     ],
                   ),
@@ -302,11 +301,11 @@ class _GamesHomeScreenState extends State<GamesHomeScreen> {
                   'Découvre nos jeux 100% créole ! Joue en ligne ou télécharge les applications sur ton téléphone.',
                   style: TextStyle(
                     fontSize: 16,
-                    color: Colors.white.withOpacity(0.9),
+                    color: Colors.white.withValues(alpha: 0.9),
                     shadows: [
                       Shadow(
                         blurRadius: 8,
-                        color: Colors.black.withOpacity(0.6),
+                        color: Colors.black.withValues(alpha: 0.6),
                       ),
                     ],
                   ),
@@ -358,13 +357,13 @@ class _GamesHomeScreenState extends State<GamesHomeScreen> {
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                       colors: [
-                        const Color(0xFFFFD700).withOpacity(0.1),
-                        const Color(0xFFFF8C00).withOpacity(0.1),
+                        const Color(0xFFFFD700).withValues(alpha: 0.1),
+                        const Color(0xFFFF8C00).withValues(alpha: 0.1),
                       ],
                     ),
                     borderRadius: BorderRadius.circular(24),
                     border: Border.all(
-                      color: const Color(0xFFFFD700).withOpacity(0.3),
+                      color: const Color(0xFFFFD700).withValues(alpha: 0.3),
                       width: 1,
                     ),
                   ),
@@ -379,7 +378,7 @@ class _GamesHomeScreenState extends State<GamesHomeScreen> {
                           shadows: [
                             Shadow(
                               blurRadius: 10,
-                              color: Colors.black.withOpacity(0.5),
+                              color: Colors.black.withValues(alpha: 0.5),
                             ),
                           ],
                         ),
@@ -390,7 +389,7 @@ class _GamesHomeScreenState extends State<GamesHomeScreen> {
                         'Nos jeux seront prochainement disponibles sur iOS et Android.\nTélécharge les applications gratuites et joue hors ligne !',
                         style: TextStyle(
                           fontSize: 14,
-                          color: Colors.white.withOpacity(0.9),
+                          color: Colors.white.withValues(alpha: 0.9),
                           height: 1.5,
                         ),
                         textAlign: TextAlign.center,
@@ -468,7 +467,7 @@ class _GamesHomeScreenState extends State<GamesHomeScreen> {
                       'Version Beta',
                       style: TextStyle(
                         fontSize: 11,
-                        color: Colors.white.withOpacity(0.4),
+                        color: Colors.white.withValues(alpha: 0.4),
                         fontWeight: FontWeight.w500,
                       ),
                       textAlign: TextAlign.center,
@@ -478,7 +477,7 @@ class _GamesHomeScreenState extends State<GamesHomeScreen> {
                       '© 2025 ITMade Studio',
                       style: TextStyle(
                         fontSize: 12,
-                        color: Colors.white.withOpacity(0.5),
+                        color: Colors.white.withValues(alpha: 0.5),
                       ),
                       textAlign: TextAlign.center,
                     ),
@@ -514,9 +513,9 @@ class _GameCard extends StatelessWidget {
       onTap: available ? onTap : null,
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.05),
+          color: Colors.white.withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.white.withOpacity(0.1), width: 1),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.1), width: 1),
         ),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(16),
@@ -525,7 +524,7 @@ class _GameCard extends StatelessWidget {
             child: InkWell(
               onTap: available ? onTap : null,
               splashColor: available
-                  ? const Color(0xFFFFD700).withOpacity(0.2)
+                  ? const Color(0xFFFFD700).withValues(alpha: 0.2)
                   : Colors.transparent,
               child: Padding(
                 padding: const EdgeInsets.all(12.0),
@@ -547,7 +546,7 @@ class _GameCard extends StatelessWidget {
                                 shape: BoxShape.circle,
                                 gradient: RadialGradient(
                                   colors: [
-                                    const Color(0xFFFFD700).withOpacity(0.2),
+                                    const Color(0xFFFFD700).withValues(alpha: 0.2),
                                     Colors.transparent,
                                   ],
                                 ),
@@ -596,11 +595,11 @@ class _GameCard extends StatelessWidget {
                                 colors: [Color(0xFFFFD700), Color(0xFFFF8C00)],
                               )
                             : null,
-                        color: available ? null : Colors.grey.withOpacity(0.5),
+                        color: available ? null : Colors.grey.withValues(alpha: 0.5),
                         borderRadius: BorderRadius.circular(8),
                         border: available
                             ? null
-                            : Border.all(color: Colors.grey.withOpacity(0.5)),
+                            : Border.all(color: Colors.grey.withValues(alpha: 0.5)),
                       ),
                       child: Material(
                         color: Colors.transparent,

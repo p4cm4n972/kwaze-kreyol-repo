@@ -249,7 +249,7 @@ class _EmailInvitationScreenState extends State<EmailInvitationScreen> {
       margin: const EdgeInsets.only(bottom: 12),
       child: ListTile(
         leading: CircleAvatar(
-          backgroundColor: statusColor.withOpacity(0.2),
+          backgroundColor: statusColor.withValues(alpha: 0.2),
           child: Icon(statusIcon, color: statusColor),
         ),
         title: Text(
@@ -262,7 +262,7 @@ class _EmailInvitationScreenState extends State<EmailInvitationScreen> {
         ),
         trailing: Chip(
           label: Text(statusText),
-          backgroundColor: statusColor.withOpacity(0.2),
+          backgroundColor: statusColor.withValues(alpha: 0.2),
           labelStyle: TextStyle(
             color: statusColor,
             fontWeight: FontWeight.bold,

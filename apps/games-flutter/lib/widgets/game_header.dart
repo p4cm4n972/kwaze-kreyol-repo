@@ -33,18 +33,18 @@ class GameHeader extends StatelessWidget {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            Colors.black.withOpacity(0.4),
-            Colors.black.withOpacity(0.2),
+            Colors.black.withValues(alpha: 0.4),
+            Colors.black.withValues(alpha: 0.2),
           ],
         ),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: Colors.white.withOpacity(0.3),
+          color: Colors.white.withValues(alpha: 0.3),
           width: 2,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.3),
+            color: Colors.black.withValues(alpha: 0.3),
             blurRadius: 15,
             offset: const Offset(0, 5),
           ),
@@ -55,7 +55,7 @@ class GameHeader extends StatelessWidget {
           // Bouton retour dans un cercle
           Container(
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
+              color: Colors.white.withValues(alpha: 0.2),
               shape: BoxShape.circle,
             ),
             child: IconButton(
@@ -88,7 +88,7 @@ class GameHeader extends StatelessWidget {
                 boxShadow: [
                   BoxShadow(
                     color: (gradientColors?.last ?? const Color(0xFFFF8C00))
-                        .withOpacity(0.5),
+                        .withValues(alpha: 0.5),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
@@ -143,7 +143,7 @@ class GameHeaderAction extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: backgroundColor ?? Colors.white.withOpacity(0.2),
+        color: backgroundColor ?? Colors.white.withValues(alpha: 0.2),
         shape: BoxShape.circle,
       ),
       child: IconButton(

@@ -94,9 +94,9 @@ class _TranslatorScreenState extends State<TranslatorScreen> {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              const Color(0xFF1ABC9C).withOpacity(0.3), // Turquoise
-              const Color(0xFF16A085).withOpacity(0.3), // Turquoise foncé
-              const Color(0xFF3498DB).withOpacity(0.3), // Bleu
+              const Color(0xFF1ABC9C).withValues(alpha: 0.3), // Turquoise
+              const Color(0xFF16A085).withValues(alpha: 0.3), // Turquoise foncé
+              const Color(0xFF3498DB).withValues(alpha: 0.3), // Bleu
             ],
           ),
         ),
@@ -156,7 +156,7 @@ class _TranslatorScreenState extends State<TranslatorScreen> {
         // Sélecteur de langue et barre de recherche
         Container(
               padding: const EdgeInsets.all(16),
-              color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
               child: Column(
                 children: [
                   // Sélecteur de langue
@@ -339,7 +339,7 @@ class _TranslatorScreenState extends State<TranslatorScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Row(
@@ -435,7 +435,7 @@ class _TranslatorScreenState extends State<TranslatorScreen> {
                     padding:
                         const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: Colors.blue.withOpacity(0.2),
+                      color: Colors.blue.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
@@ -533,7 +533,7 @@ class _TranslatorScreenState extends State<TranslatorScreen> {
                   if (word.variantes != null)
                     ...word.variantes!.map((v) => Chip(
                           label: Text('var. $v'),
-                          backgroundColor: Colors.purple.withOpacity(0.1),
+                          backgroundColor: Colors.purple.withValues(alpha: 0.1),
                           labelStyle: TextStyle(
                             fontSize: 12,
                             color: Colors.purple[700],
@@ -542,7 +542,7 @@ class _TranslatorScreenState extends State<TranslatorScreen> {
                   if (word.synonymes != null)
                     ...word.synonymes!.map((s) => Chip(
                           label: Text('syn. $s'),
-                          backgroundColor: Colors.green.withOpacity(0.1),
+                          backgroundColor: Colors.green.withValues(alpha: 0.1),
                           labelStyle: TextStyle(
                             fontSize: 12,
                             color: Colors.green[700],

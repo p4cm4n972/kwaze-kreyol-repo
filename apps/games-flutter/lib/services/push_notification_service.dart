@@ -8,7 +8,7 @@ import 'supabase_service.dart';
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
   if (kDebugMode) {
-    print('Message reçu en arrière-plan: ${message.messageId}');
+    debugPrint('Message reçu en arrière-plan: ${message.messageId}');
   }
 }
 
@@ -39,13 +39,13 @@ class PushNotificationService {
 
       if (settings.authorizationStatus == AuthorizationStatus.authorized) {
         if (kDebugMode) {
-          print('Permission de notification accordée');
+          debugPrint('Permission de notification accordée');
         }
 
         // Obtenir le token FCM
         _fcmToken = await _messaging.getToken();
         if (kDebugMode) {
-          print('FCM Token: $_fcmToken');
+          debugPrint('FCM Token: $_fcmToken');
         }
 
         // Sauvegarder le token dans Supabase pour l'utilisateur connecté
@@ -77,12 +77,12 @@ class PushNotificationService {
         }
       } else {
         if (kDebugMode) {
-          print('Permission de notification refusée');
+          debugPrint('Permission de notification refusée');
         }
       }
     } catch (e) {
       if (kDebugMode) {
-        print('Erreur lors de l\'initialisation FCM: $e');
+        debugPrint('Erreur lors de l\'initialisation FCM: $e');
       }
     }
   }
@@ -97,12 +97,12 @@ class PushNotificationService {
         }).eq('id', userId);
 
         if (kDebugMode) {
-          print('Token FCM sauvegardé dans Supabase');
+          debugPrint('Token FCM sauvegardé dans Supabase');
         }
       }
     } catch (e) {
       if (kDebugMode) {
-        print('Erreur lors de la sauvegarde du token FCM: $e');
+        debugPrint('Erreur lors de la sauvegarde du token FCM: $e');
       }
     }
   }
@@ -110,10 +110,10 @@ class PushNotificationService {
   // Gérer les messages reçus en premier plan
   void _handleForegroundMessage(RemoteMessage message) {
     if (kDebugMode) {
-      print('Message reçu en premier plan: ${message.messageId}');
-      print('Titre: ${message.notification?.title}');
-      print('Corps: ${message.notification?.body}');
-      print('Data: ${message.data}');
+      debugPrint('Message reçu en premier plan: ${message.messageId}');
+      debugPrint('Titre: ${message.notification?.title}');
+      debugPrint('Corps: ${message.notification?.body}');
+      debugPrint('Data: ${message.data}');
     }
 
     // Ici vous pouvez afficher une notification locale
@@ -123,8 +123,8 @@ class PushNotificationService {
   // Gérer quand l'utilisateur clique sur une notification
   void _handleMessageOpenedApp(RemoteMessage message) {
     if (kDebugMode) {
-      print('Notification cliquée: ${message.messageId}');
-      print('Data: ${message.data}');
+      debugPrint('Notification cliquée: ${message.messageId}');
+      debugPrint('Data: ${message.data}');
     }
 
     // Navigation vers l'écran approprié selon le type de notification
@@ -137,7 +137,7 @@ class PushNotificationService {
           if (sessionId != null) {
             // TODO: Navigation vers la session
             if (kDebugMode) {
-              print('Ouvrir invitation pour session: $sessionId');
+              debugPrint('Ouvrir invitation pour session: $sessionId');
             }
           }
           break;
@@ -147,7 +147,7 @@ class PushNotificationService {
           if (sessionId != null) {
             // TODO: Navigation vers la session
             if (kDebugMode) {
-              print('Ouvrir session: $sessionId');
+              debugPrint('Ouvrir session: $sessionId');
             }
           }
           break;
@@ -157,7 +157,7 @@ class PushNotificationService {
           if (sessionId != null) {
             // TODO: Navigation vers les résultats
             if (kDebugMode) {
-              print('Ouvrir résultats session: $sessionId');
+              debugPrint('Ouvrir résultats session: $sessionId');
             }
           }
           break;
@@ -184,11 +184,11 @@ class PushNotificationService {
       );
 
       if (kDebugMode) {
-        print('Notification envoyée à $userId');
+        debugPrint('Notification envoyée à $userId');
       }
     } catch (e) {
       if (kDebugMode) {
-        print('Erreur lors de l\'envoi de la notification: $e');
+        debugPrint('Erreur lors de l\'envoi de la notification: $e');
       }
     }
   }
@@ -198,11 +198,11 @@ class PushNotificationService {
     try {
       await _messaging.subscribeToTopic(topic);
       if (kDebugMode) {
-        print('Abonné au topic: $topic');
+        debugPrint('Abonné au topic: $topic');
       }
     } catch (e) {
       if (kDebugMode) {
-        print('Erreur lors de l\'abonnement au topic: $e');
+        debugPrint('Erreur lors de l\'abonnement au topic: $e');
       }
     }
   }
@@ -212,11 +212,11 @@ class PushNotificationService {
     try {
       await _messaging.unsubscribeFromTopic(topic);
       if (kDebugMode) {
-        print('Désabonné du topic: $topic');
+        debugPrint('Désabonné du topic: $topic');
       }
     } catch (e) {
       if (kDebugMode) {
-        print('Erreur lors du désabonnement du topic: $e');
+        debugPrint('Erreur lors du désabonnement du topic: $e');
       }
     }
   }

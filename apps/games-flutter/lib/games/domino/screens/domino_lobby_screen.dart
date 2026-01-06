@@ -233,18 +233,18 @@ class _DominoLobbyScreenState extends State<DominoLobbyScreen>
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            Colors.black.withOpacity(0.4),
-            Colors.black.withOpacity(0.2),
+            Colors.black.withValues(alpha: 0.4),
+            Colors.black.withValues(alpha: 0.2),
           ],
         ),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: Colors.white.withOpacity(0.3),
+          color: Colors.white.withValues(alpha: 0.3),
           width: 2,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.3),
+            color: Colors.black.withValues(alpha: 0.3),
             blurRadius: 15,
             offset: const Offset(0, 5),
           ),
@@ -254,7 +254,7 @@ class _DominoLobbyScreenState extends State<DominoLobbyScreen>
         children: [
           Container(
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
+              color: Colors.white.withValues(alpha: 0.2),
               shape: BoxShape.circle,
             ),
             child: IconButton(
@@ -276,7 +276,7 @@ class _DominoLobbyScreenState extends State<DominoLobbyScreen>
                 borderRadius: BorderRadius.circular(15),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFFFF8C00).withOpacity(0.5),
+                    color: const Color(0xFFFF8C00).withValues(alpha: 0.5),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
@@ -318,7 +318,7 @@ class _DominoLobbyScreenState extends State<DominoLobbyScreen>
                 border: Border.all(color: Colors.white, width: 2),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.red.shade900.withOpacity(0.4),
+                    color: Colors.red.shade900.withValues(alpha: 0.4),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
@@ -397,7 +397,7 @@ class _DominoLobbyScreenState extends State<DominoLobbyScreen>
         borderRadius: BorderRadius.circular(25),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF4CAF50).withOpacity(0.5),
+            color: const Color(0xFF4CAF50).withValues(alpha: 0.5),
             blurRadius: 20,
             offset: const Offset(0, 8),
           ),
@@ -450,7 +450,7 @@ class _DominoLobbyScreenState extends State<DominoLobbyScreen>
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.2),
+                    color: Colors.black.withValues(alpha: 0.2),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
@@ -482,7 +482,7 @@ class _DominoLobbyScreenState extends State<DominoLobbyScreen>
           Text(
             'Touchez pour copier',
             style: TextStyle(
-              color: Colors.white.withOpacity(0.9),
+              color: Colors.white.withValues(alpha: 0.9),
               fontSize: 13,
               fontStyle: FontStyle.italic,
             ),
@@ -515,7 +515,7 @@ class _DominoLobbyScreenState extends State<DominoLobbyScreen>
         boxShadow: [
           BoxShadow(
             color: (isReady ? const Color(0xFF4CAF50) : const Color(0xFFFF9800))
-                .withOpacity(0.5),
+                .withValues(alpha: 0.5),
             blurRadius: 20,
             offset: const Offset(0, 8),
           ),
@@ -564,10 +564,10 @@ class _DominoLobbyScreenState extends State<DominoLobbyScreen>
               child: Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.3),
+                  color: Colors.white.withValues(alpha: 0.3),
                   borderRadius: BorderRadius.circular(15),
                   border: Border.all(
-                    color: Colors.white.withOpacity(0.5),
+                    color: Colors.white.withValues(alpha: 0.5),
                     width: 2,
                     style: BorderStyle.solid,
                   ),
@@ -616,7 +616,7 @@ class _DominoLobbyScreenState extends State<DominoLobbyScreen>
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 8,
             offset: const Offset(0, 3),
           ),
@@ -711,7 +711,7 @@ class _DominoLobbyScreenState extends State<DominoLobbyScreen>
       decoration: BoxDecoration(
         gradient: onPressed != null
             ? LinearGradient(
-                colors: [color, color.withOpacity(0.8)],
+                colors: [color, color.withValues(alpha: 0.8)],
               )
             : null,
         color: onPressed == null ? Colors.grey : null,
@@ -719,7 +719,7 @@ class _DominoLobbyScreenState extends State<DominoLobbyScreen>
         boxShadow: onPressed != null
             ? [
                 BoxShadow(
-                  color: color.withOpacity(0.5),
+                  color: color.withValues(alpha: 0.5),
                   blurRadius: 15,
                   offset: const Offset(0, 6),
                 ),
@@ -757,13 +757,13 @@ class _DominoLobbyScreenState extends State<DominoLobbyScreen>
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            Colors.black.withOpacity(0.4),
-            Colors.black.withOpacity(0.2),
+            Colors.black.withValues(alpha: 0.4),
+            Colors.black.withValues(alpha: 0.2),
           ],
         ),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: Colors.white.withOpacity(0.3),
+          color: Colors.white.withValues(alpha: 0.3),
           width: 2,
         ),
       ),

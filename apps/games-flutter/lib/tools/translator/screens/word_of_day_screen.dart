@@ -145,7 +145,7 @@ class _WordOfDayScreenState extends State<WordOfDayScreen> {
                 end: Alignment.bottomRight,
                 colors: [
                   Theme.of(context).colorScheme.primary,
-                  Theme.of(context).colorScheme.primary.withOpacity(0.7),
+                  Theme.of(context).colorScheme.primary.withValues(alpha: 0.7),
                 ],
               ),
             ),
@@ -202,7 +202,7 @@ class _WordOfDayScreenState extends State<WordOfDayScreen> {
                           padding: const EdgeInsets.symmetric(
                               horizontal: 16, vertical: 8),
                           decoration: BoxDecoration(
-                            color: Colors.blue.withOpacity(0.2),
+                            color: Colors.blue.withValues(alpha: 0.2),
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Text(

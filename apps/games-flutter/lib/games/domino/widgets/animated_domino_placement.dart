@@ -163,7 +163,7 @@ class _AnimatedDominoPlacementState extends State<AnimatedDominoPlacement>
                     borderRadius: BorderRadius.circular(50),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.4),
+                        color: Colors.black.withValues(alpha: 0.4),
                         blurRadius: 15,
                         spreadRadius: 5,
                       ),
@@ -201,8 +201,8 @@ class _AnimatedDominoPlacementState extends State<AnimatedDominoPlacement>
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF4CAF50).withOpacity(
-              0.6 * (1 - _landingController.value),
+            color: const Color(0xFF4CAF50).withValues(
+              alpha: 0.6 * (1 - _landingController.value),
             ),
             blurRadius: 20 + (_elevationAnimation.value * 2),
             spreadRadius: 5,
@@ -243,7 +243,7 @@ class _AnimatedDominoPlacementState extends State<AnimatedDominoPlacement>
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF4CAF50).withOpacity(0.6),
+                    color: const Color(0xFF4CAF50).withValues(alpha: 0.6),
                     blurRadius: 4,
                     spreadRadius: 1,
                   ),

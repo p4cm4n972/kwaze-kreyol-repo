@@ -408,7 +408,7 @@ class _AuthScreenState extends State<AuthScreen> {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -452,7 +452,7 @@ class _MadrasWavesPainter extends CustomPainter {
     // Dessiner plusieurs vagues avec différentes couleurs
     for (int i = 0; i < colors.length; i++) {
       final paint = Paint()
-        ..color = colors[i].withOpacity(0.6)
+        ..color = colors[i].withValues(alpha: 0.6)
         ..style = PaintingStyle.fill;
 
       final path = Path();
