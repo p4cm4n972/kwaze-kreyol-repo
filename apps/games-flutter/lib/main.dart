@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'screens/splash_screen.dart';
 import 'screens/games_home_screen.dart';
 import 'screens/auth_screen.dart';
 import 'screens/profile_screen.dart';
@@ -57,7 +58,8 @@ class KwazeKreyolGamesApp extends StatelessWidget {
 final _router = GoRouter(
   initialLocation: '/',
   routes: [
-    GoRoute(path: '/', builder: (context, state) => const GamesHomeScreen()),
+    GoRoute(path: '/', builder: (context, state) => const SplashScreen()),
+    GoRoute(path: '/home', builder: (context, state) => const GamesHomeScreen()),
     GoRoute(
       path: '/auth',
       builder: (context, state) => AuthScreen(
