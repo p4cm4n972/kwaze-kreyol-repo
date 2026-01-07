@@ -43,10 +43,10 @@ export const metadata: Metadata = {
     description: "Découvrez la plateforme interactive dédiée à la langue et la culture créole martiniquaise.",
     images: [
       {
-        url: "/images/logo-kk.webp",
-        width: 512,
-        height: 512,
-        alt: "Logo Kwazé Kréyol",
+        url: "/images/social-preview.png",
+        width: 1200,
+        height: 630,
+        alt: "Kwazé Kréyol - Jeux et outils créoles martiniquais",
       },
     ],
   },
@@ -54,7 +54,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Kwazé Kréyol - Plateforme interactive de la langue créole martiniquaise",
     description: "Découvrez la plateforme interactive dédiée à la langue et la culture créole martiniquaise.",
-    images: ["/images/logo-kk.webp"],
+    images: ["/images/social-preview.png"],
     creator: "@itmade_studio",
   },
   robots: {

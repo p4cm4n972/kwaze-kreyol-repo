@@ -1,7 +1,0 @@
-# robots.txt pour Kwazé Kréyol
-
-User-agent: *
-Allow: /
-
-# Sitemap
-Sitemap: https://kwaze-kreyol.com/sitemap.xml

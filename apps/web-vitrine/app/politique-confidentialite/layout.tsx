@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Politique de confidentialité - Kwazé Kréyol",
     description: "Protection de vos données personnelles sur Kwazé Kréyol",
-    url: "https://kwaze-kreyol.com/politique-confidentialite",
+    url: "https://kwazé-kréyol.fr/politique-confidentialite",
   },
 };
 

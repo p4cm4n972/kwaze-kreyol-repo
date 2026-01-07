@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "À propos de Kwazé Kréyol",
     description: "Notre mission : mettre le créole martiniquais au cœur du numérique avec respect, fierté et modernité.",
-    url: "https://kwaze-kreyol.com/about",
+    url: "https://kwazé-kréyol.fr/about",
   },
 };
 

@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "FAQ - Kwazé Kréyol",
     description: "Réponses aux questions les plus fréquentes sur Kwazé Kréyol",
-    url: "https://kwaze-kreyol.com/support/faq",
+    url: "https://kwazé-kréyol.fr/support/faq",
   },
 };
 
