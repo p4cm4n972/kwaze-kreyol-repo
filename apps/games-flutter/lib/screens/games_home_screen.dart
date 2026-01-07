@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../services/auth_service.dart';
 import '../services/realtime_service.dart';
+import '../widgets/legal_footer.dart';
 import 'auth_screen.dart';
 
 class GamesHomeScreen extends StatefulWidget {
@@ -461,28 +462,7 @@ class _GamesHomeScreenState extends State<GamesHomeScreen> {
                 ),
 
                 const SizedBox(height: 24),
-                Column(
-                  children: [
-                    Text(
-                      'Version Beta',
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: Colors.white.withValues(alpha: 0.4),
-                        fontWeight: FontWeight.w500,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '© 2025 ITMade Studio',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.white.withValues(alpha: 0.5),
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ),
+                const LegalFooter(),
               ],
             ),
           ),
