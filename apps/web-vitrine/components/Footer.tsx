@@ -19,13 +19,17 @@ const Footer = () => {
               ITMade Studio
             </a>
           </p>
-          <div className="mt-4">
-            <Link href="/mentions-legales" className="text-sm text-gray-400 hover:text-white mx-2">
+          <div className="mt-4 flex flex-wrap justify-center gap-2">
+            <Link href="/mentions-legales" className="text-sm text-gray-400 hover:text-white">
               Mentions Légales
             </Link>
             <span className="text-gray-500">|</span>
-            <Link href="/politique-confidentialite" className="text-sm text-gray-400 hover:text-white mx-2">
-              Politique de Confidentialité
+            <Link href="/politique-confidentialite" className="text-sm text-gray-400 hover:text-white">
+              Confidentialité
+            </Link>
+            <span className="text-gray-500">|</span>
+            <Link href="/cgu" className="text-sm text-gray-400 hover:text-white">
+              CGU
             </Link>
           </div>
         </div>

@@ -46,11 +46,11 @@ export default function MentionsLegales() {
                 </h2>
                 <div className="space-y-2 text-sm sm:text-base md:text-lg">
                   <p><strong>Raison sociale :</strong> ITMade Studio</p>
-                  <p><strong>Forme juridique :</strong> Micro-entreprise</p>
-                  <p><strong>SIRET :</strong> À compléter</p>
-                  <p><strong>Adresse :</strong> Martinique, France</p>
+                  <p><strong>Forme juridique :</strong> SASU (en cours d&apos;immatriculation)</p>
+                  <p><strong>SIRET :</strong> En cours d&apos;attribution</p>
+                  <p><strong>Siège social :</strong> Quartier Perriolat, 97240 Le François, Martinique</p>
                   <p><strong>Email :</strong> <a href="mailto:contact@itmade.fr" className="text-madras-yellow hover:text-madras-orange transition-colors">contact@itmade.fr</a></p>
-                  <p><strong>Directeur de publication :</strong> ITMade Studio</p>
+                  <p><strong>Directeur de publication :</strong> Manuel ADELE</p>
                 </div>
               </div>
 
@@ -128,7 +128,7 @@ export default function MentionsLegales() {
               {/* Date de mise à jour */}
               <div className="pt-6 border-t border-white/20">
                 <p className="text-sm text-white/70 text-center">
-                  Dernière mise à jour : Décembre 2025
+                  Dernière mise à jour : Janvier 2026
                 </p>
               </div>
             </div>

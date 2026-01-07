@@ -197,7 +197,7 @@ export default function PolitiqueConfidentialite() {
               {/* Date de mise à jour */}
               <div className="pt-6 border-t border-white/20">
                 <p className="text-sm text-white/70 text-center">
-                  Dernière mise à jour : Décembre 2025
+                  Dernière mise à jour : Janvier 2026
                 </p>
               </div>
             </div>
