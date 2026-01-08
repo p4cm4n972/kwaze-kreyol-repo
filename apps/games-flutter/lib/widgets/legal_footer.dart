@@ -67,7 +67,7 @@ class LegalFooter extends StatelessWidget {
 
         // Copyright
         Text(
-          '© 2025 ITMade Studio',
+          '© 2025 - ${DateTime.now().year} ITMade Studio',
           style: TextStyle(
             fontSize: 12,
             color: Colors.white.withValues(alpha: 0.5),

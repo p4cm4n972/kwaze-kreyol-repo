@@ -9,7 +9,7 @@ const Footer = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center">
           <p className="text-lg">
-            © {currentYear}{' '}
+            © 2025 - {currentYear}{' '}
             <a
               href="https://itmade.studio"
               target="_blank"
