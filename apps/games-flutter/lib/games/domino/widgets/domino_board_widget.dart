@@ -28,17 +28,22 @@ class BoardTilePosition {
   });
 }
 
+/// Numéro de version pour debug (s'incrémente à chaque modification)
+const String kBoardVersion = 'v40';
+
 /// Widget qui affiche le plateau de dominos avec layout intelligent
 class DominoBoardWidget extends StatefulWidget {
   final DominoGameState gameState;
   final bool isMyTurn;
   final Function(String side, DominoTile tile)? onTilePlaced;
+  final DominoTile? selectedTile; // Tuile sélectionnée pour tap-to-place
 
   const DominoBoardWidget({
     super.key,
     required this.gameState,
     required this.isMyTurn,
     this.onTilePlaced,
+    this.selectedTile,
   });
 
   @override
@@ -47,6 +52,9 @@ class DominoBoardWidget extends StatefulWidget {
 
 class _DominoBoardWidgetState extends State<DominoBoardWidget> {
   final TransformationController _transformController = TransformationController();
+
+  // Pour détecter une nouvelle manche et réinitialiser la vue
+  int _lastBoardLength = 0;
 
   // Dimensions des tuiles - calculées dynamiquement selon la taille de l'écran
   double _tileWidth = 70.0;
@@ -108,6 +116,18 @@ class _DominoBoardWidgetState extends State<DominoBoardWidget> {
 
     final board = widget.gameState.board;
 
+    // Détecter nouvelle manche (board repart à zéro ou diminue fortement)
+    if (board.length < _lastBoardLength - 2 || (board.length <= 2 && _lastBoardLength > 5)) {
+      // Nouvelle manche détectée - réinitialiser la vue
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          _transformController.value = Matrix4.identity();
+        }
+      });
+      print('[$kBoardVersion] Nouvelle manche détectée: reset transform');
+    }
+    _lastBoardLength = board.length;
+
     if (board.isEmpty) {
       return _buildEmptyBoard();
     }
@@ -117,6 +137,20 @@ class _DominoBoardWidgetState extends State<DominoBoardWidget> {
 
     // Calculer les bounds pour le centrage
     final bounds = _calculateBounds(positions);
+
+    // Auto-zoom: dézoomer si le contenu est trop grand
+    // Calculer le scale nécessaire pour que tout tienne dans la vue
+    final viewportWidth = MediaQuery.of(context).size.width - 48; // Marges
+    final viewportHeight = _boardHeight - 24; // Marges
+    final contentWidth = bounds.width + 100; // Marges pour les zones de drop
+    final contentHeight = bounds.height + 100;
+
+    final scaleX = viewportWidth / contentWidth;
+    final scaleY = viewportHeight / contentHeight;
+    final autoScale = (scaleX < scaleY ? scaleX : scaleY).clamp(0.3, 1.0);
+
+    // Le autoScale sera appliqué directement au contenu via Transform.scale
+    print('[$kBoardVersion] bounds: ${bounds.width}x${bounds.height}, viewport: ${viewportWidth}x$viewportHeight, autoScale: $autoScale');
 
     return Container(
       height: _boardHeight,
@@ -148,24 +182,46 @@ class _DominoBoardWidgetState extends State<DominoBoardWidget> {
           padding: const EdgeInsets.all(12), // Marge interne pour les zones de drop
           child: InteractiveViewer(
             transformationController: _transformController,
-            minScale: 0.5,
+            minScale: 0.3,
             maxScale: 3.0,
             boundaryMargin: const EdgeInsets.all(300), // Plus d'espace pour scroller
             child: LayoutBuilder(
             builder: (context, constraints) {
-              // Centrer le contenu
-              final centerX = (constraints.maxWidth - bounds.width) / 2 - bounds.left;
-              final centerY = (constraints.maxHeight - bounds.height) / 2 - bounds.top;
+              // Calculer la taille du contenu avec marge pour les zones de drop
+              // Zones de drop = _tileWidth * 0.6 + 8 ≈ 50px de chaque côté
+              final dropZoneMargin = _tileWidth * 0.7 + 16;
+              final contentWidth = bounds.width + dropZoneMargin * 2;
+              final contentHeight = bounds.height + dropZoneMargin * 2;
 
-              return SizedBox(
-                width: constraints.maxWidth,
-                height: constraints.maxHeight,
-                child: Stack(
+              // Offset pour centrer les dominos dans le contenu
+              final offsetX = dropZoneMargin - bounds.left;
+              final offsetY = dropZoneMargin - bounds.top;
+
+              return Center(
+                child: FittedBox(
+                  fit: BoxFit.contain,
+                  child: SizedBox(
+                    width: contentWidth,
+                    height: contentHeight,
+                    child: Stack(
                   children: [
                     // Texture de table
                     Positioned.fill(
                       child: CustomPaint(
                         painter: _TableTexturePainter(),
+                      ),
+                    ),
+
+                    // Numéro de version (debug)
+                    Positioned(
+                      top: 4,
+                      right: 4,
+                      child: Text(
+                        kBoardVersion,
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.5),
+                          fontSize: 10,
+                        ),
                       ),
                     ),
 
@@ -175,18 +231,20 @@ class _DominoBoardWidgetState extends State<DominoBoardWidget> {
                       final pos = entry.value;
 
                       return Positioned(
-                        left: pos.x + centerX,
-                        top: pos.y + centerY,
+                        left: pos.x + offsetX,
+                        top: pos.y + offsetY,
                         child: _buildDominoTile(pos, index),
                       );
                     }),
 
                     // Zones de drop
                     if (widget.isMyTurn && positions.isNotEmpty) ...[
-                      _buildDropZone('left', positions, centerX, centerY, bounds),
-                      _buildDropZone('right', positions, centerX, centerY, bounds),
+                      _buildDropZone('left', positions, offsetX, offsetY, bounds, 1.0),
+                      _buildDropZone('right', positions, offsetX, offsetY, bounds, 1.0),
                     ],
                   ],
+                ),
+                ),
                 ),
               );
             },
@@ -199,223 +257,446 @@ class _DominoBoardWidgetState extends State<DominoBoardWidget> {
 
   /// Plateau vide avec zone de drop centrale
   Widget _buildEmptyBoard() {
-    return Container(
-      height: _boardHeight,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            Colors.green.shade800,
-            Colors.green.shade900,
-          ],
-        ),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: Colors.brown.shade700,
-          width: 4,
-        ),
-      ),
-      child: DragTarget<DominoTile>(
-        onWillAcceptWithDetails: (details) => widget.isMyTurn,
-        onAcceptWithDetails: (details) {
-          widget.onTilePlaced?.call('right', details.data);
-        },
-        builder: (context, candidateData, rejectedData) {
-          final isHovering = candidateData.isNotEmpty;
+    // Tap-to-place: si une tuile est sélectionnée sur plateau vide
+    final hasSelectedTile = widget.selectedTile != null && widget.isMyTurn;
 
-          return Center(
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              padding: const EdgeInsets.all(32),
-              decoration: BoxDecoration(
-                color: isHovering
-                    ? Colors.green.shade600.withValues(alpha: 0.5)
-                    : Colors.transparent,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
+    return GestureDetector(
+      onTap: () {
+        // Tap-to-place pour le premier domino
+        if (hasSelectedTile) {
+          widget.onTilePlaced?.call('right', widget.selectedTile!);
+        }
+      },
+      child: Container(
+        height: _boardHeight,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Colors.green.shade800,
+              Colors.green.shade900,
+            ],
+          ),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: Colors.brown.shade700,
+            width: 4,
+          ),
+        ),
+        child: DragTarget<DominoTile>(
+          onWillAcceptWithDetails: (details) => widget.isMyTurn,
+          onAcceptWithDetails: (details) {
+            widget.onTilePlaced?.call('right', details.data);
+          },
+          builder: (context, candidateData, rejectedData) {
+            final isHovering = candidateData.isNotEmpty;
+            final isHighlighted = hasSelectedTile;
+
+            return Center(
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: const EdgeInsets.all(32),
+                decoration: BoxDecoration(
                   color: isHovering
-                      ? Colors.white
-                      : Colors.white.withValues(alpha: 0.3),
-                  width: 2,
-                  strokeAlign: BorderSide.strokeAlignOutside,
+                      ? Colors.green.shade600.withValues(alpha: 0.5)
+                      : isHighlighted
+                          ? Colors.amber.withValues(alpha: 0.3)
+                          : Colors.transparent,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: isHovering
+                        ? Colors.white
+                        : isHighlighted
+                            ? Colors.amber
+                            : Colors.white.withValues(alpha: 0.3),
+                    width: 2,
+                    strokeAlign: BorderSide.strokeAlignOutside,
+                  ),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      isHovering || isHighlighted ? Icons.add_circle : Icons.casino,
+                      size: 64,
+                      color: isHovering
+                          ? Colors.white
+                          : isHighlighted
+                              ? Colors.amber
+                              : Colors.white54,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      widget.isMyTurn
+                          ? (isHovering
+                              ? 'Déposez ici !'
+                              : isHighlighted
+                                  ? 'Tapez pour placer'
+                                  : 'Glissez ou sélectionnez')
+                          : 'En attente...',
+                      style: TextStyle(
+                        color: isHovering
+                            ? Colors.white
+                            : isHighlighted
+                                ? Colors.amber
+                                : Colors.white70,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    isHovering ? Icons.add_circle : Icons.casino,
-                    size: 64,
-                    color: isHovering ? Colors.white : Colors.white54,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    widget.isMyTurn
-                        ? (isHovering ? 'Déposez ici !' : 'Glissez un domino')
-                        : 'En attente...',
-                    style: TextStyle(
-                      color: isHovering ? Colors.white : Colors.white70,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }
 
-  // Nombre max de dominos avant de tourner (serpentin)
-  static const int _maxTilesBeforeTurn = 7;
+  // Nombre max de dominos par direction avant de tourner
+  // 5 dominos pour éviter que le serpent ne se chevauche
+  static const int _maxTilesBeforeTurn = 5;
 
   // Direction actuelle aux extrémités (pour les zones de drop)
   ChainDirection _leftEndDirection = ChainDirection.left;
   ChainDirection _rightEndDirection = ChainDirection.right;
 
+  // Index dans board des dominos aux extrémités (pour les zones de drop)
+  int _leftEndIndex = 0;
+  int _rightEndIndex = 0;
+
   /// Calcule les positions de tous les dominos sur le plateau
   ///
   /// RÈGLES IMPORTANTES:
-  /// - La chaîne forme un SERPENTIN quand elle devient trop longue
-  /// - Les doubles sont affichés VERTICALEMENT (comme un "pont")
-  /// - Un domino connecté à un double est CENTRÉ verticalement sur le double
+  /// - La chaîne a DEUX côtés: gauche et droite
+  /// - Chaque côté forme son propre SERPENTIN quand il devient trop long
+  /// - Les doubles sont affichés PERPENDICULAIRES à la direction (comme un "pont")
   /// - La chaîne tourne après _maxTilesBeforeTurn dominos
+  ///
+  /// IMPORTANT: Le service de jeu stocke les dominos côté gauche avec INSERT(0, ...)
+  /// Donc board = [gauche_récent, gauche_ancien, départ, droite1, droite2, ...]
+  /// Le domino de départ N'EST PAS à board[0] s'il y a des dominos côté gauche!
   List<BoardTilePosition> _calculateBoardPositions(List<PlacedTile> board) {
     if (board.isEmpty) return [];
 
-    final positions = <BoardTilePosition>[];
-    double currentX = 0;
-    double currentY = 0;
-    ChainDirection direction = ChainDirection.right;
-    int tilesInCurrentDirection = 0;
+    // Réinitialiser les variables d'état pour chaque calcul
+    // (important pour les nouvelles manches)
+    _leftEndDirection = ChainDirection.left;
+    _rightEndDirection = ChainDirection.right;
+    _leftEndIndex = 0;
+    _rightEndIndex = 0;
+    _lastCalculatedDirection = ChainDirection.right;
+
+    // Séparer les dominos par côté
+    // ATTENTION: board[0] n'est PAS forcément le départ!
+    // Le service fait insert(0, ...) pour les dominos gauche
+    // Donc: board = [gauche_N, gauche_N-1, ..., gauche_1, départ, droite_1, droite_2, ...]
+    final leftTiles = <int>[]; // Indices des dominos côté gauche
+    final rightTiles = <int>[]; // Indices des dominos côté droit (inclut le départ)
+    int startIndex = -1;
 
     for (int i = 0; i < board.length; i++) {
-      final placedTile = board[i];
+      if (board[i].side == 'left') {
+        leftTiles.add(i);
+      } else {
+        if (startIndex == -1) {
+          startIndex = i; // Premier domino côté droit = le départ
+        }
+        rightTiles.add(i);
+      }
+    }
+
+    // Si pas de départ trouvé, le premier domino est le départ
+    if (startIndex == -1) {
+      startIndex = 0;
+      rightTiles.add(0);
+    }
+
+    print('[$kBoardVersion] startIndex=$startIndex, leftTiles=$leftTiles, rightTiles=$rightTiles');
+    print('[$kBoardVersion] board order: ${board.map((p) => '${p.tile.value1}-${p.tile.value2}(${p.side})').join(', ')}');
+
+    // Créer la liste des positions (même taille que board)
+    final positions = List<BoardTilePosition?>.filled(board.length, null);
+
+    // Calculer les positions de la chaîne DROITE (le départ est à startIndex)
+    _calculateChainPositions(
+      board: board,
+      indices: rightTiles,
+      positions: positions,
+      startDirection: ChainDirection.right,
+      rotateClockwise: true,
+    );
+
+    // Mémoriser la direction et l'index de fin du côté droit
+    _rightEndDirection = _lastCalculatedDirection;
+    _rightEndIndex = rightTiles.isNotEmpty ? rightTiles.last : startIndex;
+
+    // Calculer les positions de la chaîne GAUCHE (part du domino de départ vers la gauche)
+    if (leftTiles.isNotEmpty) {
+      // Récupérer la position du domino de départ (à startIndex, pas à 0!)
+      final startPos = positions[startIndex]!;
+      final startTile = board[startIndex].tile;
+      final startIsDouble = startTile.isDouble;
+
+      // Largeur du domino de départ (pour calculer son bord gauche)
+      final startTileW = startIsDouble ? _tileHeight : _tileWidth;
+
+      // IMPORTANT: Le service stocke les dominos gauche dans l'ordre INVERSE
+      // board = [gauche_récent, gauche_ancien, départ, ...]
+      // leftTiles = [0, 1] où board[0]=récent, board[1]=ancien
+      //
+      // Pour l'affichage, on veut:
+      // - L'ANCIEN (premier ajouté) proche du départ (position -93)
+      // - Le RÉCENT (dernier ajouté) loin du départ (position -186)
+      //
+      // Donc on doit REVERSER leftTiles pour que:
+      // - leftTiles.reversed[0] = ancien → position -93
+      // - leftTiles.reversed[1] = récent → position -186
+      final leftTilesReversed = leftTiles.reversed.toList();
+
+      // Le curseur pour direction LEFT représente le BORD DROIT du prochain domino
+      // startX = bord gauche du domino de départ - spacing
+      double startX = startPos.x - _spacing;
+      // startY = baseline Y = 0 pour direction horizontale
+      double startY = 0.0;
+
+      print('[$kBoardVersion] Chaîne GAUCHE: startX=$startX, startY=$startY (baseline), count=${leftTiles.length}');
+      print('[$kBoardVersion] leftTiles ORIGINAL: ${leftTiles.map((i) => 'board[$i]=${board[i].tile.value1}-${board[i].tile.value2}').join(', ')}');
+      print('[$kBoardVersion] leftTiles REVERSED: ${leftTilesReversed.map((i) => 'board[$i]=${board[i].tile.value1}-${board[i].tile.value2}').join(', ')}');
+
+      _calculateChainPositions(
+        board: board,
+        indices: leftTilesReversed,  // REVERSED: ancien d'abord (proche du départ)
+        positions: positions,
+        startDirection: ChainDirection.left,
+        rotateClockwise: true,
+        startX: startX,
+        startY: startY,
+        previousIsDouble: startIsDouble,
+      );
+
+      _leftEndDirection = _lastCalculatedDirection;
+      // L'extrémité gauche est le dernier de leftTilesReversed = leftTiles.first (le plus récent)
+      _leftEndIndex = leftTiles.first;
+    } else {
+      _leftEndDirection = ChainDirection.left;
+      _leftEndIndex = startIndex;
+    }
+
+    // Convertir en liste non-nullable
+    return positions.map((p) => p!).toList();
+  }
+
+  ChainDirection _lastCalculatedDirection = ChainDirection.right;
+
+  /// Calcule les positions d'une chaîne de dominos (gauche ou droite)
+  ///
+  /// LOGIQUE CLÉ pour le positionnement:
+  /// - RIGHT: le domino est placé à droite du point courant (posX = currentX)
+  /// - DOWN: le domino est placé en-dessous du point courant (posY = currentY)
+  /// - LEFT: le domino est placé à GAUCHE du point courant (posX = currentX - tileW)
+  /// - UP: le domino est placé AU-DESSUS du point courant (posY = currentY - tileH)
+  void _calculateChainPositions({
+    required List<PlacedTile> board,
+    required List<int> indices,
+    required List<BoardTilePosition?> positions,
+    required ChainDirection startDirection,
+    required bool rotateClockwise,
+    double startX = 0,
+    double startY = 0,
+    bool previousIsDouble = false,
+  }) {
+    if (indices.isEmpty) return;
+
+    double currentX = startX;
+    double currentY = startY;
+    ChainDirection direction = startDirection;
+    int lineCount = 0;
+
+    for (int idx = 0; idx < indices.length; idx++) {
+      final boardIndex = indices[idx];
+      final placedTile = board[boardIndex];
       final tile = placedTile.tile;
       final isDouble = tile.isDouble;
 
-      // Les doubles sont verticaux, les autres horizontaux (sauf si direction verticale)
-      final isVertical = isDouble || direction == ChainDirection.down || direction == ChainDirection.up;
-
-      // Déterminer les valeurs à afficher
-      final displayValues = _getDisplayValues(placedTile, i == 0);
+      // Déterminer l'orientation: doubles perpendiculaires à la direction
+      bool isVertical;
+      if (isDouble) {
+        // Un double est PERPENDICULAIRE à la direction de la chaîne
+        isVertical = direction == ChainDirection.right || direction == ChainDirection.left;
+      } else {
+        // Un domino normal est PARALLÈLE à la direction de la chaîne
+        isVertical = direction == ChainDirection.down || direction == ChainDirection.up;
+      }
 
       // Dimensions de cette tuile
       final tileW = isVertical ? _tileHeight : _tileWidth;
       final tileH = isVertical ? _tileWidth : _tileHeight;
 
-      // Calculer la position Y ajustée pour les doubles
+      // Valeurs à afficher (prend en compte la direction actuelle)
+      // isFirst = vrai seulement pour le domino de départ (premier de la chaîne droite)
+      final isStartTile = idx == 0 && startDirection == ChainDirection.right;
+      final displayValues = _getDisplayValues(placedTile, direction, isStartTile);
+
+      // === CALCUL DE LA POSITION ===
+      // Le point courant (currentX, currentY) représente le point de CONNEXION
+      // Pour RIGHT/DOWN: le domino s'étend VERS la direction positive
+      // Pour LEFT/UP: le domino s'étend VERS la direction négative
       double posX = currentX;
       double posY = currentY;
 
-      if (isDouble && (direction == ChainDirection.right || direction == ChainDirection.left)) {
-        // Double sur une ligne horizontale: centrer verticalement
-        posY = currentY - (_tileWidth - _tileHeight) / 2;
-      } else if (isDouble && (direction == ChainDirection.down || direction == ChainDirection.up)) {
-        // Double sur une ligne verticale: centrer horizontalement
-        posX = currentX - (_tileWidth - _tileHeight) / 2;
+      // Pour LEFT, le domino doit être placé à gauche du point de connexion
+      if (direction == ChainDirection.left) {
+        posX = currentX - tileW;
+      }
+      // Pour UP, le domino doit être placé au-dessus du point de connexion
+      if (direction == ChainDirection.up) {
+        posY = currentY - tileH;
       }
 
-      // Si le précédent était un double, centrer ce domino sur le double
-      if (i > 0 && board[i - 1].tile.isDouble) {
-        final prevPos = positions[i - 1];
+      // Centrage des doubles (perpendiculaire à la direction)
+      if (isDouble) {
         if (direction == ChainDirection.right || direction == ChainDirection.left) {
-          // Centrer verticalement
-          posY = prevPos.y + (_tileWidth - _tileHeight) / 2;
+          // Double vertical sur axe horizontal: centrer verticalement
+          posY = posY - (_tileWidth - _tileHeight) / 2;
         } else {
-          // Centrer horizontalement
-          posX = prevPos.x + (_tileWidth - _tileHeight) / 2;
+          // Double horizontal sur axe vertical: centrer horizontalement
+          posX = posX - (_tileWidth - _tileHeight) / 2;
         }
       }
 
-      positions.add(BoardTilePosition(
+      positions[boardIndex] = BoardTilePosition(
         x: posX,
         y: posY,
         isVertical: isVertical,
         displayValue1: displayValues.$1,
         displayValue2: displayValues.$2,
-      ));
+      );
 
-      // Mémoriser la direction du premier domino
-      if (i == 0) {
-        _leftEndDirection = _oppositeDirection(direction);
-      }
+      lineCount++;
+      print('[$kBoardVersion] idx=$idx tile=${tile.value1}-${tile.value2} lineCount=$lineCount dir=$direction pos=($posX,$posY) tileW=$tileW');
 
-      tilesInCurrentDirection++;
+      // Préparer la position du prochain domino
+      if (idx < indices.length - 1) {
+        final nextTile = board[indices[idx + 1]].tile;
+        final nextIsDouble = nextTile.isDouble;
 
-      // Calculer la position du prochain domino
-      if (i < board.length - 1) {
-        // Vérifier si on doit tourner (serpentin)
-        bool shouldTurn = tilesInCurrentDirection >= _maxTilesBeforeTurn;
+        // Vérifier si on doit tourner
+        // Règle: tourner après _maxTilesBeforeTurn, sauf si le prochain est un double
+        bool shouldTurn = lineCount >= _maxTilesBeforeTurn && !nextIsDouble;
+        if (lineCount > _maxTilesBeforeTurn) {
+          shouldTurn = true; // Forcer après avoir attendu un double
+        }
 
-        // Avancer d'abord selon la direction ACTUELLE (avant de tourner)
+        bool justTurned = false;
+        ChainDirection directionBeforeTurn = direction; // Mémoriser la direction AVANT virage
+        if (shouldTurn) {
+          print('[$kBoardVersion] >>> VIRAGE après idx=$idx, ancienne dir=$direction, nouvelle direction: ${rotateClockwise ? _rotateDirection(direction) : _rotateDirectionCounterClockwise(direction)}');
+          direction = rotateClockwise
+              ? _rotateDirection(direction)
+              : _rotateDirectionCounterClockwise(direction);
+          lineCount = 0;
+          justTurned = true;
+        }
+
+        // === AVANCER LE CURSEUR pour le prochain domino ===
+        // On avance selon la NOUVELLE direction (après virage éventuel)
         switch (direction) {
           case ChainDirection.right:
-            currentX += tileW + _spacing;
+            currentX = posX + tileW + _spacing;
+            currentY = posY;
             break;
           case ChainDirection.down:
-            currentY += tileH + _spacing;
+            currentX = posX;
+            currentY = posY + tileH + _spacing;
             break;
           case ChainDirection.left:
-            currentX -= tileW + _spacing;
+            currentX = posX - _spacing;
+            currentY = posY;
             break;
           case ChainDirection.up:
-            currentY -= tileH + _spacing;
+            currentX = posX;
+            currentY = posY - _spacing;
             break;
         }
 
-        // PUIS tourner si nécessaire (pour le prochain domino)
-        if (shouldTurn) {
-          // Ajuster la position pour le virage
-          // Quand on tourne, le prochain domino doit être aligné correctement
-          final nextTile = board[i + 1].tile;
-          final nextIsDouble = nextTile.isDouble;
-          final oldDirection = direction;
-
-          // Tourner (sens horaire)
-          direction = _rotateDirection(direction);
-          tilesInCurrentDirection = 0;
-
-          // Ajuster la position pour le changement de direction
-          // Si on passait de horizontal à vertical ou vice-versa
-          if (oldDirection == ChainDirection.right && direction == ChainDirection.down) {
-            // On était à droite, on descend maintenant
-            // Reculer X pour aligner avec le bord droit du dernier domino
-            currentX -= _spacing;
-            // Si le prochain n'est pas un double, ajuster Y
-            if (!nextIsDouble) {
-              currentY += (_tileWidth - _tileHeight) / 2;
+        // === CORRECTION VIRAGE: Positionner sur le point de connexion ===
+        // Après un virage, le prochain domino doit être aligné sur le POINT DE CONNEXION
+        // - Pour un DOUBLE: la connexion est au CENTRE (le double est perpendiculaire)
+        // - Pour un NON-DOUBLE: la connexion est au BORD selon la direction AVANT virage
+        if (justTurned) {
+          if (isDouble) {
+            // DOUBLE: centrer sur le centre du double (qui est perpendiculaire)
+            if (direction == ChainDirection.left || direction == ChainDirection.right) {
+              currentY = posY + tileH / 2 - _tileHeight / 2;
+            } else {
+              currentX = posX + tileW / 2 - _tileHeight / 2;
             }
-          } else if (oldDirection == ChainDirection.down && direction == ChainDirection.left) {
-            // On descendait, on va à gauche maintenant
-            currentY -= _spacing;
-            if (!nextIsDouble) {
-              currentX -= (_tileWidth - _tileHeight) / 2;
-            }
-          } else if (oldDirection == ChainDirection.left && direction == ChainDirection.up) {
-            // On allait à gauche, on monte maintenant
-            currentX += _spacing;
-            if (!nextIsDouble) {
-              currentY -= (_tileWidth - _tileHeight) / 2;
-            }
-          } else if (oldDirection == ChainDirection.up && direction == ChainDirection.right) {
-            // On montait, on va à droite maintenant
-            currentY += _spacing;
-            if (!nextIsDouble) {
-              currentX += (_tileWidth - _tileHeight) / 2;
+          } else {
+            // NON-DOUBLE: connecter au BORD du domino selon la direction AVANT virage
+            // Le point de connexion dépend de où allait la chaîne AVANT le virage
+            switch (directionBeforeTurn) {
+              case ChainDirection.right:
+                // RIGHT → DOWN: connexion au bord DROIT du domino horizontal
+                // Prochain domino vertical aligné sur le bord droit
+                currentX = posX + tileW - _tileHeight;
+                break;
+              case ChainDirection.down:
+                // DOWN → LEFT: connexion au bord BAS du domino vertical
+                // Prochain domino horizontal aligné sur le bord bas
+                currentY = posY + tileH - _tileHeight;
+                break;
+              case ChainDirection.left:
+                // LEFT → UP: connexion au bord GAUCHE du domino horizontal
+                // Prochain domino vertical aligné sur le bord gauche
+                currentX = posX;
+                break;
+              case ChainDirection.up:
+                // UP → RIGHT: connexion au bord HAUT du domino vertical
+                // Prochain domino horizontal aligné sur le bord haut
+                currentY = posY;
+                break;
             }
           }
+          print('[$kBoardVersion] justTurned: isDouble=$isDouble, dirBefore=$directionBeforeTurn, newCursor=($currentX,$currentY)');
         }
-      }
 
-      // Mémoriser la direction du dernier domino
-      _rightEndDirection = direction;
+        // === CORRECTION APRÈS UN DOUBLE (sans virage) ===
+        // Le prochain domino doit être CENTRÉ sur le double
+        // Le double est perpendiculaire à la direction, donc:
+        // - Direction horizontale (RIGHT/LEFT): double est vertical → centrer Y
+        // - Direction verticale (UP/DOWN): double est horizontal → centrer X
+        if (!justTurned && isDouble) {
+          if (direction == ChainDirection.right || direction == ChainDirection.left) {
+            // Double vertical sur axe horizontal: centrer Y sur le centre du double
+            // Centre du double = posY + tileH/2, prochain domino hauteur = _tileHeight
+            currentY = posY + tileH / 2 - _tileHeight / 2;
+            print('[$kBoardVersion] après double (horiz): centrage Y = $currentY');
+          } else {
+            // Double horizontal sur axe vertical: centrer X sur le centre du double
+            // Centre du double = posX + tileW/2, prochain domino largeur = _tileHeight (car vertical)
+            currentX = posX + tileW / 2 - _tileHeight / 2;
+            print('[$kBoardVersion] après double (vert): centrage X = $currentX');
+          }
+        }
+
+        print('[$kBoardVersion] nextCursor=($currentX,$currentY) nextDir=$direction');
+      }
     }
 
-    return positions;
+    _lastCalculatedDirection = direction;
+  }
+
+  /// Rotation anti-horaire
+  ChainDirection _rotateDirectionCounterClockwise(ChainDirection dir) {
+    switch (dir) {
+      case ChainDirection.right: return ChainDirection.up;
+      case ChainDirection.up: return ChainDirection.left;
+      case ChainDirection.left: return ChainDirection.down;
+      case ChainDirection.down: return ChainDirection.right;
+    }
   }
 
   /// Direction opposée
@@ -441,12 +722,14 @@ class _DominoBoardWidgetState extends State<DominoBoardWidget> {
   /// Détermine les valeurs à afficher (avec flip si nécessaire)
   ///
   /// Pour un domino horizontal: value1 à gauche, value2 à droite
-  /// Pour un double vertical: value1 en haut, value2 en bas (identiques)
+  /// Pour un domino vertical: value1 en haut, value2 en bas
   ///
-  /// LOGIQUE:
-  /// - Side 'right' ou null: connexion par la gauche → value1 = connectedValue
-  /// - Side 'left': connexion par la droite → value2 = connectedValue
-  (int, int) _getDisplayValues(PlacedTile placedTile, bool isFirst) {
+  /// LOGIQUE basée sur la DIRECTION (pas le side):
+  /// - RIGHT: connexion par la GAUCHE → displayValue1 = connectedValue
+  /// - LEFT: connexion par la DROITE → displayValue2 = connectedValue
+  /// - DOWN: connexion par le HAUT → displayValue1 = connectedValue
+  /// - UP: connexion par le BAS → displayValue2 = connectedValue
+  (int, int) _getDisplayValues(PlacedTile placedTile, ChainDirection direction, bool isFirst) {
     final tile = placedTile.tile;
     final connectedValue = placedTile.connectedValue;
 
@@ -455,20 +738,42 @@ class _DominoBoardWidgetState extends State<DominoBoardWidget> {
       return (tile.value1, tile.value2);
     }
 
-    // Déterminer le côté de connexion
-    // Le premier domino original a side='right', connexion par la gauche
-    // Les dominos insérés à gauche ont side='left', connexion par la droite
-    final side = placedTile.side;
+    // Pour le premier domino (départ), pas de connexion donc pas de flip
+    if (isFirst) {
+      return (tile.value1, tile.value2);
+    }
 
-    if (side == 'right') {
-      // Connexion par la gauche: displayValue1 (gauche) doit être connectedValue
+    // Déterminer si la valeur connectée doit être en position 1 (gauche/haut)
+    // ou en position 2 (droite/bas)
+    bool connectedIsFirst;
+    switch (direction) {
+      case ChainDirection.right:
+        // Connexion par la gauche → connectedValue doit être displayValue1
+        connectedIsFirst = true;
+        break;
+      case ChainDirection.down:
+        // Connexion par le haut → connectedValue doit être displayValue1
+        connectedIsFirst = true;
+        break;
+      case ChainDirection.left:
+        // Connexion par la droite → connectedValue doit être displayValue2
+        connectedIsFirst = false;
+        break;
+      case ChainDirection.up:
+        // Connexion par le bas → connectedValue doit être displayValue2
+        connectedIsFirst = false;
+        break;
+    }
+
+    if (connectedIsFirst) {
+      // connectedValue doit être en position 1
       if (tile.value1 == connectedValue) {
         return (tile.value1, tile.value2);
       } else {
         return (tile.value2, tile.value1);
       }
     } else {
-      // Connexion par la droite: displayValue2 (droite) doit être connectedValue
+      // connectedValue doit être en position 2
       if (tile.value2 == connectedValue) {
         return (tile.value1, tile.value2);
       } else {
@@ -525,9 +830,12 @@ class _DominoBoardWidgetState extends State<DominoBoardWidget> {
     double centerX,
     double centerY,
     Rect bounds,
+    double scale,
   ) {
     final isLeft = side == 'left';
-    final pos = isLeft ? positions.first : positions.last;
+    // Utiliser les indices d'extrémité calculés, pas positions.first/last
+    final endIndex = isLeft ? _leftEndIndex : _rightEndIndex;
+    final pos = positions[endIndex];
     final direction = isLeft ? _leftEndDirection : _rightEndDirection;
 
     // Dimensions de la tuile de référence
@@ -538,6 +846,7 @@ class _DominoBoardWidgetState extends State<DominoBoardWidget> {
     double dropX, dropY;
     double dropW, dropH;
 
+    // La zone de drop doit être à côté de l'extrémité de la chaîne
     switch (direction) {
       case ChainDirection.right:
         dropX = pos.x + centerX + refTileW + 8;
@@ -569,55 +878,75 @@ class _DominoBoardWidgetState extends State<DominoBoardWidget> {
         ? widget.gameState.leftEnd
         : widget.gameState.rightEnd;
 
+    // Vérifier si la tuile sélectionnée peut être placée ici (tap-to-place)
+    final canPlaceSelected = widget.selectedTile != null &&
+        targetEnd != null &&
+        widget.selectedTile!.canConnect(targetEnd);
+
     return Positioned(
       left: dropX,
       top: dropY,
-      child: DragTarget<DominoTile>(
-        onWillAcceptWithDetails: (details) {
-          if (targetEnd == null) return false;
-          return details.data.canConnect(targetEnd);
+      child: GestureDetector(
+        onTap: () {
+          // Tap-to-place : si une tuile est sélectionnée et peut être placée
+          if (canPlaceSelected && widget.isMyTurn) {
+            widget.onTilePlaced?.call(side, widget.selectedTile!);
+          }
         },
-        onAcceptWithDetails: (details) {
-          widget.onTilePlaced?.call(side, details.data);
-        },
-        builder: (context, candidateData, rejectedData) {
-          final isHovering = candidateData.isNotEmpty;
-          final isRejected = rejectedData.isNotEmpty;
+        child: DragTarget<DominoTile>(
+          onWillAcceptWithDetails: (details) {
+            if (targetEnd == null) return false;
+            return details.data.canConnect(targetEnd);
+          },
+          onAcceptWithDetails: (details) {
+            widget.onTilePlaced?.call(side, details.data);
+          },
+          builder: (context, candidateData, rejectedData) {
+            final isHovering = candidateData.isNotEmpty;
+            final isRejected = rejectedData.isNotEmpty;
+            final isHighlighted = canPlaceSelected && widget.isMyTurn;
 
-          return AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            width: dropW,
-            height: dropH,
-            decoration: BoxDecoration(
-              color: isHovering
-                  ? Colors.lightGreenAccent.withValues(alpha: 0.4)
-                  : isRejected
-                      ? Colors.red.withValues(alpha: 0.3)
-                      : Colors.white.withValues(alpha: 0.08),
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(
+            return AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              width: dropW,
+              height: dropH,
+              decoration: BoxDecoration(
                 color: isHovering
-                    ? Colors.lightGreenAccent
+                    ? Colors.lightGreenAccent.withValues(alpha: 0.4)
                     : isRejected
-                        ? Colors.red
-                        : Colors.white.withValues(alpha: 0.2),
-                width: isHovering ? 2 : 1,
-              ),
-            ),
-            child: Center(
-              child: Text(
-                targetEnd != null ? '$targetEnd' : '+',
-                style: TextStyle(
+                        ? Colors.red.withValues(alpha: 0.3)
+                        : isHighlighted
+                            ? Colors.amber.withValues(alpha: 0.3)
+                            : Colors.white.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
                   color: isHovering
                       ? Colors.lightGreenAccent
-                      : Colors.white.withValues(alpha: 0.5),
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
+                      : isRejected
+                          ? Colors.red
+                          : isHighlighted
+                              ? Colors.amber
+                              : Colors.white.withValues(alpha: 0.2),
+                  width: (isHovering || isHighlighted) ? 2 : 1,
                 ),
               ),
-            ),
-          );
-        },
+              child: Center(
+                child: Text(
+                  targetEnd != null ? '$targetEnd' : '+',
+                  style: TextStyle(
+                    color: isHovering
+                        ? Colors.lightGreenAccent
+                        : isHighlighted
+                            ? Colors.amber
+                            : Colors.white.withValues(alpha: 0.5),
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
       ),
     );
   }

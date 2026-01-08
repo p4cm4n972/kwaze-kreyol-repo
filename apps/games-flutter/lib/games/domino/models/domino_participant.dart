@@ -2,7 +2,7 @@
 class DominoParticipant {
   final String id;
   final String sessionId;
-  final String? userId;       // NULL si invité
+  final String? userId;       // NULL si invité ou IA
   final String? guestName;    // NULL si utilisateur enregistré
   final String? userName;     // Nom depuis la table users
   final int turnOrder;        // 0, 1, ou 2
@@ -10,6 +10,8 @@ class DominoParticipant {
   final bool isCochon;        // True si termine avec 0 manche
   final bool isHost;          // True si créateur de la session
   final DateTime joinedAt;
+  final bool isAI;            // True si joueur IA (mode solo)
+  final String? aiDifficulty; // 'easy', 'normal', 'hard' (si isAI)
 
   const DominoParticipant({
     required this.id,
@@ -22,7 +24,28 @@ class DominoParticipant {
     this.isCochon = false,
     this.isHost = false,
     required this.joinedAt,
+    this.isAI = false,
+    this.aiDifficulty,
   });
+
+  /// Factory pour créer un joueur IA
+  factory DominoParticipant.ai({
+    required String id,
+    required String sessionId,
+    required String name,
+    required int turnOrder,
+    required String difficulty,
+  }) {
+    return DominoParticipant(
+      id: id,
+      sessionId: sessionId,
+      guestName: name,
+      turnOrder: turnOrder,
+      joinedAt: DateTime.now(),
+      isAI: true,
+      aiDifficulty: difficulty,
+    );
+  }
 
   /// Nom d'affichage du participant
   String get displayName => userName ?? guestName ?? 'Joueur';
@@ -42,6 +65,8 @@ class DominoParticipant {
     'is_cochon': isCochon,
     'is_host': isHost,
     'joined_at': joinedAt.toIso8601String(),
+    'is_ai': isAI,
+    'ai_difficulty': aiDifficulty,
   };
 
   factory DominoParticipant.fromJson(Map<String, dynamic> json) =>
@@ -56,6 +81,8 @@ class DominoParticipant {
         isCochon: json['is_cochon'] as bool? ?? false,
         isHost: json['is_host'] as bool? ?? false,
         joinedAt: DateTime.parse(json['joined_at'] as String),
+        isAI: json['is_ai'] as bool? ?? false,
+        aiDifficulty: json['ai_difficulty'] as String?,
       );
 
   DominoParticipant copyWith({
@@ -69,6 +96,8 @@ class DominoParticipant {
     bool? isCochon,
     bool? isHost,
     DateTime? joinedAt,
+    bool? isAI,
+    String? aiDifficulty,
   }) {
     return DominoParticipant(
       id: id ?? this.id,
@@ -81,6 +110,8 @@ class DominoParticipant {
       isCochon: isCochon ?? this.isCochon,
       isHost: isHost ?? this.isHost,
       joinedAt: joinedAt ?? this.joinedAt,
+      isAI: isAI ?? this.isAI,
+      aiDifficulty: aiDifficulty ?? this.aiDifficulty,
     );
   }
 

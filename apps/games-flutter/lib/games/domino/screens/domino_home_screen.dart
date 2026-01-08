@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import '../../../services/auth_service.dart';
 import '../services/domino_service.dart';
 import '../models/domino_session.dart';
+import '../widgets/domino_difficulty_dialog.dart';
 
 /// Écran d'accueil pour le jeu de dominos
 class DominoHomeScreen extends StatefulWidget {
@@ -161,6 +162,13 @@ class _DominoHomeScreenState extends State<DominoHomeScreen>
           _isLoading = false;
         });
       }
+    }
+  }
+
+  Future<void> _startSoloGame() async {
+    final difficulty = await DominoDifficultyDialog.show(context);
+    if (difficulty != null && mounted) {
+      context.go('/domino/solo', extra: difficulty);
     }
   }
 
@@ -327,7 +335,30 @@ class _DominoHomeScreenState extends State<DominoHomeScreen>
             const SizedBox(height: 24),
           ],
 
-          // Carte: Créer une partie
+          // Carte: Solo vs Ordinateurs
+          _buildActionCard(
+            title: 'Solo vs Ordinateurs',
+            icon: Icons.smart_toy,
+            iconColor: const Color(0xFF9C27B0),
+            gradientColors: [
+              const Color(0xFF9C27B0),
+              const Color(0xFFBA68C8),
+            ],
+            onTap: _startSoloGame,
+            child: const Text(
+              'Affrontez 2 adversaires IA et entraînez-vous !',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                height: 1.4,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ),
+
+          const SizedBox(height: 24),
+
+          // Carte: Créer une partie multijoueur
           _buildActionCard(
             title: 'Créer une partie',
             icon: Icons.add_circle,

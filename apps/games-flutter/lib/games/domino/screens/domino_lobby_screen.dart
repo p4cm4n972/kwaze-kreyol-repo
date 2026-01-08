@@ -55,17 +55,21 @@ class _DominoLobbyScreenState extends State<DominoLobbyScreen>
   void _subscribeToSession() {
     _realtimeService.subscribeToDominoSession(widget.sessionId).listen(
       (session) {
+        // Vérifier que le widget est toujours monté avant d'appeler setState
+        if (!mounted) return;
+
         setState(() {
           _session = session;
           _isHost = session.hostId == _authService.getUserIdOrNull();
         });
 
         // Auto-navigation vers le jeu si la partie a démarré
-        if (session.status == 'in_progress' && mounted) {
+        if (session.status == 'in_progress') {
           context.go('/domino/game/${widget.sessionId}');
         }
       },
       onError: (error) {
+        if (!mounted) return;
         setState(() {
           _errorMessage = error.toString();
         });

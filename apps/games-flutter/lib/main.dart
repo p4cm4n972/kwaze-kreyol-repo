@@ -19,6 +19,8 @@ import 'games/domino/screens/domino_home_screen.dart';
 import 'games/domino/screens/domino_lobby_screen.dart';
 import 'games/domino/screens/domino_game_screen.dart';
 import 'games/domino/screens/domino_results_screen.dart';
+import 'games/domino/screens/domino_solo_game_screen.dart';
+import 'games/domino/services/domino_ai_service.dart';
 import 'config/supabase_config.dart';
 import 'services/supabase_service.dart';
 
@@ -131,6 +133,13 @@ final _router = GoRouter(
       builder: (context, state) {
         final sessionId = state.pathParameters['sessionId']!;
         return DominoResultsScreen(sessionId: sessionId);
+      },
+    ),
+    GoRoute(
+      path: '/domino/solo',
+      builder: (context, state) {
+        final difficulty = state.extra as AIDifficulty? ?? AIDifficulty.normal;
+        return DominoSoloGameScreen(difficulty: difficulty);
       },
     ),
     GoRoute(
