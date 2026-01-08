@@ -29,7 +29,7 @@ class BoardTilePosition {
 }
 
 /// Numéro de version pour debug (s'incrémente à chaque modification)
-const String kBoardVersion = 'v42';
+const String kBoardVersion = 'v43';
 
 /// Widget qui affiche le plateau de dominos avec layout intelligent
 class DominoBoardWidget extends StatefulWidget {

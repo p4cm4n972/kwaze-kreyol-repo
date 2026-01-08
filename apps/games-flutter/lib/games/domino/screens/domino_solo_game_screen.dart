@@ -417,10 +417,10 @@ class _DominoSoloGameScreenState extends State<DominoSoloGameScreen>
     if (DominoSoloService.isGameOver(_session!)) {
       _showFinalResultsDialog();
     } else {
-      // Démarrer une nouvelle manche
-      final previousWinnerId = _session!.participants
-          .reduce((a, b) => a.roundsWon > b.roundsWon ? a : b)
-          .id;
+      // Démarrer une nouvelle manche - le gagnant de la dernière manche commence
+      final previousWinnerId = _session!.rounds.isNotEmpty
+          ? _session!.rounds.last.winnerParticipantId
+          : null;
 
       final newGameState = DominoSoloService.startNewRound(
         _session!,
