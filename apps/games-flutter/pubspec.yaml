@@ -40,6 +40,7 @@ flutter:
     - assets/images/
     - assets/data/
     - assets/sounds/
+    - assets/sounds/domino/
 
   fonts:
     - family: Permanent_Marker

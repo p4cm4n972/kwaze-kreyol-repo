@@ -43,8 +43,22 @@ Ce dossier contient les effets sonores pour le jeu Skrabb.
 - Les sons peuvent être activés/désactivés dans les paramètres
 - Volume par défaut: 30-60% selon le type de son
 
-## Sources recommandées:
+## Sons Domino (dossier domino/)
+
+1. **place_tile.mp3** - Placement d'un domino
+2. **pass_turn.mp3** - Passer son tour
+3. **round_win.mp3** - Victoire de manche
+4. **game_win.mp3** - Victoire de partie
+5. **blocked.mp3** - Jeu bloqué
+
+## Sources et attributions:
 
 - [freesound.org](https://freesound.org) - Sons gratuits CC0
 - [zapsplat.com](https://zapsplat.com) - SFX gratuits
 - [incompetech.com](https://incompetech.com) - Musique libre de droits
+- [Pixabay](https://pixabay.com) - Sons libres de droits
+
+### Crédits Pixabay (Domino):
+- Sound Effects by [freesound_community](https://pixabay.com/fr/users/freesound_community-46691455/) from [Pixabay](https://pixabay.com/)
+- Sound Effects by [beetpro](https://pixabay.com/fr/users/beetpro-16097074/) from [Pixabay](https://pixabay.com/)
+- Sound Effects by [PewnaOsoba7](https://pixabay.com/fr/users/pewnaosoba7-30828249/) from [Pixabay](https://pixabay.com/)

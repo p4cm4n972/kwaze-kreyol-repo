@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../services/auth_service.dart';
 import '../services/domino_ai_service.dart';
 import '../services/domino_solo_service.dart';
+import '../services/domino_sound_service.dart';
 import '../models/domino_session.dart';
 import '../models/domino_tile.dart';
 import '../models/domino_participant.dart';
@@ -28,6 +29,7 @@ class DominoSoloGameScreen extends StatefulWidget {
 class _DominoSoloGameScreenState extends State<DominoSoloGameScreen>
     with TickerProviderStateMixin {
   final AuthService _authService = AuthService();
+  final DominoSoundService _soundService = DominoSoundService();
 
   DominoSession? _session;
   DominoGameState? _gameState;
@@ -85,6 +87,7 @@ class _DominoSoloGameScreenState extends State<DominoSoloGameScreen>
     _pulseAnimation = Tween<double>(begin: 1.0, end: 1.1).animate(
       CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
     );
+    _soundService.initialize();
     _loadPlayerName();
     _initializeGame();
   }
@@ -203,6 +206,9 @@ class _DominoSoloGameScreenState extends State<DominoSoloGameScreen>
         _isAIPlaying = false;
       });
 
+      // Son de placement
+      _soundService.playPlace();
+
       if (result.roundEnded) {
         _handleRoundEnd(result.roundWinnerId!, isCapot: result.isCapot);
       } else {
@@ -227,6 +233,9 @@ class _DominoSoloGameScreenState extends State<DominoSoloGameScreen>
         _session = _session!.copyWith(currentGameState: result.newState);
         _isAIPlaying = false;
       });
+
+      // Son de passe
+      _soundService.playPass();
 
       if (result.roundEnded) {
         _handleRoundEnd(result.roundWinnerId!);
@@ -265,6 +274,14 @@ class _DominoSoloGameScreenState extends State<DominoSoloGameScreen>
     setState(() {
       _session = updatedSession;
     });
+
+    // Jouer le son de victoire uniquement pour fin de partie
+    if (updatedSession.status == 'completed') {
+      _soundService.playVictory();
+    } else if (updatedSession.status == 'chiree') {
+      _soundService.playChiree();
+    }
+    // Pas de son pour simple victoire de manche
 
     // Afficher le dialog de fin de manche
     _showRoundEndDialog(winnerId);
@@ -556,6 +573,9 @@ class _DominoSoloGameScreenState extends State<DominoSoloGameScreen>
         _isLoading = false;
       });
 
+      // Son de placement
+      _soundService.playPlace();
+
       if (result.roundEnded) {
         _handleRoundEnd(result.roundWinnerId!, isCapot: result.isCapot);
       } else {
@@ -597,6 +617,9 @@ class _DominoSoloGameScreenState extends State<DominoSoloGameScreen>
         _session = _session!.copyWith(currentGameState: result.newState);
         _isLoading = false;
       });
+
+      // Son de passe
+      _soundService.playPass();
 
       if (result.roundEnded) {
         _handleRoundEnd(result.roundWinnerId!);

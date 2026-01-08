@@ -69,31 +69,31 @@ class DominoSoundService {
   /// Joue le son de placement d'un domino
   Future<void> playPlace() async {
     if (!_soundEnabled) return;
-    await _playSound(_placePlayer, 'assets/sounds/domino/place.mp3');
+    await _playSound(_placePlayer, 'assets/sounds/domino/place_tile.mp3');
   }
 
   /// Joue le son quand un joueur passe son tour
   Future<void> playPass() async {
     if (!_soundEnabled) return;
-    await _playSound(_passPlayer, 'assets/sounds/domino/pass.mp3');
+    await _playSound(_passPlayer, 'assets/sounds/domino/pass_turn.mp3');
   }
 
-  /// Joue le son de victoire de manche
+  /// Joue le son de victoire de manche (utilise game_win pour l'instant)
   Future<void> playRoundWin() async {
     if (!_soundEnabled) return;
-    await _playSound(_roundWinPlayer, 'assets/sounds/domino/round_win.mp3');
+    await _playSound(_roundWinPlayer, 'assets/sounds/domino/game_win.mp3');
   }
 
   /// Joue le son de victoire finale (3 manches)
   Future<void> playVictory() async {
     if (!_soundEnabled) return;
-    await _playSound(_victoryPlayer, 'assets/sounds/domino/victory.mp3');
+    await _playSound(_victoryPlayer, 'assets/sounds/domino/game_win.mp3');
   }
 
-  /// Joue le son de chirée (match nul)
+  /// Joue le son de chirée (match nul) - utilise pass_turn pour l'instant
   Future<void> playChiree() async {
     if (!_soundEnabled) return;
-    await _playSound(_chireePlayer, 'assets/sounds/domino/chiree.mp3');
+    await _playSound(_chireePlayer, 'assets/sounds/domino/pass_turn.mp3');
   }
 
   /// Joue un son avec gestion d'erreur
