@@ -157,11 +157,9 @@ class _GamesHomeScreenState extends State<GamesHomeScreen>
                     : 'assets/images/bkg.webp',
               ),
               fit: BoxFit.cover,
-              colorFilter: ColorFilter.mode(
-                KKColors.secondary.withValues(alpha: 0.6),
-                BlendMode.darken,
-              ),
+              alignment: Alignment.center,
             ),
+            color: KKColors.secondary,
           ),
           child: Stack(
             children: [
@@ -250,19 +248,7 @@ class _GamesHomeScreenState extends State<GamesHomeScreen>
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const SizedBox(height: 40),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: KKColors.primary,
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          'JEUX CRÉOLES',
-                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: isMobile ? 10 : 12, letterSpacing: 1.5),
-                        ),
-                      ),
-                      SizedBox(height: isMobile ? 12 : 16),
+                      const SizedBox(height: 50),
                       ShaderMask(
                         shaderCallback: (bounds) => const LinearGradient(colors: [KKColors.accent, KKColors.primary]).createShader(bounds),
                         child: Text(
@@ -795,15 +781,8 @@ class _GamesHomeScreenState extends State<GamesHomeScreen>
   Widget _buildGamesContent() {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final isMobile = constraints.maxWidth < 600;
-
-        if (isMobile) {
-          // Mobile: Catégories horizontales style FDJ
-          return _buildMobileCategories();
-        } else {
-          // Desktop: Grille de jeux
-          return _buildDesktopGrid(constraints.maxWidth);
-        }
+        // Grille pour tous les écrans (mobile et desktop)
+        return _buildDesktopGrid(constraints.maxWidth);
       },
     );
   }
@@ -840,7 +819,8 @@ class _GamesHomeScreenState extends State<GamesHomeScreen>
   }
 
   Widget _buildDesktopGrid(double maxWidth) {
-    final crossAxisCount = maxWidth > 1200 ? 3 : (maxWidth > 800 ? 3 : 2);
+    final isMobile = maxWidth < 600;
+    final crossAxisCount = maxWidth > 1200 ? 3 : (maxWidth > 600 ? 3 : 2);
 
     return Container(
       decoration: const BoxDecoration(
@@ -850,7 +830,7 @@ class _GamesHomeScreenState extends State<GamesHomeScreen>
           colors: [KKColors.secondary, KKColors.secondaryLight],
         ),
       ),
-      padding: const EdgeInsets.all(24),
+      padding: EdgeInsets.all(isMobile ? 12 : 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

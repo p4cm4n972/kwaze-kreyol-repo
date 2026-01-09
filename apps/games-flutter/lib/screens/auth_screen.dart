@@ -230,6 +230,24 @@ class _AuthScreenState extends State<AuthScreen> {
             ),
           ),
 
+          // Bouton retour
+          Positioned(
+            top: 0,
+            left: 0,
+            child: SafeArea(
+              child: IconButton(
+                onPressed: () {
+                  if (Navigator.canPop(context)) {
+                    Navigator.pop(context);
+                  } else {
+                    context.go('/');
+                  }
+                },
+                icon: const Icon(Icons.arrow_back, color: Colors.white, size: 28),
+              ),
+            ),
+          ),
+
           // Contenu principal
           SafeArea(
             child: SingleChildScrollView(
@@ -239,7 +257,7 @@ class _AuthScreenState extends State<AuthScreen> {
                 children: [
                   // Logo Kwazé Kréyol
                   Image.asset(
-                    'assets/images/logo-kk.png',
+                    'assets/images/logo-kk.webp',
                     height: 120,
                   ),
                   const SizedBox(height: 16),
