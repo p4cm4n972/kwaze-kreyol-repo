@@ -116,13 +116,9 @@ class _GamesHomeScreenState extends State<GamesHomeScreen>
       backgroundColor: KKColors.background,
       body: CustomScrollView(
         slivers: [
-          // Header avec fond dégradé
+          // Hero Banner avec Header intégré
           SliverToBoxAdapter(
-            child: _buildHeader(),
-          ),
-          // Hero Banner animé
-          SliverToBoxAdapter(
-            child: _buildHeroBanner(),
+            child: _buildHeroWithHeader(),
           ),
           // Contenu des jeux (adaptatif desktop/mobile)
           SliverToBoxAdapter(
@@ -141,39 +137,176 @@ class _GamesHomeScreenState extends State<GamesHomeScreen>
     );
   }
 
+  Widget _buildHeroWithHeader() {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final screenWidth = constraints.maxWidth;
+        final isMobile = screenWidth < 600;
+        final isTablet = screenWidth >= 600 && screenWidth < 1024;
+        final bannerHeight = isMobile ? 320.0 : (isTablet ? 360.0 : 400.0);
+        final titleSize = isMobile ? 32.0 : (isTablet ? 38.0 : 42.0);
+        final subtitleSize = isMobile ? 14.0 : 16.0;
+
+        return Container(
+          height: bannerHeight,
+          decoration: BoxDecoration(
+            image: DecorationImage(
+              image: AssetImage(
+                isMobile
+                    ? 'assets/images/bkg-mobile.webp'
+                    : 'assets/images/bkg.webp',
+              ),
+              fit: BoxFit.cover,
+              colorFilter: ColorFilter.mode(
+                KKColors.secondary.withValues(alpha: 0.6),
+                BlendMode.darken,
+              ),
+            ),
+          ),
+          child: Stack(
+            children: [
+              // Éléments flottants animés
+              AnimatedBuilder(
+                animation: _heroAnimController,
+                builder: (context, child) {
+                  return Stack(
+                    children: [
+                      _buildFloatingElement('K', screenWidth * 0.05, 80, _heroAnimController.value, 0, isMobile ? 32 : 48),
+                      if (!isMobile) _buildFloatingElement('W', screenWidth * 0.75, 100, _heroAnimController.value, 0.2, 48),
+                      _buildFloatingElement('A', screenWidth * 0.4, bannerHeight * 0.7, _heroAnimController.value, 0.4, isMobile ? 28 : 48),
+                      if (!isMobile) _buildFloatingElement('Z', screenWidth * 0.85, bannerHeight * 0.5, _heroAnimController.value, 0.6, 48),
+                      _buildFloatingElement('É', screenWidth * 0.15, bannerHeight * 0.5, _heroAnimController.value, 0.8, isMobile ? 28 : 48),
+                      _buildFloatingDomino(screenWidth * 0.02, bannerHeight * 0.75, _heroAnimController.value, 0.1),
+                      if (!isMobile) _buildFloatingDomino(screenWidth * 0.8, 60, _heroAnimController.value, 0.5),
+                      _buildFloatingDomino(screenWidth * 0.7, bannerHeight * 0.8, _heroAnimController.value, 0.3),
+                    ],
+                  );
+                },
+              ),
+              // Header transparent en haut
+              Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                child: SafeArea(
+                  bottom: false,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    child: Row(
+                      children: [
+                        Image.asset(
+                          'assets/images/logo-kk.webp',
+                          height: 48,
+                          width: 48,
+                          errorBuilder: (_, __, ___) => const Text('KK', style: TextStyle(fontWeight: FontWeight.bold, color: KKColors.accent, fontSize: 20)),
+                        ),
+                        const Spacer(),
+                        // Cloche notifications
+                        Stack(
+                          children: [
+                            IconButton(
+                              onPressed: () {
+                                if (_isAuthenticated) {
+                                  context.go('/friends');
+                                } else {
+                                  _showAuthScreen();
+                                }
+                              },
+                              icon: const Icon(Icons.notifications_outlined, color: Colors.white, size: 28),
+                            ),
+                            if (_pendingRequestsCount > 0)
+                              Positioned(
+                                right: 8,
+                                top: 8,
+                                child: Container(
+                                  padding: const EdgeInsets.all(4),
+                                  decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+                                  child: Text('$_pendingRequestsCount', style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                                ),
+                              ),
+                          ],
+                        ),
+                        // Avatar
+                        GestureDetector(
+                          onTap: _isAuthenticated ? () => _showUserMenu(context) : _showAuthScreen,
+                          child: CircleAvatar(
+                            radius: 18,
+                            backgroundColor: Colors.white.withValues(alpha: 0.2),
+                            child: Text(
+                              _isAuthenticated ? (_displayName ?? 'U')[0].toUpperCase() : '?',
+                              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              // Contenu central
+              Center(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: isMobile ? 20 : 40),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const SizedBox(height: 40),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: KKColors.primary,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          'JEUX CRÉOLES',
+                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: isMobile ? 10 : 12, letterSpacing: 1.5),
+                        ),
+                      ),
+                      SizedBox(height: isMobile ? 12 : 16),
+                      ShaderMask(
+                        shaderCallback: (bounds) => const LinearGradient(colors: [KKColors.accent, KKColors.primary]).createShader(bounds),
+                        child: Text(
+                          'Kwazé Kréyol',
+                          style: TextStyle(fontSize: titleSize, fontWeight: FontWeight.bold, color: Colors.white, letterSpacing: isMobile ? 1 : 2),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Valorisons la langue créole à travers le jeu !',
+                        style: TextStyle(fontSize: subtitleSize, color: Colors.white.withValues(alpha: 0.9), height: 1.4),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   Widget _buildHeader() {
     return Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [KKColors.secondary, KKColors.secondaryLight],
-        ),
-      ),
+      color: Colors.transparent,
       child: SafeArea(
         bottom: false,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Row(
             children: [
-              // Logo KK
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Image.asset(
-                  'assets/images/logo-kk.png',
-                  height: 32,
-                  width: 32,
-                  errorBuilder: (_, __, ___) => const Text(
-                    'KK',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: KKColors.primary,
-                      fontSize: 16,
-                    ),
+              // Logo KK sans fond
+              Image.asset(
+                'assets/images/logo-kk.webp',
+                height: 48,
+                width: 48,
+                errorBuilder: (_, __, ___) => const Text(
+                  'KK',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: KKColors.accent,
+                    fontSize: 20,
                   ),
                 ),
               ),
@@ -503,38 +636,6 @@ class _GamesHomeScreenState extends State<GamesHomeScreen>
                           height: 1.4,
                         ),
                         textAlign: TextAlign.center,
-                      ),
-                      SizedBox(height: isMobile ? 16 : 24),
-                      // Bouton CTA
-                      ElevatedButton(
-                        onPressed: () => context.go('/domino'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.white,
-                          foregroundColor: KKColors.primary,
-                          padding: EdgeInsets.symmetric(
-                            horizontal: isMobile ? 24 : 32,
-                            vertical: isMobile ? 12 : 14,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30),
-                          ),
-                          elevation: 8,
-                          shadowColor: Colors.black26,
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              'Jouer maintenant',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: isMobile ? 14 : 16,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            const Icon(Icons.arrow_forward_rounded),
-                          ],
-                        ),
                       ),
                     ],
                   ),
@@ -1142,7 +1243,7 @@ class _CategoryGameCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
           child: Column(
             children: [
-              // Section haute - Fond blanc avec image
+              // Section haute - Fond blanc avec image seulement
               Expanded(
                 flex: 6,
                 child: Container(
@@ -1153,52 +1254,18 @@ class _CategoryGameCard extends StatelessWidget {
                       // Image centrée
                       Positioned.fill(
                         child: Padding(
-                          padding: const EdgeInsets.all(12),
-                          child: Column(
-                            children: [
-                              // Image principale
-                              Expanded(
-                                child: Opacity(
-                                  opacity: available ? 1.0 : 0.5,
-                                  child: Image.asset(
-                                    iconPath,
-                                    fit: BoxFit.contain,
-                                    errorBuilder: (_, __, ___) => Icon(
-                                      Icons.sports_esports,
-                                      size: 50,
-                                      color: gradient[0].withValues(alpha: 0.5),
-                                    ),
-                                  ),
-                                ),
+                          padding: const EdgeInsets.all(10),
+                          child: Opacity(
+                            opacity: available ? 1.0 : 0.5,
+                            child: Image.asset(
+                              iconPath,
+                              fit: BoxFit.contain,
+                              errorBuilder: (_, __, ___) => Icon(
+                                Icons.sports_esports,
+                                size: 50,
+                                color: gradient[0].withValues(alpha: 0.5),
                               ),
-                              const SizedBox(height: 6),
-                              // Nom du jeu
-                              Text(
-                                name.toUpperCase(),
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
-                                  color: KKColors.secondary,
-                                  letterSpacing: 0.5,
-                                ),
-                                textAlign: TextAlign.center,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              const SizedBox(height: 2),
-                              // Description
-                              Text(
-                                subtitle,
-                                style: TextStyle(
-                                  fontSize: 9,
-                                  color: gradient[0],
-                                  fontWeight: FontWeight.w500,
-                                ),
-                                textAlign: TextAlign.center,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ],
+                            ),
                           ),
                         ),
                       ),
@@ -1388,7 +1455,7 @@ class _DesktopGameCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           child: Column(
             children: [
-              // Section haute - Fond blanc avec image
+              // Section haute - Fond blanc avec image seulement
               Expanded(
                 flex: 7,
                 child: Container(
@@ -1399,52 +1466,18 @@ class _DesktopGameCard extends StatelessWidget {
                       // Image centrée
                       Positioned.fill(
                         child: Padding(
-                          padding: const EdgeInsets.all(20),
-                          child: Column(
-                            children: [
-                              // Image principale
-                              Expanded(
-                                child: Opacity(
-                                  opacity: available ? 1.0 : 0.5,
-                                  child: Image.asset(
-                                    iconPath,
-                                    fit: BoxFit.contain,
-                                    errorBuilder: (_, __, ___) => Icon(
-                                      Icons.sports_esports,
-                                      size: 100,
-                                      color: gradient[0].withValues(alpha: 0.5),
-                                    ),
-                                  ),
-                                ),
+                          padding: const EdgeInsets.all(16),
+                          child: Opacity(
+                            opacity: available ? 1.0 : 0.5,
+                            child: Image.asset(
+                              iconPath,
+                              fit: BoxFit.contain,
+                              errorBuilder: (_, __, ___) => Icon(
+                                Icons.sports_esports,
+                                size: 100,
+                                color: gradient[0].withValues(alpha: 0.5),
                               ),
-                              const SizedBox(height: 12),
-                              // Nom du jeu en majuscules
-                              Text(
-                                name.toUpperCase(),
-                                style: TextStyle(
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.bold,
-                                  color: KKColors.secondary,
-                                  letterSpacing: 1,
-                                ),
-                                textAlign: TextAlign.center,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              const SizedBox(height: 4),
-                              // Description
-                              Text(
-                                description,
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  color: gradient[0],
-                                  fontWeight: FontWeight.w500,
-                                ),
-                                textAlign: TextAlign.center,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ],
+                            ),
                           ),
                         ),
                       ),
