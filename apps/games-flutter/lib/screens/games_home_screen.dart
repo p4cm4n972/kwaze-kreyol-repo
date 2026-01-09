@@ -1102,7 +1102,7 @@ class _MainGameCard extends StatelessWidget {
   }
 }
 
-// Widget pour les cartes de jeux (style original avec icône dominante)
+// Widget pour les cartes de jeux mobile - même style que desktop
 class _CategoryGameCard extends StatelessWidget {
   final String name;
   final String subtitle;
@@ -1129,93 +1129,121 @@ class _CategoryGameCard extends StatelessWidget {
       child: Container(
         width: 160,
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.05),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.1), width: 1),
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.3),
+              blurRadius: 8,
+              offset: const Offset(0, 3),
+            ),
+          ],
         ),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(16),
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: available ? onTap : null,
-              splashColor: available
-                  ? KKColors.accent.withValues(alpha: 0.2)
-                  : Colors.transparent,
-              child: Padding(
-                padding: const EdgeInsets.all(12.0),
+          borderRadius: BorderRadius.circular(12),
+          child: Column(
+            children: [
+              // Section haute - Fond blanc avec image
+              Expanded(
+                flex: 6,
+                child: Container(
+                  width: double.infinity,
+                  color: Colors.white,
+                  child: Stack(
+                    children: [
+                      // Image centrée
+                      Positioned.fill(
+                        child: Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Column(
+                            children: [
+                              // Image principale
+                              Expanded(
+                                child: Opacity(
+                                  opacity: available ? 1.0 : 0.5,
+                                  child: Image.asset(
+                                    iconPath,
+                                    fit: BoxFit.contain,
+                                    errorBuilder: (_, __, ___) => Icon(
+                                      Icons.sports_esports,
+                                      size: 50,
+                                      color: gradient[0].withValues(alpha: 0.5),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 6),
+                              // Nom du jeu
+                              Text(
+                                name.toUpperCase(),
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: KKColors.secondary,
+                                  letterSpacing: 0.5,
+                                ),
+                                textAlign: TextAlign.center,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              const SizedBox(height: 2),
+                              // Description
+                              Text(
+                                subtitle,
+                                style: TextStyle(
+                                  fontSize: 9,
+                                  color: gradient[0],
+                                  fontWeight: FontWeight.w500,
+                                ),
+                                textAlign: TextAlign.center,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      // Badge en haut à droite
+                      if (badge != null)
+                        Positioned(
+                          top: 6,
+                          right: 6,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: badge == 'Nouveau'
+                                  ? Colors.green
+                                  : badge == 'Populaire'
+                                      ? KKColors.primary
+                                      : Colors.grey,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              badge!,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 8,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+              // Section basse - Fond bleu avec bouton
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                color: KKColors.secondary,
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Badge en haut
-                    if (badge != null)
-                      Align(
-                        alignment: Alignment.topRight,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: badge == 'Nouveau'
-                                ? Colors.green
-                                : badge == 'Populaire'
-                                    ? KKColors.primary
-                                    : Colors.grey,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Text(
-                            badge!,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 9,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ),
-                    // Icône dominante
-                    Expanded(
-                      flex: 5,
-                      child: Center(
-                        child: Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            // Glow effect
-                            Container(
-                              width: 100,
-                              height: 100,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                gradient: RadialGradient(
-                                  colors: [
-                                    gradient[0].withValues(alpha: 0.3),
-                                    Colors.transparent,
-                                  ],
-                                ),
-                              ),
-                            ),
-                            // Icon
-                            Opacity(
-                              opacity: available ? 1.0 : 0.5,
-                              child: Image.asset(
-                                iconPath,
-                                width: 70,
-                                height: 70,
-                                fit: BoxFit.contain,
-                                errorBuilder: (_, __, ___) => Icon(
-                                  Icons.sports_esports,
-                                  size: 60,
-                                  color: Colors.white.withValues(alpha: 0.5),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
                     // Nom du jeu
                     Text(
                       name,
                       style: const TextStyle(
-                        fontSize: 14,
+                        fontSize: 11,
                         fontWeight: FontWeight.bold,
                         color: KKColors.accent,
                       ),
@@ -1223,7 +1251,7 @@ class _CategoryGameCard extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 6),
                     // Bouton Jouer
                     Container(
                       width: double.infinity,
@@ -1232,13 +1260,13 @@ class _CategoryGameCard extends StatelessWidget {
                             ? LinearGradient(colors: gradient)
                             : null,
                         color: available ? null : Colors.grey.withValues(alpha: 0.5),
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(6),
                       ),
                       child: Material(
                         color: Colors.transparent,
                         child: InkWell(
                           onTap: available ? onTap : null,
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(6),
                           child: Padding(
                             padding: const EdgeInsets.symmetric(vertical: 8),
                             child: Row(
@@ -1246,14 +1274,14 @@ class _CategoryGameCard extends StatelessWidget {
                               children: [
                                 Icon(
                                   Icons.sports_esports,
-                                  size: 16,
+                                  size: 14,
                                   color: available ? Colors.white : Colors.white54,
                                 ),
-                                const SizedBox(width: 6),
+                                const SizedBox(width: 4),
                                 Text(
                                   available ? 'Jouer' : 'Bientôt',
                                   style: TextStyle(
-                                    fontSize: 12,
+                                    fontSize: 11,
                                     fontWeight: FontWeight.bold,
                                     color: available ? Colors.white : Colors.white54,
                                   ),
@@ -1267,7 +1295,7 @@ class _CategoryGameCard extends StatelessWidget {
                   ],
                 ),
               ),
-            ),
+            ],
           ),
         ),
       ),
