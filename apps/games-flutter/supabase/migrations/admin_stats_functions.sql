@@ -16,7 +16,7 @@ BEGIN
   -- Check if caller is admin
   IF NOT EXISTS (
     SELECT 1 FROM users
-    WHERE id = auth.uid() AND role = 'admin'
+    WHERE id::TEXT = auth.uid()::TEXT AND role = 'admin'
   ) THEN
     RAISE EXCEPTION 'Access denied: Admin role required';
   END IF;
@@ -53,7 +53,7 @@ BEGIN
   -- Check if caller is admin
   IF NOT EXISTS (
     SELECT 1 FROM users
-    WHERE id = auth.uid() AND role = 'admin'
+    WHERE id::TEXT = auth.uid()::TEXT AND role = 'admin'
   ) THEN
     RAISE EXCEPTION 'Access denied: Admin role required';
   END IF;
@@ -107,7 +107,7 @@ BEGIN
   -- Check if caller is admin
   IF NOT EXISTS (
     SELECT 1 FROM users
-    WHERE id = auth.uid() AND role = 'admin'
+    WHERE id::TEXT = auth.uid()::TEXT AND role = 'admin'
   ) THEN
     RAISE EXCEPTION 'Access denied: Admin role required';
   END IF;
@@ -166,7 +166,7 @@ BEGIN
   -- Check if caller is admin
   IF NOT EXISTS (
     SELECT 1 FROM users
-    WHERE id = auth.uid() AND role = 'admin'
+    WHERE id::TEXT = auth.uid()::TEXT AND role = 'admin'
   ) THEN
     RAISE EXCEPTION 'Access denied: Admin role required';
   END IF;
@@ -204,7 +204,7 @@ BEGIN
   -- Check if caller is admin
   IF NOT EXISTS (
     SELECT 1 FROM users
-    WHERE id = auth.uid() AND role = 'admin'
+    WHERE id::TEXT = auth.uid()::TEXT AND role = 'admin'
   ) THEN
     RAISE EXCEPTION 'Access denied: Admin role required';
   END IF;
@@ -238,7 +238,7 @@ BEGIN
   -- Check if caller is admin
   IF NOT EXISTS (
     SELECT 1 FROM users
-    WHERE id = auth.uid() AND role = 'admin'
+    WHERE id::TEXT = auth.uid()::TEXT AND role = 'admin'
   ) THEN
     RAISE EXCEPTION 'Access denied: Admin role required';
   END IF;
@@ -273,7 +273,7 @@ BEGIN
   -- Check if caller is admin
   IF NOT EXISTS (
     SELECT 1 FROM users
-    WHERE id = auth.uid() AND role = 'admin'
+    WHERE id::TEXT = auth.uid()::TEXT AND role = 'admin'
   ) THEN
     RAISE EXCEPTION 'Access denied: Admin role required';
   END IF;
@@ -313,7 +313,7 @@ BEGIN
   -- Check if caller is admin
   IF NOT EXISTS (
     SELECT 1 FROM users
-    WHERE id = auth.uid() AND role = 'admin'
+    WHERE id::TEXT = auth.uid()::TEXT AND role = 'admin'
   ) THEN
     RAISE EXCEPTION 'Access denied: Admin role required';
   END IF;
@@ -353,7 +353,7 @@ BEGIN
   -- Check if caller is admin
   IF NOT EXISTS (
     SELECT 1 FROM users
-    WHERE id = auth.uid() AND role = 'admin'
+    WHERE id::TEXT = auth.uid()::TEXT AND role = 'admin'
   ) THEN
     RAISE EXCEPTION 'Access denied: Admin role required';
   END IF;
@@ -400,7 +400,7 @@ BEGIN
   -- Check if caller is admin
   IF NOT EXISTS (
     SELECT 1 FROM users
-    WHERE id = auth.uid() AND role = 'admin'
+    WHERE id::TEXT = auth.uid()::TEXT AND role = 'admin'
   ) THEN
     RAISE EXCEPTION 'Access denied: Admin role required';
   END IF;
@@ -439,7 +439,7 @@ BEGIN
   -- Check if caller is admin
   IF NOT EXISTS (
     SELECT 1 FROM users
-    WHERE id = auth.uid() AND role = 'admin'
+    WHERE id::TEXT = auth.uid()::TEXT AND role = 'admin'
   ) THEN
     RAISE EXCEPTION 'Access denied: Admin role required';
   END IF;
@@ -473,7 +473,7 @@ BEGIN
   -- Check if caller is admin
   IF NOT EXISTS (
     SELECT 1 FROM users
-    WHERE id = auth.uid() AND role = 'admin'
+    WHERE id::TEXT = auth.uid()::TEXT AND role = 'admin'
   ) THEN
     RAISE EXCEPTION 'Access denied: Admin role required';
   END IF;
