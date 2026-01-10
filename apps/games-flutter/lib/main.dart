@@ -23,6 +23,7 @@ import 'games/domino/screens/domino_solo_game_screen.dart';
 import 'games/domino/services/domino_ai_service.dart';
 import 'config/supabase_config.dart';
 import 'services/supabase_service.dart';
+import 'screens/admin/admin_dashboard_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -141,6 +142,10 @@ final _router = GoRouter(
         final difficulty = state.extra as AIDifficulty? ?? AIDifficulty.normal;
         return DominoSoloGameScreen(difficulty: difficulty);
       },
+    ),
+    GoRoute(
+      path: '/admin',
+      builder: (context, state) => const AdminDashboardScreen(),
     ),
     GoRoute(
       path: '/profile',
