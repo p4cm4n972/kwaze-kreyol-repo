@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../core/app_version.dart';
 
 class LegalFooter extends StatelessWidget {
   const LegalFooter({super.key});
@@ -34,14 +35,14 @@ class LegalFooter extends StatelessWidget {
               ),
             ],
           ),
-          child: const Row(
+          child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.science_outlined, color: Colors.white, size: 16),
-              SizedBox(width: 6),
+              const Icon(Icons.science_outlined, color: Colors.white, size: 16),
+              const SizedBox(width: 6),
               Text(
-                'VERSION BETA',
-                style: TextStyle(
+                AppVersion.fullVersion.toUpperCase(),
+                style: const TextStyle(
                   fontSize: 12,
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
