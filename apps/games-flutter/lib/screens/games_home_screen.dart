@@ -52,10 +52,8 @@ class _GamesHomeScreenState extends State<GamesHomeScreen>
   }
 
   Future<void> _initPresence() async {
-    // Initialiser le tracking de présence si l'utilisateur est connecté
-    if (await _authService.isAuthenticated()) {
-      await _presenceService.initialize();
-    }
+    // Initialiser le tracking de présence pour tous (connectés et visiteurs)
+    await _presenceService.initialize();
   }
 
   @override

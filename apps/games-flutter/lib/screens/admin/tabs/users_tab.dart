@@ -21,10 +21,11 @@ class _UsersTabState extends State<UsersTab> {
   AdminUserStats? _userStats;
   List<TimeSeriesDataPoint>? _usersOverTime;
   AdminActiveUsers? _activeUsers;
-  int _onlineCount = 0;
+  int _connectedCount = 0;
+  int _visitorCount = 0;
   bool _isLoading = true;
   String? _error;
-  StreamSubscription? _presenceSubscription;
+  StreamSubscription<PresenceStats>? _presenceSubscription;
 
   @override
   void initState() {
@@ -41,15 +42,18 @@ class _UsersTabState extends State<UsersTab> {
 
   void _subscribeToPresence() {
     // S'abonner aux changements de présence
-    _presenceSubscription = _presenceService.onlineUsersStream.listen((users) {
+    _presenceSubscription = _presenceService.presenceStatsStream.listen((stats) {
       if (mounted) {
         setState(() {
-          _onlineCount = users.length;
+          _connectedCount = stats.connectedCount;
+          _visitorCount = stats.visitorCount;
         });
       }
     });
-    // Initialiser avec la valeur actuelle
-    _onlineCount = _presenceService.onlineCount;
+    // Initialiser avec les valeurs actuelles
+    final currentStats = _presenceService.currentStats;
+    _connectedCount = currentStats.connectedCount;
+    _visitorCount = currentStats.visitorCount;
   }
 
   Future<void> _loadData() async {
@@ -128,7 +132,7 @@ class _UsersTabState extends State<UsersTab> {
             // Cartes principales
             LayoutBuilder(
               builder: (context, constraints) {
-                final crossAxisCount = constraints.maxWidth > 1000 ? 5 : (constraints.maxWidth > 600 ? 3 : 2);
+                final crossAxisCount = constraints.maxWidth > 1200 ? 6 : (constraints.maxWidth > 800 ? 4 : 2);
                 return GridView.count(
                   crossAxisCount: crossAxisCount,
                   shrinkWrap: true,
@@ -144,11 +148,19 @@ class _UsersTabState extends State<UsersTab> {
                       color: const Color(0xFFE67E22),
                     ),
                     StatCard(
-                      title: 'En ligne',
-                      value: '$_onlineCount',
-                      icon: Icons.circle,
+                      title: 'Connectés',
+                      value: '$_connectedCount',
+                      icon: Icons.person,
                       color: Colors.green,
-                      subtitle: 'actuellement connectés',
+                      subtitle: 'utilisateurs en ligne',
+                      isLive: true,
+                    ),
+                    StatCard(
+                      title: 'Visiteurs',
+                      value: '$_visitorCount',
+                      icon: Icons.visibility,
+                      color: Colors.teal,
+                      subtitle: 'anonymes en ligne',
                       isLive: true,
                     ),
                     StatCard(
