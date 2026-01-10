@@ -868,7 +868,7 @@ class _DominoSoloGameScreenState extends State<DominoSoloGameScreen>
     final isCurrentTurn = _isMyTurn && !_isAIPlaying;
 
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
         color: Colors.indigo.shade900.withValues(alpha: 0.8),
         borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
@@ -880,15 +880,102 @@ class _DominoSoloGameScreenState extends State<DominoSoloGameScreen>
           ),
         ],
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
+      child: Row(
         children: [
-          // Indicateur de tour
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+          // Main du joueur (dominos)
+          Expanded(
+            child: SizedBox(
+              height: 80,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: _myHand.length,
+                itemBuilder: (context, index) {
+                  final tile = _myHand[index];
+                  final isPlayable = _playableTiles.contains(tile);
+                  final isSelected = _selectedTile == tile;
+
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    child: Draggable<DominoTile>(
+                      data: tile,
+                      feedback: Material(
+                        color: Colors.transparent,
+                        child: Transform.scale(
+                          scale: 1.2,
+                          child: DominoTileWidget(
+                            value1: tile.value1,
+                            value2: tile.value2,
+                            width: 35,
+                            height: 70,
+                            isVertical: true,
+                          ),
+                        ),
+                      ),
+                      childWhenDragging: Opacity(
+                        opacity: 0.3,
+                        child: DominoTileWidget(
+                          value1: tile.value1,
+                          value2: tile.value2,
+                          width: 35,
+                          height: 70,
+                          isVertical: true,
+                        ),
+                      ),
+                      child: GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            _selectedTile = isSelected ? null : tile;
+                          });
+                        },
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          transform: Matrix4.translationValues(
+                            0,
+                            isSelected ? -10 : 0,
+                            0,
+                          ),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(8),
+                              boxShadow: isPlayable && isCurrentTurn
+                                  ? [
+                                      BoxShadow(
+                                        color: Colors.green.withValues(alpha: 0.6),
+                                        blurRadius: 8,
+                                        spreadRadius: 2,
+                                      ),
+                                    ]
+                                  : null,
+                            ),
+                            child: Opacity(
+                              opacity: (!isCurrentTurn || !isPlayable) ? 0.5 : 1.0,
+                              child: DominoTileWidget(
+                                value1: tile.value1,
+                                value2: tile.value2,
+                                width: 35,
+                                height: 70,
+                                isVertical: true,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+
+          // Infos joueur à droite
+          const SizedBox(width: 12),
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.end,
             children: [
+              // Indicateur de tour
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
                   color: isCurrentTurn
                       ? Colors.green.withValues(alpha: 0.3)
@@ -904,138 +991,63 @@ class _DominoSoloGameScreenState extends State<DominoSoloGameScreen>
                     Icon(
                       isCurrentTurn ? Icons.play_arrow : Icons.hourglass_empty,
                       color: isCurrentTurn ? Colors.green : Colors.grey,
-                      size: 18,
+                      size: 16,
                     ),
-                    const SizedBox(width: 6),
+                    const SizedBox(width: 4),
                     Text(
-                      isCurrentTurn ? 'Votre tour' : 'En attente...',
+                      isCurrentTurn ? 'À vous' : 'Attente',
                       style: TextStyle(
                         color: isCurrentTurn ? Colors.green : Colors.grey,
                         fontWeight: FontWeight.bold,
+                        fontSize: 12,
                       ),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(width: 12),
-              Icon(Icons.star, color: Colors.amber, size: 18),
-              Text(
-                ' ${_humanParticipant?.roundsWon ?? 0} manches',
-                style: const TextStyle(
-                  color: Colors.amber,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-
-          // Main du joueur
-          SizedBox(
-            height: 80,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              itemCount: _myHand.length,
-              itemBuilder: (context, index) {
-                final tile = _myHand[index];
-                final isPlayable = _playableTiles.contains(tile);
-                final isSelected = _selectedTile == tile;
-
-                return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 4),
-                  child: Draggable<DominoTile>(
-                    data: tile,
-                    feedback: Material(
-                      color: Colors.transparent,
-                      child: Transform.scale(
-                        scale: 1.2,
-                        child: DominoTileWidget(
-                          value1: tile.value1,
-                          value2: tile.value2,
-                          width: 35,
-                          height: 70,
-                          isVertical: true,
-                        ),
-                      ),
-                    ),
-                    childWhenDragging: Opacity(
-                      opacity: 0.3,
-                      child: DominoTileWidget(
-                        value1: tile.value1,
-                        value2: tile.value2,
-                        width: 35,
-                        height: 70,
-                        isVertical: true,
-                      ),
-                    ),
-                    child: GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          _selectedTile = isSelected ? null : tile;
-                        });
-                      },
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
-                        transform: Matrix4.translationValues(
-                          0,
-                          isSelected ? -10 : 0,
-                          0,
-                        ),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(8),
-                            boxShadow: isPlayable && isCurrentTurn
-                                ? [
-                                    BoxShadow(
-                                      color: Colors.green.withValues(alpha: 0.6),
-                                      blurRadius: 8,
-                                      spreadRadius: 2,
-                                    ),
-                                  ]
-                                : null,
-                          ),
-                          child: Opacity(
-                            opacity: (!isCurrentTurn || !isPlayable) ? 0.5 : 1.0,
-                            child: DominoTileWidget(
-                              value1: tile.value1,
-                              value2: tile.value2,
-                              width: 35,
-                              height: 70,
-                              isVertical: true,
-                            ),
-                          ),
-                        ),
-                      ),
+              const SizedBox(height: 8),
+              // Nombre de manches
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.star, color: Colors.amber, size: 16),
+                  const SizedBox(width: 4),
+                  Text(
+                    '${_humanParticipant?.roundsWon ?? 0}/3',
+                    style: const TextStyle(
+                      color: Colors.amber,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
                     ),
                   ),
-                );
-              },
-            ),
-          ),
-
-          // Bouton passer si nécessaire
-          if (isCurrentTurn && _playableTiles.isEmpty) ...[
-            const SizedBox(height: 12),
-            ElevatedButton.icon(
-              onPressed: _passTurn,
-              icon: const Icon(Icons.skip_next),
-              label: const Text('Passer mon tour'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.orange,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                ],
               ),
-            ),
-          ],
-
-          // Message d'erreur
-          if (_errorMessage != null) ...[
-            const SizedBox(height: 8),
-            Text(
-              _errorMessage!,
-              style: const TextStyle(color: Colors.red, fontSize: 12),
-            ),
-          ],
+              // Bouton passer si nécessaire
+              if (isCurrentTurn && _playableTiles.isEmpty) ...[
+                const SizedBox(height: 8),
+                ElevatedButton.icon(
+                  onPressed: _passTurn,
+                  icon: const Icon(Icons.skip_next, size: 16),
+                  label: const Text('Passer', style: TextStyle(fontSize: 12)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.orange,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                ),
+              ],
+              // Message d'erreur
+              if (_errorMessage != null) ...[
+                const SizedBox(height: 4),
+                Text(
+                  _errorMessage!,
+                  style: const TextStyle(color: Colors.red, fontSize: 10),
+                ),
+              ],
+            ],
+          ),
         ],
       ),
     );
