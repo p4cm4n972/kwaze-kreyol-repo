@@ -86,8 +86,8 @@ BEGIN
   )
   SELECT
     ds.d AS date,
-    COALESCE(dc.cnt, 0) AS new_users,
-    (SELECT cnt FROM total_before) + SUM(COALESCE(dc.cnt, 0)) OVER (ORDER BY ds.d) AS cumulative_users
+    COALESCE(dc.cnt, 0)::BIGINT AS new_users,
+    ((SELECT cnt FROM total_before) + SUM(COALESCE(dc.cnt, 0)) OVER (ORDER BY ds.d))::BIGINT AS cumulative_users
   FROM date_series ds
   LEFT JOIN daily_counts dc ON ds.d = dc.d
   ORDER BY ds.d;
@@ -416,7 +416,7 @@ BEGIN
        NULLIF(COUNT(DISTINCT dp.session_id), 0) * 100), 1
     ) AS win_rate
   FROM domino_participants dp
-  JOIN users u ON u.id = dp.user_id
+  JOIN users u ON u.id::TEXT = dp.user_id::TEXT
   JOIN domino_sessions ds ON ds.id = dp.session_id
   WHERE dp.user_id IS NOT NULL
     AND ds.status IN ('completed', 'chiree')
@@ -452,7 +452,7 @@ BEGIN
     SUM(sg.score)::BIGINT AS total_score,
     ROUND(AVG(sg.score)::NUMERIC, 1) AS avg_score
   FROM skrabb_games sg
-  JOIN users u ON u.id = sg.user_id
+  JOIN users u ON u.id::TEXT = sg.user_id::TEXT
   WHERE sg.status = 'completed'
   GROUP BY sg.user_id, u.username
   ORDER BY total_score DESC
@@ -486,7 +486,7 @@ BEGIN
     SUM(mmg.score)::BIGINT AS total_score,
     ROUND(AVG(mmg.score)::NUMERIC, 1) AS avg_score
   FROM mots_mawon_games mmg
-  JOIN users u ON u.id = mmg.user_id
+  JOIN users u ON u.id::TEXT = mmg.user_id::TEXT
   WHERE mmg.status = 'completed'
   GROUP BY mmg.user_id, u.username
   ORDER BY total_score DESC
