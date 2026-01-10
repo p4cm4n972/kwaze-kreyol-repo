@@ -224,16 +224,18 @@ class _GamesHomeScreenState extends State<GamesHomeScreen>
                               ),
                           ],
                         ),
-                        // Avatar
+                        // Avatar / Bouton connexion
                         GestureDetector(
                           onTap: _isAuthenticated ? () => _showUserMenu(context) : _showAuthScreen,
                           child: CircleAvatar(
                             radius: 18,
                             backgroundColor: Colors.white.withValues(alpha: 0.2),
-                            child: Text(
-                              _isAuthenticated ? (_displayName ?? 'U')[0].toUpperCase() : '?',
-                              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
-                            ),
+                            child: _isAuthenticated
+                                ? Text(
+                                    (_displayName?.isNotEmpty == true ? _displayName![0] : 'U').toUpperCase(),
+                                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+                                  )
+                                : const Icon(Icons.person_outline, color: Colors.white, size: 22),
                           ),
                         ),
                       ],
@@ -358,16 +360,16 @@ class _GamesHomeScreenState extends State<GamesHomeScreen>
                       CircleAvatar(
                         radius: 14,
                         backgroundColor: KKColors.primary,
-                        child: Text(
-                          _isAuthenticated
-                              ? (_displayName ?? 'U')[0].toUpperCase()
-                              : '?',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 12,
-                          ),
-                        ),
+                        child: _isAuthenticated
+                            ? Text(
+                                (_displayName?.isNotEmpty == true ? _displayName![0] : 'U').toUpperCase(),
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 12,
+                                ),
+                              )
+                            : const Icon(Icons.person_outline, color: Colors.white, size: 16),
                       ),
                       if (_isAuthenticated) ...[
                         const SizedBox(width: 8),
@@ -413,12 +415,12 @@ class _GamesHomeScreenState extends State<GamesHomeScreen>
               leading: CircleAvatar(
                 backgroundColor: KKColors.primary,
                 child: Text(
-                  (_displayName ?? 'U')[0].toUpperCase(),
+                  (_displayName?.isNotEmpty == true ? _displayName![0] : 'U').toUpperCase(),
                   style: const TextStyle(color: Colors.white),
                 ),
               ),
               title: Text(
-                _displayName ?? 'Utilisateur',
+                _displayName?.isNotEmpty == true ? _displayName! : 'Utilisateur',
                 style: const TextStyle(fontWeight: FontWeight.bold),
               ),
               subtitle: const Text('Compte connecté'),

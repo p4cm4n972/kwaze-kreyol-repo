@@ -221,30 +221,35 @@ class _AuthScreenState extends State<AuthScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBodyBehindAppBar: true,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: Container(
+          margin: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: Colors.black.withOpacity(0.3),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.white, size: 24),
+            onPressed: () {
+              if (Navigator.canPop(context)) {
+                Navigator.pop(context);
+              } else {
+                context.go('/home');
+              }
+            },
+            tooltip: 'Retour',
+          ),
+        ),
+      ),
       body: Stack(
         children: [
           // Fond avec waves madras
           Positioned.fill(
             child: CustomPaint(
               painter: _MadrasWavesPainter(),
-            ),
-          ),
-
-          // Bouton retour
-          Positioned(
-            top: 0,
-            left: 0,
-            child: SafeArea(
-              child: IconButton(
-                onPressed: () {
-                  if (Navigator.canPop(context)) {
-                    Navigator.pop(context);
-                  } else {
-                    context.go('/');
-                  }
-                },
-                icon: const Icon(Icons.arrow_back, color: Colors.white, size: 28),
-              ),
             ),
           ),
 
@@ -255,6 +260,7 @@ class _AuthScreenState extends State<AuthScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  const SizedBox(height: 24),
                   // Logo Kwazé Kréyol
                   Image.asset(
                     'assets/images/logo-kk.webp',
@@ -388,21 +394,6 @@ class _AuthScreenState extends State<AuthScreen> {
                     ),
                   ),
                 ],
-              ),
-            ),
-          ),
-
-          // Bouton retour (au-dessus de tout)
-          Positioned(
-            top: 16,
-            left: 8,
-            child: SafeArea(
-              child: IconButton(
-                icon: const Icon(Icons.arrow_back, color: Colors.white, size: 28),
-                onPressed: () {
-                  context.go('/');
-                },
-                tooltip: 'Retour',
               ),
             ),
           ),

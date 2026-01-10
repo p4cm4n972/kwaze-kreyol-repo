@@ -385,7 +385,7 @@ class _FriendsListScreenState extends State<FriendsListScreen> {
                   ? NetworkImage(request.senderAvatarUrl!)
                   : null,
               child: request.senderAvatarUrl == null
-                  ? Text((request.senderUsername ?? 'U')[0].toUpperCase())
+                  ? Text((request.senderUsername?.isNotEmpty == true ? request.senderUsername![0] : 'U').toUpperCase())
                   : null,
             ),
             const SizedBox(width: 12),
