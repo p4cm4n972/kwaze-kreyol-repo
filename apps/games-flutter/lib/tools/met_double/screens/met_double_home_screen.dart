@@ -380,7 +380,7 @@ class _MetDoubleHomeScreenState extends State<MetDoubleHomeScreen> {
             children: [
               // Header unifié
               GameHeader(
-                title: 'Mét Double',
+                title: 'Met Double',
                 iconPath: 'assets/icons/met-double.png',
                 onBack: () => context.go('/home'),
                 gradientColors: const [Color(0xFF9B59B6), Color(0xFF8E44AD)],

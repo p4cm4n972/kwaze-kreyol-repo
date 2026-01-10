@@ -144,7 +144,7 @@ class _FriendProfileScreenState extends State<FriendProfileScreen> {
                 );
               },
               icon: const Icon(Icons.casino),
-              label: const Text('Inviter à jouer Mét Double'),
+              label: const Text('Inviter à jouer Met Double'),
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 24,

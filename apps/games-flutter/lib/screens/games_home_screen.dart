@@ -739,7 +739,7 @@ class _GamesHomeScreenState extends State<GamesHomeScreen>
   List<_GameData> get _allGames => [
     _GameData(
       id: 'mots-mawon',
-      name: 'Mots Mawon',
+      name: 'Mo Mawon',
       subtitle: 'Jeu de mots cachés en créole martiniquais',
       iconPath: 'assets/icons/mo-mawon.png',
       gradient: [Color(0xFF11998e), Color(0xFF38ef7d)],
@@ -781,7 +781,7 @@ class _GamesHomeScreenState extends State<GamesHomeScreen>
     ),
     _GameData(
       id: 'met-double',
-      name: 'Mét Double',
+      name: 'Met Double',
       subtitle: 'Outil pour suivre tes parties de dominos',
       iconPath: 'assets/icons/met-double.png',
       gradient: [Color(0xFF4facfe), Color(0xFF00f2fe)],
