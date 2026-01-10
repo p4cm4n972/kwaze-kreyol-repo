@@ -967,83 +967,58 @@ class _DominoSoloGameScreenState extends State<DominoSoloGameScreen>
             ),
           ),
 
-          // Infos joueur à droite
-          const SizedBox(width: 12),
+          // Infos joueur à droite (compact)
+          const SizedBox(width: 8),
           Column(
             mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.end,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // Indicateur de tour
+              // Indicateur de tour (icône seule)
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   color: isCurrentTurn
                       ? Colors.green.withValues(alpha: 0.3)
                       : Colors.grey.withValues(alpha: 0.3),
-                  borderRadius: BorderRadius.circular(12),
+                  shape: BoxShape.circle,
                   border: Border.all(
                     color: isCurrentTurn ? Colors.green : Colors.grey,
+                    width: 2,
                   ),
                 ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      isCurrentTurn ? Icons.play_arrow : Icons.hourglass_empty,
-                      color: isCurrentTurn ? Colors.green : Colors.grey,
-                      size: 16,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      isCurrentTurn ? 'À vous' : 'Attente',
-                      style: TextStyle(
-                        color: isCurrentTurn ? Colors.green : Colors.grey,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ],
+                child: Icon(
+                  isCurrentTurn ? Icons.play_arrow : Icons.hourglass_empty,
+                  color: isCurrentTurn ? Colors.green : Colors.grey,
+                  size: 20,
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 6),
               // Nombre de manches
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.star, color: Colors.amber, size: 16),
-                  const SizedBox(width: 4),
+                  const Icon(Icons.star, color: Colors.amber, size: 14),
                   Text(
                     '${_humanParticipant?.roundsWon ?? 0}/3',
                     style: const TextStyle(
                       color: Colors.amber,
                       fontWeight: FontWeight.bold,
-                      fontSize: 14,
+                      fontSize: 12,
                     ),
                   ),
                 ],
               ),
               // Bouton passer si nécessaire
               if (isCurrentTurn && _playableTiles.isEmpty) ...[
-                const SizedBox(height: 8),
-                ElevatedButton.icon(
+                const SizedBox(height: 6),
+                IconButton(
                   onPressed: _passTurn,
-                  icon: const Icon(Icons.skip_next, size: 16),
-                  label: const Text('Passer', style: TextStyle(fontSize: 12)),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.orange,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    minimumSize: Size.zero,
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  ),
-                ),
-              ],
-              // Message d'erreur
-              if (_errorMessage != null) ...[
-                const SizedBox(height: 4),
-                Text(
-                  _errorMessage!,
-                  style: const TextStyle(color: Colors.red, fontSize: 10),
+                  icon: const Icon(Icons.skip_next),
+                  color: Colors.orange,
+                  iconSize: 24,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                  tooltip: 'Passer',
                 ),
               ],
             ],
