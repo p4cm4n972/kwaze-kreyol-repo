@@ -64,19 +64,21 @@ const Navbar = () => {
             {/* Liens d'action */}
             <div className="flex items-baseline space-x-4">
               <Link
-                href="/play"
+                href="/traduction"
+                className="text-white hover:bg-yellow-400 hover:text-black transition-all duration-200 px-5 py-2.5 text-lg font-bold rounded-lg shadow-lg hover:scale-105"
+                style={{ backgroundColor: '#006400', borderWidth: '2px', borderColor: '#FFFFFF' }}
+              >
+                Traducteur
+              </Link>
+              <a
+                href="https://jé.kwazé-kréyol.fr"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="text-white hover:bg-yellow-400 hover:text-black transition-all duration-200 px-5 py-2.5 text-lg font-bold rounded-lg shadow-lg hover:scale-105"
                 style={{ backgroundColor: '#FF0000', borderWidth: '2px', borderColor: '#FFFFFF' }}
               >
                 Jouer en ligne
-              </Link>
-              <Link
-                href="/tools"
-                className="text-white hover:bg-yellow-400 hover:text-black transition-all duration-200 px-5 py-2.5 text-lg font-bold rounded-lg shadow-lg hover:scale-105"
-                style={{ backgroundColor: '#006400', borderWidth: '2px', borderColor: '#FFFFFF' }}
-              >
-                Outils
-              </Link>
+              </a>
             </div>
           </div>
 
@@ -139,21 +141,23 @@ const Navbar = () => {
           <div className="space-y-2 pb-3 border-b border-white/20">
             <p className="text-xs font-bold uppercase px-3 mb-2" style={{ color: '#FFD700' }}>Actions</p>
             <Link
-              href="/play"
+              href="/traduction"
+              onClick={() => setIsOpen(false)}
+              className="text-white hover:bg-yellow-400 hover:text-black block px-4 py-3 rounded-lg text-base font-bold transition-all duration-200 text-center shadow-lg"
+              style={{ backgroundColor: '#006400', borderWidth: '2px', borderColor: '#FFFFFF' }}
+            >
+              Traducteur
+            </Link>
+            <a
+              href="https://jé.kwazé-kréyol.fr"
+              target="_blank"
+              rel="noopener noreferrer"
               onClick={() => setIsOpen(false)}
               className="text-white hover:bg-yellow-400 hover:text-black block px-4 py-3 rounded-lg text-base font-bold transition-all duration-200 text-center shadow-lg"
               style={{ backgroundColor: '#FF0000', borderWidth: '2px', borderColor: '#FFFFFF' }}
             >
               Jouer en ligne
-            </Link>
-            <Link
-              href="/tools"
-              onClick={() => setIsOpen(false)}
-              className="text-white hover:bg-yellow-400 hover:text-black block px-4 py-3 rounded-lg text-base font-bold transition-all duration-200 text-center shadow-lg"
-              style={{ backgroundColor: '#006400', borderWidth: '2px', borderColor: '#FFFFFF' }}
-            >
-              Outils
-            </Link>
+            </a>
           </div>
 
           {/* Section Info */}

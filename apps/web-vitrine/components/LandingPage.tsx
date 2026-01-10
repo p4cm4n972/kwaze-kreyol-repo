@@ -268,14 +268,17 @@ const LandingPage = () => {
                 <p className="text-white mb-6 text-base md:text-lg text-center md:text-left">{data.text}</p>
 
                 <div className="flex justify-center md:justify-start">
-                  <button
+                  <a
+                    href="https://jé.kwazé-kréyol.fr"
+                    target="_blank"
+                    rel="noopener noreferrer"
                     ref={(el) => {
-                      buttonsRefs.current[index] = el;
+                      buttonsRefs.current[index] = el as unknown as HTMLButtonElement;
                     }}
-                    className="mt-4 px-6 py-3 bg-madras-yellow text-black font-bold rounded-lg text-sm md:text-base"
+                    className="mt-4 px-6 py-3 bg-madras-yellow text-black font-bold rounded-lg text-sm md:text-base hover:bg-yellow-400 transition-colors"
                   >
-                    En savoir plus
-                  </button>
+                    Jouer maintenant
+                  </a>
                 </div>
               </div>
             </div>
