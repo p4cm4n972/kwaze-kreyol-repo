@@ -76,6 +76,29 @@ class DominoLogic {
     return highestTilePlayer;
   }
 
+  /// Trouve le plus grand double parmi toutes les mains
+  /// Retourne (playerId, doubleValue) ou null si aucun double
+  static (String, int)? findHighestDouble(Map<String, List<DominoTile>> hands) {
+    String? highestDoublePlayer;
+    int highestDouble = -1;
+
+    for (var entry in hands.entries) {
+      final doubles = entry.value.where((t) => t.isDouble);
+      if (doubles.isNotEmpty) {
+        final maxDouble = doubles.map((t) => t.value1).reduce(max);
+        if (maxDouble > highestDouble) {
+          highestDouble = maxDouble;
+          highestDoublePlayer = entry.key;
+        }
+      }
+    }
+
+    if (highestDoublePlayer != null) {
+      return (highestDoublePlayer, highestDouble);
+    }
+    return null;
+  }
+
   /// Vérifie si une tuile peut être placée sur le plateau
   ///
   /// Règles:

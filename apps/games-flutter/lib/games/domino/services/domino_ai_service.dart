@@ -97,17 +97,19 @@ class DominoAIService {
     }
   }
 
-  /// Sélection pour plateau vide selon la difficulté
+  /// Sélection pour plateau vide - TOUJOURS jouer le plus grand double
+  /// (Règle: le premier joueur doit jouer son plus grand double)
   static DominoTile _selectTileForEmptyBoard(List<DominoTile> hand, AIDifficulty difficulty) {
-    if (difficulty == AIDifficulty.easy) {
-      return hand[_random.nextInt(hand.length)];
-    }
-
-    // Normal et Hard: jouer le double le plus haut ou la tuile la plus haute
+    // TOUTES les difficultés: jouer le double le plus haut d'abord (règle obligatoire)
     final doubles = hand.where((t) => t.isDouble).toList();
     if (doubles.isNotEmpty) {
       doubles.sort((a, b) => b.totalValue.compareTo(a.totalValue));
       return doubles.first;
+    }
+
+    // Si pas de double (cas rare - ne devrait pas arriver si l'IA est premier joueur)
+    if (difficulty == AIDifficulty.easy) {
+      return hand[_random.nextInt(hand.length)];
     }
 
     final sorted = List<DominoTile>.from(hand)

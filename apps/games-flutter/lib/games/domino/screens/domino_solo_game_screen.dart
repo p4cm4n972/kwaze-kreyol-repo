@@ -112,15 +112,12 @@ class _DominoSoloGameScreenState extends State<DominoSoloGameScreen>
   }
 
   Future<void> _initializeGame({bool forceNew = false}) async {
-    // Essayer de charger une session existante (sauf si forceNew)
+    // Essayer de charger une session existante POUR LA MÊME DIFFICULTÉ (sauf si forceNew)
     if (!forceNew) {
-      final savedSession = await DominoSoloService.loadSession();
+      final savedSession = await DominoSoloService.loadSession(
+        forDifficulty: widget.difficulty,
+      );
       if (savedSession != null && savedSession.status == 'in_progress') {
-        print('[SOLO] Session restaurée: ${savedSession.id}');
-        for (final p in savedSession.participants) {
-          print('[SOLO] Participant ${p.displayName}: roundsWon=${p.roundsWon}');
-        }
-
         setState(() {
           _session = savedSession;
           _gameState = savedSession.currentGameState;
@@ -132,10 +129,8 @@ class _DominoSoloGameScreenState extends State<DominoSoloGameScreen>
       }
     }
 
-    // Supprimer l'ancienne session si forceNew
-    if (forceNew) {
-      await DominoSoloService.clearSession();
-    }
+    // Supprimer l'ancienne session si forceNew ou si difficulté différente
+    await DominoSoloService.clearSession();
 
     // Réinitialiser complètement l'état avant de créer une nouvelle session
     _session = null;
@@ -148,12 +143,6 @@ class _DominoSoloGameScreenState extends State<DominoSoloGameScreen>
       difficulty: widget.difficulty,
     );
 
-    // Log de debug pour vérifier la réinitialisation
-    print('[SOLO] Nouvelle session créée: ${session.id}');
-    for (final p in session.participants) {
-      print('[SOLO] Participant ${p.displayName}: roundsWon=${p.roundsWon}');
-    }
-
     // Démarrer la première manche
     final gameState = DominoSoloService.startNewRound(session);
 
@@ -164,8 +153,11 @@ class _DominoSoloGameScreenState extends State<DominoSoloGameScreen>
       _gameState = gameState;
     });
 
-    // Sauvegarder la nouvelle session
-    await DominoSoloService.saveSession(newSession);
+    // Sauvegarder la nouvelle session AVEC la difficulté
+    await DominoSoloService.saveSession(newSession, difficulty: widget.difficulty);
+
+    // Afficher qui commence et avec quel double
+    _showStartingPlayerInfo(gameState, newSession.participants);
 
     // Vérifier si c'est le tour d'une IA
     _checkAndExecuteAITurn();
@@ -174,8 +166,51 @@ class _DominoSoloGameScreenState extends State<DominoSoloGameScreen>
   /// Sauvegarde la session actuelle
   Future<void> _saveSession() async {
     if (_session != null) {
-      await DominoSoloService.saveSession(_session!);
+      await DominoSoloService.saveSession(_session!, difficulty: widget.difficulty);
     }
+  }
+
+  /// Affiche un message indiquant qui commence et avec quel double
+  void _showStartingPlayerInfo(
+    DominoGameState gameState,
+    List<DominoParticipant> participants,
+  ) {
+    if (!mounted) return;
+
+    final startingPlayerId = gameState.currentTurnParticipantId;
+    final startingPlayer = participants.firstWhere(
+      (p) => p.id == startingPlayerId,
+      orElse: () => participants.first,
+    );
+
+    // Trouver le plus grand double
+    final highestDouble = DominoLogic.findHighestDouble(gameState.playerHands);
+
+    String message;
+    if (highestDouble != null) {
+      final (playerId, doubleValue) = highestDouble;
+      if (playerId == startingPlayerId) {
+        message = '${startingPlayer.displayName} commence avec le double $doubleValue';
+      } else {
+        message = '${startingPlayer.displayName} commence';
+      }
+    } else {
+      message = '${startingPlayer.displayName} commence';
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          message,
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: Colors.indigo.shade700,
+        duration: const Duration(seconds: 3),
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
   }
 
   void _checkAndExecuteAITurn() {
@@ -580,9 +615,13 @@ class _DominoSoloGameScreenState extends State<DominoSoloGameScreen>
         ),
         actions: [
           TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              context.go('/domino');
+            onPressed: () async {
+              // Supprimer la session terminée avant de quitter
+              await DominoSoloService.clearSession();
+              if (context.mounted) {
+                Navigator.of(context).pop();
+                context.go('/domino');
+              }
             },
             child: const Text(
               'Retour au menu',

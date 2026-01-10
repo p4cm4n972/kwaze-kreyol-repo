@@ -10,23 +10,40 @@ import '../utils/domino_logic.dart';
 import '../utils/domino_scoring.dart';
 import 'domino_ai_service.dart';
 
-/// Clé pour le stockage local
+/// Clés pour le stockage local
 const String _soloSessionKey = 'domino_solo_session';
+const String _soloDifficultyKey = 'domino_solo_difficulty';
 
 /// Service de gestion locale pour le mode solo (sans Supabase)
 class DominoSoloService {
   static final Random _random = Random();
 
   /// Sauvegarde la session en cours dans le stockage local
-  static Future<void> saveSession(DominoSession session) async {
+  static Future<void> saveSession(
+    DominoSession session, {
+    AIDifficulty? difficulty,
+  }) async {
     final prefs = await SharedPreferences.getInstance();
     final json = jsonEncode(session.toJson());
     await prefs.setString(_soloSessionKey, json);
+    if (difficulty != null) {
+      await prefs.setString(_soloDifficultyKey, difficulty.name);
+    }
   }
 
   /// Charge la session en cours depuis le stockage local
-  static Future<DominoSession?> loadSession() async {
+  /// Si [forDifficulty] est spécifié, ne charge que si la difficulté correspond
+  static Future<DominoSession?> loadSession({AIDifficulty? forDifficulty}) async {
     final prefs = await SharedPreferences.getInstance();
+
+    // Vérifier la difficulté si demandé
+    if (forDifficulty != null) {
+      final savedDifficulty = prefs.getString(_soloDifficultyKey);
+      if (savedDifficulty != forDifficulty.name) {
+        return null; // Difficulté différente, ne pas charger
+      }
+    }
+
     final json = prefs.getString(_soloSessionKey);
     if (json == null) return null;
 
@@ -40,9 +57,9 @@ class DominoSoloService {
     }
   }
 
-  /// Vérifie si une session en cours existe
-  static Future<bool> hasActiveSession() async {
-    final session = await loadSession();
+  /// Vérifie si une session en cours existe pour une difficulté donnée
+  static Future<bool> hasActiveSession({AIDifficulty? forDifficulty}) async {
+    final session = await loadSession(forDifficulty: forDifficulty);
     if (session == null) return false;
     return session.status == 'in_progress';
   }
@@ -51,6 +68,7 @@ class DominoSoloService {
   static Future<void> clearSession() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_soloSessionKey);
+    await prefs.remove(_soloDifficultyKey);
   }
 
   /// Génère un ID unique simple

@@ -124,7 +124,6 @@ class _DominoBoardWidgetState extends State<DominoBoardWidget> {
           _transformController.value = Matrix4.identity();
         }
       });
-      print('[$kBoardVersion] Nouvelle manche détectée: reset transform');
     }
     _lastBoardLength = board.length;
 
@@ -148,9 +147,6 @@ class _DominoBoardWidgetState extends State<DominoBoardWidget> {
     final scaleX = viewportWidth / contentWidth;
     final scaleY = viewportHeight / contentHeight;
     final autoScale = (scaleX < scaleY ? scaleX : scaleY).clamp(0.3, 1.0);
-
-    // Le autoScale sera appliqué directement au contenu via Transform.scale
-    print('[$kBoardVersion] bounds: ${bounds.width}x${bounds.height}, viewport: ${viewportWidth}x$viewportHeight, autoScale: $autoScale');
 
     return Container(
       height: _boardHeight,
@@ -414,9 +410,6 @@ class _DominoBoardWidgetState extends State<DominoBoardWidget> {
       rightTiles.add(0);
     }
 
-    print('[$kBoardVersion] startIndex=$startIndex, leftTiles=$leftTiles, rightTiles=$rightTiles');
-    print('[$kBoardVersion] board order: ${board.map((p) => '${p.tile.value1}-${p.tile.value2}(${p.side})').join(', ')}');
-
     // Créer la liste des positions (même taille que board)
     final positions = List<BoardTilePosition?>.filled(board.length, null);
 
@@ -461,10 +454,6 @@ class _DominoBoardWidgetState extends State<DominoBoardWidget> {
       double startX = startPos.x - _spacing;
       // startY = baseline Y = 0 pour direction horizontale
       double startY = 0.0;
-
-      print('[$kBoardVersion] Chaîne GAUCHE: startX=$startX, startY=$startY (baseline), count=${leftTiles.length}');
-      print('[$kBoardVersion] leftTiles ORIGINAL: ${leftTiles.map((i) => 'board[$i]=${board[i].tile.value1}-${board[i].tile.value2}').join(', ')}');
-      print('[$kBoardVersion] leftTiles REVERSED: ${leftTilesReversed.map((i) => 'board[$i]=${board[i].tile.value1}-${board[i].tile.value2}').join(', ')}');
 
       _calculateChainPositions(
         board: board,
@@ -576,7 +565,6 @@ class _DominoBoardWidgetState extends State<DominoBoardWidget> {
       );
 
       lineCount++;
-      print('[$kBoardVersion] idx=$idx tile=${tile.value1}-${tile.value2} lineCount=$lineCount dir=$direction pos=($posX,$posY) tileW=$tileW');
 
       // Préparer la position du prochain domino
       if (idx < indices.length - 1) {
@@ -591,9 +579,8 @@ class _DominoBoardWidgetState extends State<DominoBoardWidget> {
         }
 
         bool justTurned = false;
-        ChainDirection directionBeforeTurn = direction; // Mémoriser la direction AVANT virage
+        ChainDirection directionBeforeTurn = direction;
         if (shouldTurn) {
-          print('[$kBoardVersion] >>> VIRAGE après idx=$idx, ancienne dir=$direction, nouvelle direction: ${rotateClockwise ? _rotateDirection(direction) : _rotateDirectionCounterClockwise(direction)}');
           direction = rotateClockwise
               ? _rotateDirection(direction)
               : _rotateDirectionCounterClockwise(direction);
@@ -660,7 +647,6 @@ class _DominoBoardWidgetState extends State<DominoBoardWidget> {
                 break;
             }
           }
-          print('[$kBoardVersion] justTurned: isDouble=$isDouble, dirBefore=$directionBeforeTurn, newCursor=($currentX,$currentY)');
         }
 
         // === CORRECTION APRÈS UN DOUBLE (sans virage) ===
@@ -673,16 +659,12 @@ class _DominoBoardWidgetState extends State<DominoBoardWidget> {
             // Double vertical sur axe horizontal: centrer Y sur le centre du double
             // Centre du double = posY + tileH/2, prochain domino hauteur = _tileHeight
             currentY = posY + tileH / 2 - _tileHeight / 2;
-            print('[$kBoardVersion] après double (horiz): centrage Y = $currentY');
           } else {
             // Double horizontal sur axe vertical: centrer X sur le centre du double
             // Centre du double = posX + tileW/2, prochain domino largeur = _tileHeight (car vertical)
             currentX = posX + tileW / 2 - _tileHeight / 2;
-            print('[$kBoardVersion] après double (vert): centrage X = $currentX');
           }
         }
-
-        print('[$kBoardVersion] nextCursor=($currentX,$currentY) nextDir=$direction');
       }
     }
 
