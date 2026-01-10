@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../../services/admin_service.dart';
+import '../../../services/presence_service.dart';
 import '../../../models/admin_stats.dart';
 import '../widgets/stat_card.dart';
 import '../widgets/line_chart_widget.dart';
@@ -14,17 +16,40 @@ class UsersTab extends StatefulWidget {
 
 class _UsersTabState extends State<UsersTab> {
   final AdminService _adminService = AdminService();
+  final PresenceService _presenceService = PresenceService();
 
   AdminUserStats? _userStats;
   List<TimeSeriesDataPoint>? _usersOverTime;
   AdminActiveUsers? _activeUsers;
+  int _onlineCount = 0;
   bool _isLoading = true;
   String? _error;
+  StreamSubscription? _presenceSubscription;
 
   @override
   void initState() {
     super.initState();
     _loadData();
+    _subscribeToPresence();
+  }
+
+  @override
+  void dispose() {
+    _presenceSubscription?.cancel();
+    super.dispose();
+  }
+
+  void _subscribeToPresence() {
+    // S'abonner aux changements de présence
+    _presenceSubscription = _presenceService.onlineUsersStream.listen((users) {
+      if (mounted) {
+        setState(() {
+          _onlineCount = users.length;
+        });
+      }
+    });
+    // Initialiser avec la valeur actuelle
+    _onlineCount = _presenceService.onlineCount;
   }
 
   Future<void> _loadData() async {
@@ -103,7 +128,7 @@ class _UsersTabState extends State<UsersTab> {
             // Cartes principales
             LayoutBuilder(
               builder: (context, constraints) {
-                final crossAxisCount = constraints.maxWidth > 800 ? 4 : 2;
+                final crossAxisCount = constraints.maxWidth > 1000 ? 5 : (constraints.maxWidth > 600 ? 3 : 2);
                 return GridView.count(
                   crossAxisCount: crossAxisCount,
                   shrinkWrap: true,
@@ -119,17 +144,25 @@ class _UsersTabState extends State<UsersTab> {
                       color: const Color(0xFFE67E22),
                     ),
                     StatCard(
+                      title: 'En ligne',
+                      value: '$_onlineCount',
+                      icon: Icons.circle,
+                      color: Colors.green,
+                      subtitle: 'actuellement connectés',
+                      isLive: true,
+                    ),
+                    StatCard(
                       title: 'Aujourd\'hui',
                       value: '+${_userStats?.newUsersToday ?? 0}',
                       icon: Icons.person_add,
-                      color: Colors.green,
+                      color: Colors.blue,
                       subtitle: 'nouvelles inscriptions',
                     ),
                     StatCard(
                       title: 'Cette semaine',
                       value: '+${_userStats?.newUsersThisWeek ?? 0}',
                       icon: Icons.trending_up,
-                      color: Colors.blue,
+                      color: Colors.indigo,
                     ),
                     StatCard(
                       title: 'Ce mois',

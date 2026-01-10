@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../services/auth_service.dart';
 import '../services/realtime_service.dart';
+import '../services/presence_service.dart';
 import '../widgets/legal_footer.dart';
 import 'auth_screen.dart';
 
@@ -30,6 +31,7 @@ class _GamesHomeScreenState extends State<GamesHomeScreen>
     with TickerProviderStateMixin {
   final AuthService _authService = AuthService();
   final RealtimeService _realtimeService = RealtimeService();
+  final PresenceService _presenceService = PresenceService();
   bool _isAuthenticated = false;
   String? _displayName;
   int _pendingRequestsCount = 0;
@@ -42,15 +44,24 @@ class _GamesHomeScreenState extends State<GamesHomeScreen>
     super.initState();
     _checkAuth();
     _subscribeToFriendRequests();
+    _initPresence();
     _heroAnimController = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 20),
     )..repeat();
   }
 
+  Future<void> _initPresence() async {
+    // Initialiser le tracking de présence si l'utilisateur est connecté
+    if (await _authService.isAuthenticated()) {
+      await _presenceService.initialize();
+    }
+  }
+
   @override
   void dispose() {
     _heroAnimController.dispose();
+    _presenceService.dispose();
     final userId = _authService.getUserIdOrNull();
     if (userId != null) {
       _realtimeService.unsubscribeFromFriendRequests(userId);
