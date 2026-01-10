@@ -10,8 +10,10 @@ import '../models/domino_tile.dart';
 import '../models/domino_participant.dart';
 import '../models/domino_game_state.dart';
 import '../utils/domino_logic.dart';
-import '../widgets/domino_tile_painter.dart';
 import '../widgets/domino_board_widget.dart';
+import '../widgets/shared/solo_game_header.dart';
+import '../widgets/shared/ai_opponents_bar.dart';
+import '../widgets/shared/solo_player_hand.dart';
 
 /// Écran de jeu solo contre 2 IA
 class DominoSoloGameScreen extends StatefulWidget {
@@ -703,6 +705,8 @@ class _DominoSoloGameScreenState extends State<DominoSoloGameScreen>
       );
     }
 
+    final aiPlayers = _session!.participants.where((p) => p.isAI).toList();
+
     return Scaffold(
       body: Container(
         decoration: BoxDecoration(
@@ -719,382 +723,38 @@ class _DominoSoloGameScreenState extends State<DominoSoloGameScreen>
         child: SafeArea(
           child: Column(
             children: [
-              _buildHeader(),
-              _buildOpponentsBar(),
-              Expanded(child: _buildBoard()),
-              _buildPlayerHand(),
+              SoloGameHeader(
+                roundNumber: _gameState!.roundNumber,
+                difficulty: widget.difficulty,
+                isAIPlaying: _isAIPlaying,
+                onBack: _showExitConfirmation,
+              ),
+              AIOpponentsBar(
+                aiPlayers: aiPlayers,
+                currentTurnParticipantId: _gameState!.currentTurnParticipantId,
+                playerHands: _gameState!.playerHands,
+                pulseAnimation: _pulseAnimation,
+              ),
+              Expanded(
+                child: DominoBoardWidget(
+                  gameState: _gameState!,
+                  isMyTurn: _isMyTurn && !_isAIPlaying,
+                  onTilePlaced: _placeTile,
+                  selectedTile: _selectedTile,
+                ),
+              ),
+              SoloPlayerHand(
+                tiles: _myHand,
+                playableTiles: _playableTiles,
+                selectedTile: _selectedTile,
+                isMyTurn: _isMyTurn && !_isAIPlaying,
+                roundsWon: _humanParticipant?.roundsWon ?? 0,
+                onTileSelected: (tile) => setState(() => _selectedTile = tile),
+                onPassTurn: _passTurn,
+              ),
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildHeader() {
-    final difficultyText = {
-      AIDifficulty.easy: 'Facile',
-      AIDifficulty.normal: 'Normal',
-      AIDifficulty.hard: 'Difficile',
-    }[widget.difficulty]!;
-
-    final difficultyColor = {
-      AIDifficulty.easy: Colors.green,
-      AIDifficulty.normal: Colors.orange,
-      AIDifficulty.hard: Colors.red,
-    }[widget.difficulty]!;
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.3),
-        border: Border(
-          bottom: BorderSide(
-            color: Colors.white.withValues(alpha: 0.1),
-          ),
-        ),
-      ),
-      child: Row(
-        children: [
-          IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.white),
-            onPressed: () => _showExitConfirmation(),
-          ),
-          const SizedBox(width: 8),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: Colors.amber.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.amber.withValues(alpha: 0.5)),
-            ),
-            child: Text(
-              'Manche ${_gameState!.roundNumber}',
-              style: const TextStyle(
-                color: Colors.amber,
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color: difficultyColor.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.smart_toy, color: difficultyColor, size: 16),
-                const SizedBox(width: 4),
-                Text(
-                  difficultyText,
-                  style: TextStyle(
-                    color: difficultyColor,
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const Spacer(),
-          if (_isAIPlaying)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: Colors.purple.withValues(alpha: 0.3),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Colors.purple.shade200,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  const Text(
-                    'IA réfléchit...',
-                    style: TextStyle(color: Colors.white70, fontSize: 12),
-                  ),
-                ],
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildOpponentsBar() {
-    final aiPlayers = _session!.participants.where((p) => p.isAI).toList();
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: aiPlayers.map((ai) {
-          final isCurrentTurn = _gameState!.currentTurnParticipantId == ai.id;
-          final tileCount = _gameState!.playerHands[ai.id]?.length ?? 0;
-
-          return AnimatedBuilder(
-            animation: _pulseAnimation,
-            builder: (context, child) {
-              return Transform.scale(
-                scale: isCurrentTurn ? _pulseAnimation.value : 1.0,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                  decoration: BoxDecoration(
-                    color: isCurrentTurn
-                        ? Colors.purple.withValues(alpha: 0.4)
-                        : Colors.black.withValues(alpha: 0.3),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: isCurrentTurn
-                          ? Colors.purple
-                          : Colors.white.withValues(alpha: 0.2),
-                      width: isCurrentTurn ? 2 : 1,
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      CircleAvatar(
-                        radius: 16,
-                        backgroundColor: Colors.purple.shade700,
-                        child: const Icon(Icons.smart_toy, color: Colors.white, size: 18),
-                      ),
-                      const SizedBox(width: 10),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            ai.displayName,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14,
-                            ),
-                          ),
-                          Row(
-                            children: [
-                              Text(
-                                '$tileCount tuiles',
-                                style: TextStyle(
-                                  color: Colors.white.withValues(alpha: 0.7),
-                                  fontSize: 12,
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Icon(Icons.star, color: Colors.amber, size: 14),
-                              Text(
-                                ' ${ai.roundsWon}',
-                                style: const TextStyle(
-                                  color: Colors.amber,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            },
-          );
-        }).toList(),
-      ),
-    );
-  }
-
-  Widget _buildBoard() {
-    return DominoBoardWidget(
-      gameState: _gameState!,
-      isMyTurn: _isMyTurn && !_isAIPlaying,
-      onTilePlaced: _placeTile,
-      selectedTile: _selectedTile, // Pour tap-to-place
-    );
-  }
-
-  Widget _buildPlayerHand() {
-    final isCurrentTurn = _isMyTurn && !_isAIPlaying;
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.indigo.shade900.withValues(alpha: 0.8),
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.3),
-            blurRadius: 10,
-            offset: const Offset(0, -5),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          // Main du joueur (dominos)
-          Expanded(
-            child: SizedBox(
-              height: 80,
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                itemCount: _myHand.length,
-                itemBuilder: (context, index) {
-                  final tile = _myHand[index];
-                  final isPlayable = _playableTiles.contains(tile);
-                  final isSelected = _selectedTile == tile;
-
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4),
-                    child: Draggable<DominoTile>(
-                      data: tile,
-                      feedback: Material(
-                        color: Colors.transparent,
-                        child: Transform.scale(
-                          scale: 1.2,
-                          child: DominoTileWidget(
-                            value1: tile.value1,
-                            value2: tile.value2,
-                            width: 35,
-                            height: 70,
-                            isVertical: true,
-                          ),
-                        ),
-                      ),
-                      childWhenDragging: Opacity(
-                        opacity: 0.3,
-                        child: DominoTileWidget(
-                          value1: tile.value1,
-                          value2: tile.value2,
-                          width: 35,
-                          height: 70,
-                          isVertical: true,
-                        ),
-                      ),
-                      child: GestureDetector(
-                        onTap: () {
-                          setState(() {
-                            _selectedTile = isSelected ? null : tile;
-                          });
-                        },
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 200),
-                          transform: Matrix4.translationValues(
-                            0,
-                            isSelected ? -10 : 0,
-                            0,
-                          ),
-                          child: Container(
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(8),
-                              boxShadow: isPlayable && isCurrentTurn
-                                  ? [
-                                      BoxShadow(
-                                        color: Colors.green.withValues(alpha: 0.6),
-                                        blurRadius: 8,
-                                        spreadRadius: 2,
-                                      ),
-                                    ]
-                                  : null,
-                            ),
-                            child: Opacity(
-                              opacity: (!isCurrentTurn || !isPlayable) ? 0.5 : 1.0,
-                              child: DominoTileWidget(
-                                value1: tile.value1,
-                                value2: tile.value2,
-                                width: 35,
-                                height: 70,
-                                isVertical: true,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-          ),
-
-          // Infos joueur à droite (compact)
-          const SizedBox(width: 8),
-          Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              // Bouton passer OU indicateur de tour (jamais les deux)
-              if (isCurrentTurn && _playableTiles.isEmpty)
-                // Bouton passer - remplace l'indicateur de tour
-                GestureDetector(
-                  onTap: _passTurn,
-                  child: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.orange.withValues(alpha: 0.3),
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: Colors.orange,
-                        width: 2,
-                      ),
-                    ),
-                    child: const Icon(
-                      Icons.skip_next,
-                      color: Colors.orange,
-                      size: 20,
-                    ),
-                  ),
-                )
-              else
-                // Indicateur de tour normal
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: isCurrentTurn
-                        ? Colors.green.withValues(alpha: 0.3)
-                        : Colors.grey.withValues(alpha: 0.3),
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: isCurrentTurn ? Colors.green : Colors.grey,
-                      width: 2,
-                    ),
-                  ),
-                  child: Icon(
-                    isCurrentTurn ? Icons.play_arrow : Icons.hourglass_empty,
-                    color: isCurrentTurn ? Colors.green : Colors.grey,
-                    size: 20,
-                  ),
-                ),
-              const SizedBox(height: 6),
-              // Nombre de manches
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.star, color: Colors.amber, size: 14),
-                  Text(
-                    '${_humanParticipant?.roundsWon ?? 0}/3',
-                    style: const TextStyle(
-                      color: Colors.amber,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 12,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ],
       ),
     );
   }
