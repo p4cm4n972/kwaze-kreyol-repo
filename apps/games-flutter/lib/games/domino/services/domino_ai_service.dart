@@ -89,11 +89,11 @@ class DominoAIService {
   static int getThinkingDelay(AIDifficulty difficulty) {
     switch (difficulty) {
       case AIDifficulty.easy:
-        return 800 + _random.nextInt(400); // 800-1200ms
+        return 3500 + _random.nextInt(1000); // 3.5-4.5s
       case AIDifficulty.normal:
-        return 600 + _random.nextInt(400); // 600-1000ms
+        return 3000 + _random.nextInt(1000); // 3-4s
       case AIDifficulty.hard:
-        return 500 + _random.nextInt(300); // 500-800ms
+        return 2500 + _random.nextInt(1000); // 2.5-3.5s
     }
   }
 
