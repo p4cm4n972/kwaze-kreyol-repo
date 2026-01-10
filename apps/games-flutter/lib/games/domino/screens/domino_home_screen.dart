@@ -86,17 +86,58 @@ class _DominoHomeScreenState extends State<DominoHomeScreen>
   }
 
   Future<void> _createSession() async {
+    final userId = _authService.getUserIdOrNull();
+
+    // Si utilisateur non connecté, afficher un dialog explicatif
+    if (userId == null) {
+      if (!mounted) return;
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          backgroundColor: Colors.grey.shade900,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: const Row(
+            children: [
+              Icon(Icons.person_outline, color: Colors.orange, size: 28),
+              SizedBox(width: 12),
+              Text(
+                'Connexion requise',
+                style: TextStyle(color: Colors.white),
+              ),
+            ],
+          ),
+          content: const Text(
+            'Pour créer une partie multijoueur, vous devez être connecté.\n\n'
+            'Le mode solo reste accessible sans compte !',
+            style: TextStyle(color: Colors.white70),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Annuler', style: TextStyle(color: Colors.white54)),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                context.go('/auth');
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.orange,
+              ),
+              child: const Text('Se connecter'),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+
     setState(() {
       _isLoading = true;
       _errorMessage = null;
     });
 
     try {
-      final userId = _authService.getUserIdOrNull();
-      if (userId == null) {
-        throw Exception('Vous devez être connecté');
-      }
-
       final session = await _dominoService.createSession(hostId: userId);
 
       if (mounted) {
