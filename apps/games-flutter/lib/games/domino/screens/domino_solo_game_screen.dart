@@ -521,9 +521,12 @@ class _DominoSoloGameScreenState extends State<DominoSoloGameScreen>
                               else
                                 const SizedBox(width: 22),
                               const SizedBox(width: 10),
-                              if (p.isAI)
-                                Icon(Icons.smart_toy, color: Colors.grey.shade600, size: 18),
-                              if (p.isAI) const SizedBox(width: 6),
+                              Icon(
+                                p.isAI ? Icons.smart_toy : Icons.person,
+                                color: Colors.grey.shade600,
+                                size: 18,
+                              ),
+                              const SizedBox(width: 6),
                               Expanded(
                                 child: Text(
                                   p.displayName,

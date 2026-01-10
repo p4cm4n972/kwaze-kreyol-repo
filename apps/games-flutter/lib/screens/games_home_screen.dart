@@ -741,7 +741,7 @@ class _GamesHomeScreenState extends State<GamesHomeScreen>
       id: 'mots-mawon',
       name: 'Mots Mawon',
       subtitle: 'Jeu de mots cachés en créole martiniquais',
-      iconPath: 'assets/icons/mots-mawon.png',
+      iconPath: 'assets/icons/mo-mawon.png',
       gradient: [Color(0xFF11998e), Color(0xFF38ef7d)],
       available: true,
     ),
