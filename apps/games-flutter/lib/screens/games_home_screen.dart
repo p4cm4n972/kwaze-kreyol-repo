@@ -755,7 +755,7 @@ class _GamesHomeScreenState extends State<GamesHomeScreen>
     ),
     _GameData(
       id: 'endorlisseur',
-      name: 'Endorlisseur',
+      name: "L'Endorlisseur",
       subtitle: 'Jeu de stratégie inspiré de la culture créole',
       iconPath: 'assets/icons/endorlisseur.png',
       gradient: [Color(0xFF667eea), Color(0xFF764ba2)],
