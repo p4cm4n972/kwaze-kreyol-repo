@@ -109,7 +109,32 @@ class _DominoSoloGameScreenState extends State<DominoSoloGameScreen>
     super.dispose();
   }
 
-  void _initializeGame() {
+  Future<void> _initializeGame({bool forceNew = false}) async {
+    // Essayer de charger une session existante (sauf si forceNew)
+    if (!forceNew) {
+      final savedSession = await DominoSoloService.loadSession();
+      if (savedSession != null && savedSession.status == 'in_progress') {
+        print('[SOLO] Session restaurée: ${savedSession.id}');
+        for (final p in savedSession.participants) {
+          print('[SOLO] Participant ${p.displayName}: roundsWon=${p.roundsWon}');
+        }
+
+        setState(() {
+          _session = savedSession;
+          _gameState = savedSession.currentGameState;
+        });
+
+        // Vérifier si c'est le tour d'une IA
+        _checkAndExecuteAITurn();
+        return;
+      }
+    }
+
+    // Supprimer l'ancienne session si forceNew
+    if (forceNew) {
+      await DominoSoloService.clearSession();
+    }
+
     // Réinitialiser complètement l'état avant de créer une nouvelle session
     _session = null;
     _gameState = null;
@@ -130,13 +155,25 @@ class _DominoSoloGameScreenState extends State<DominoSoloGameScreen>
     // Démarrer la première manche
     final gameState = DominoSoloService.startNewRound(session);
 
+    final newSession = session.copyWith(currentGameState: gameState);
+
     setState(() {
-      _session = session.copyWith(currentGameState: gameState);
+      _session = newSession;
       _gameState = gameState;
     });
 
+    // Sauvegarder la nouvelle session
+    await DominoSoloService.saveSession(newSession);
+
     // Vérifier si c'est le tour d'une IA
     _checkAndExecuteAITurn();
+  }
+
+  /// Sauvegarde la session actuelle
+  Future<void> _saveSession() async {
+    if (_session != null) {
+      await DominoSoloService.saveSession(_session!);
+    }
   }
 
   void _checkAndExecuteAITurn() {
@@ -200,11 +237,15 @@ class _DominoSoloGameScreenState extends State<DominoSoloGameScreen>
         participants: _session!.participants,
       );
 
+      final newSession = _session!.copyWith(currentGameState: result.newState);
       setState(() {
         _gameState = result.newState;
-        _session = _session!.copyWith(currentGameState: result.newState);
+        _session = newSession;
         _isAIPlaying = false;
       });
+
+      // Sauvegarder après le coup de l'IA
+      _saveSession();
 
       // Son de placement
       _soundService.playPlace();
@@ -228,11 +269,15 @@ class _DominoSoloGameScreenState extends State<DominoSoloGameScreen>
         participants: _session!.participants,
       );
 
+      final newSession = _session!.copyWith(currentGameState: result.newState);
       setState(() {
         _gameState = result.newState;
-        _session = _session!.copyWith(currentGameState: result.newState);
+        _session = newSession;
         _isAIPlaying = false;
       });
+
+      // Sauvegarder après le passe de l'IA
+      _saveSession();
 
       // Son de passe
       _soundService.playPass();
@@ -274,6 +319,9 @@ class _DominoSoloGameScreenState extends State<DominoSoloGameScreen>
     setState(() {
       _session = updatedSession;
     });
+
+    // Sauvegarder après la fin de manche
+    _saveSession();
 
     // Jouer le son de victoire uniquement pour fin de partie
     if (updatedSession.status == 'completed') {
@@ -411,10 +459,12 @@ class _DominoSoloGameScreenState extends State<DominoSoloGameScreen>
     );
   }
 
-  void _checkGameOverOrContinue() {
+  void _checkGameOverOrContinue() async {
     if (_session == null) return;
 
     if (DominoSoloService.isGameOver(_session!)) {
+      // Partie terminée - supprimer la session sauvegardée
+      await DominoSoloService.clearSession();
       _showFinalResultsDialog();
     } else {
       // Démarrer une nouvelle manche - le gagnant de la dernière manche commence
@@ -431,6 +481,9 @@ class _DominoSoloGameScreenState extends State<DominoSoloGameScreen>
         _gameState = newGameState;
         _session = _session!.copyWith(currentGameState: newGameState);
       });
+
+      // Sauvegarder après le début de la nouvelle manche
+      await _saveSession();
 
       _checkAndExecuteAITurn();
     }
@@ -537,7 +590,7 @@ class _DominoSoloGameScreenState extends State<DominoSoloGameScreen>
           ElevatedButton(
             onPressed: () {
               Navigator.of(context).pop();
-              _initializeGame();
+              _initializeGame(forceNew: true);
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.green,
@@ -566,12 +619,16 @@ class _DominoSoloGameScreenState extends State<DominoSoloGameScreen>
         participants: _session!.participants,
       );
 
+      final newSession = _session!.copyWith(currentGameState: result.newState);
       setState(() {
         _gameState = result.newState;
-        _session = _session!.copyWith(currentGameState: result.newState);
+        _session = newSession;
         _selectedTile = null;
         _isLoading = false;
       });
+
+      // Sauvegarder après le coup du joueur
+      _saveSession();
 
       // Son de placement
       _soundService.playPlace();
@@ -612,11 +669,15 @@ class _DominoSoloGameScreenState extends State<DominoSoloGameScreen>
         participants: _session!.participants,
       );
 
+      final newSession = _session!.copyWith(currentGameState: result.newState);
       setState(() {
         _gameState = result.newState;
-        _session = _session!.copyWith(currentGameState: result.newState);
+        _session = newSession;
         _isLoading = false;
       });
+
+      // Sauvegarder après le passe du joueur
+      _saveSession();
 
       // Son de passe
       _soundService.playPass();
@@ -973,25 +1034,48 @@ class _DominoSoloGameScreenState extends State<DominoSoloGameScreen>
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // Indicateur de tour (icône seule)
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: isCurrentTurn
-                      ? Colors.green.withValues(alpha: 0.3)
-                      : Colors.grey.withValues(alpha: 0.3),
-                  shape: BoxShape.circle,
-                  border: Border.all(
+              // Bouton passer OU indicateur de tour (jamais les deux)
+              if (isCurrentTurn && _playableTiles.isEmpty)
+                // Bouton passer - remplace l'indicateur de tour
+                GestureDetector(
+                  onTap: _passTurn,
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.orange.withValues(alpha: 0.3),
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: Colors.orange,
+                        width: 2,
+                      ),
+                    ),
+                    child: const Icon(
+                      Icons.skip_next,
+                      color: Colors.orange,
+                      size: 20,
+                    ),
+                  ),
+                )
+              else
+                // Indicateur de tour normal
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: isCurrentTurn
+                        ? Colors.green.withValues(alpha: 0.3)
+                        : Colors.grey.withValues(alpha: 0.3),
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: isCurrentTurn ? Colors.green : Colors.grey,
+                      width: 2,
+                    ),
+                  ),
+                  child: Icon(
+                    isCurrentTurn ? Icons.play_arrow : Icons.hourglass_empty,
                     color: isCurrentTurn ? Colors.green : Colors.grey,
-                    width: 2,
+                    size: 20,
                   ),
                 ),
-                child: Icon(
-                  isCurrentTurn ? Icons.play_arrow : Icons.hourglass_empty,
-                  color: isCurrentTurn ? Colors.green : Colors.grey,
-                  size: 20,
-                ),
-              ),
               const SizedBox(height: 6),
               // Nombre de manches
               Row(
@@ -1008,19 +1092,6 @@ class _DominoSoloGameScreenState extends State<DominoSoloGameScreen>
                   ),
                 ],
               ),
-              // Bouton passer si nécessaire
-              if (isCurrentTurn && _playableTiles.isEmpty) ...[
-                const SizedBox(height: 6),
-                IconButton(
-                  onPressed: _passTurn,
-                  icon: const Icon(Icons.skip_next),
-                  color: Colors.orange,
-                  iconSize: 24,
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                  tooltip: 'Passer',
-                ),
-              ],
             ],
           ),
         ],
@@ -1038,7 +1109,7 @@ class _DominoSoloGameScreenState extends State<DominoSoloGameScreen>
           style: TextStyle(color: Colors.white),
         ),
         content: const Text(
-          'La progression sera perdue.',
+          'Votre progression sera sauvegardée.',
           style: TextStyle(color: Colors.white70),
         ),
         actions: [
@@ -1051,7 +1122,7 @@ class _DominoSoloGameScreenState extends State<DominoSoloGameScreen>
               Navigator.of(context).pop();
               context.go('/domino');
             },
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
             child: const Text('Quitter'),
           ),
         ],

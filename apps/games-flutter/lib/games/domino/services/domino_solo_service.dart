@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'dart:math';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/domino_tile.dart';
 import '../models/domino_participant.dart';
 import '../models/domino_session.dart';
@@ -8,9 +10,48 @@ import '../utils/domino_logic.dart';
 import '../utils/domino_scoring.dart';
 import 'domino_ai_service.dart';
 
+/// Clé pour le stockage local
+const String _soloSessionKey = 'domino_solo_session';
+
 /// Service de gestion locale pour le mode solo (sans Supabase)
 class DominoSoloService {
   static final Random _random = Random();
+
+  /// Sauvegarde la session en cours dans le stockage local
+  static Future<void> saveSession(DominoSession session) async {
+    final prefs = await SharedPreferences.getInstance();
+    final json = jsonEncode(session.toJson());
+    await prefs.setString(_soloSessionKey, json);
+  }
+
+  /// Charge la session en cours depuis le stockage local
+  static Future<DominoSession?> loadSession() async {
+    final prefs = await SharedPreferences.getInstance();
+    final json = prefs.getString(_soloSessionKey);
+    if (json == null) return null;
+
+    try {
+      final data = jsonDecode(json) as Map<String, dynamic>;
+      return DominoSession.fromJson(data);
+    } catch (e) {
+      // Si erreur de parsing, supprimer la session corrompue
+      await clearSession();
+      return null;
+    }
+  }
+
+  /// Vérifie si une session en cours existe
+  static Future<bool> hasActiveSession() async {
+    final session = await loadSession();
+    if (session == null) return false;
+    return session.status == 'in_progress';
+  }
+
+  /// Supprime la session sauvegardée
+  static Future<void> clearSession() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_soloSessionKey);
+  }
 
   /// Génère un ID unique simple
   static String _generateId() {
