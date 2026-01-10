@@ -59,7 +59,8 @@ class _GamesHomeScreenState extends State<GamesHomeScreen>
   @override
   void dispose() {
     _heroAnimController.dispose();
-    _presenceService.dispose();
+    // NE PAS disposer le PresenceService ici - il doit persister pendant toute la session
+    // La présence sera gérée au niveau de l'app (fermeture/déconnexion)
     final userId = _authService.getUserIdOrNull();
     if (userId != null) {
       _realtimeService.unsubscribeFromFriendRequests(userId);
