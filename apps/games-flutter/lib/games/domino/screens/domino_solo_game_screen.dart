@@ -382,116 +382,212 @@ class _DominoSoloGameScreenState extends State<DominoSoloGameScreen>
 
     final isCapot = _gameState!.playerHands[winnerId]?.isEmpty ?? false;
 
+    final accentColor = isCapot ? Colors.amber : Colors.orange;
+    final gradientColors = isCapot
+        ? [const Color(0xFF1B5E20), const Color(0xFF2E7D32)]
+        : [const Color(0xFFE65100), const Color(0xFFFF8F00)];
+
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        backgroundColor: Colors.grey.shade900,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Row(
-          children: [
-            Icon(
-              isCapot ? Icons.emoji_events : Icons.block,
-              color: isCapot ? Colors.amber : Colors.orange,
-              size: 32,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 400),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [const Color(0xFF1a1a2e), const Color(0xFF16213e)],
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                'Manche ${_gameState?.roundNumber ?? 1} terminée !',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(
+              color: accentColor.withValues(alpha: 0.4),
+              width: 2,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: accentColor.withValues(alpha: 0.3),
+                blurRadius: 20,
+                offset: const Offset(0, 10),
               ),
-            ),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: isCapot ? Colors.green.shade800 : Colors.orange.shade800,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                isCapot ? 'CAPOT !' : 'Partie bloquée',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Gagnant: ${winner.displayName}',
-              style: TextStyle(
-                color: winner.isAI ? Colors.orange : Colors.lightGreenAccent,
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              'Score des manches:',
-              style: TextStyle(color: Colors.white70, fontSize: 14),
-            ),
-            const SizedBox(height: 8),
-            ..._session!.participants.map((p) {
-              final isWinner = p.id == winnerId;
-              return Padding(
-                padding: const EdgeInsets.symmetric(vertical: 4),
-                child: Row(
-                  children: [
-                    if (isWinner)
-                      const Icon(Icons.star, color: Colors.amber, size: 20)
-                    else
-                      const SizedBox(width: 20),
-                    const SizedBox(width: 8),
-                    if (p.isAI)
-                      const Icon(Icons.smart_toy, color: Colors.grey, size: 16),
-                    const SizedBox(width: 4),
-                    Expanded(
-                      child: Text(
-                        p.displayName,
-                        style: TextStyle(
-                          color: isWinner ? Colors.lightGreenAccent : Colors.white,
-                          fontWeight: isWinner ? FontWeight.bold : FontWeight.normal,
-                        ),
+            ],
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Icône principale
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(colors: gradientColors),
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: accentColor.withValues(alpha: 0.5),
+                        blurRadius: 15,
                       ),
+                    ],
+                  ),
+                  child: Icon(
+                    isCapot ? Icons.emoji_events : Icons.block,
+                    color: Colors.white,
+                    size: 40,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                // Titre
+                Text(
+                  'Manche ${_gameState?.roundNumber ?? 1} terminée !',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                // Badge type de fin
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(colors: gradientColors),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    isCapot ? 'CAPOT !' : 'Partie bloquée',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
                     ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                // Gagnant
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.star, color: Colors.amber, size: 24),
+                    const SizedBox(width: 8),
                     Text(
-                      '${p.roundsWon} manches',
+                      winner.displayName,
                       style: TextStyle(
-                        color: isWinner ? Colors.lightGreenAccent : Colors.white70,
+                        color: winner.isAI ? Colors.orange : Colors.lightGreenAccent,
+                        fontSize: 20,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
+                    if (winner.isAI) ...[
+                      const SizedBox(width: 8),
+                      const Icon(Icons.smart_toy, color: Colors.grey, size: 20),
+                    ],
                   ],
                 ),
-              );
-            }),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              _checkGameOverOrContinue();
-            },
-            child: Text(
-              DominoSoloService.isGameOver(_session!) ? 'Voir résultats' : 'Manche suivante',
-              style: const TextStyle(
-                color: Colors.lightGreenAccent,
-                fontWeight: FontWeight.bold,
-              ),
+                const SizedBox(height: 24),
+                // Score des manches
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Column(
+                    children: [
+                      Text(
+                        'Score des manches',
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.7),
+                          fontSize: 14,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      ..._session!.participants.map((p) {
+                        final isWinner = p.id == winnerId;
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 6),
+                          child: Row(
+                            children: [
+                              if (isWinner)
+                                Container(
+                                  padding: const EdgeInsets.all(4),
+                                  decoration: const BoxDecoration(
+                                    color: Colors.amber,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(Icons.star, color: Colors.white, size: 14),
+                                )
+                              else
+                                const SizedBox(width: 22),
+                              const SizedBox(width: 10),
+                              if (p.isAI)
+                                Icon(Icons.smart_toy, color: Colors.grey.shade600, size: 18),
+                              if (p.isAI) const SizedBox(width: 6),
+                              Expanded(
+                                child: Text(
+                                  p.displayName,
+                                  style: TextStyle(
+                                    color: isWinner ? Colors.lightGreenAccent : Colors.white,
+                                    fontWeight: isWinner ? FontWeight.bold : FontWeight.normal,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                              ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: isWinner
+                                      ? Colors.lightGreenAccent.withValues(alpha: 0.2)
+                                      : Colors.white.withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Text(
+                                  '${p.roundsWon}',
+                                  style: TextStyle(
+                                    color: isWinner ? Colors.lightGreenAccent : Colors.white70,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
+                // Bouton
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      _checkGameOverOrContinue();
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.lightGreenAccent,
+                      foregroundColor: Colors.black,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: Text(
+                      DominoSoloService.isGameOver(_session!) ? 'Voir résultats' : 'Manche suivante',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
-        ],
+        ),
       ),
     );
   }
@@ -535,110 +631,264 @@ class _DominoSoloGameScreenState extends State<DominoSoloGameScreen>
         : _session!.participants.reduce((a, b) => a.roundsWon > b.roundsWon ? a : b);
     final humanWon = winner != null && !winner.isAI;
 
+    final accentColor = isChiree
+        ? Colors.blue
+        : (humanWon ? Colors.amber : Colors.red);
+    final gradientColors = isChiree
+        ? [const Color(0xFF1565C0), const Color(0xFF42A5F5)]
+        : (humanWon
+            ? [const Color(0xFFFF8F00), const Color(0xFFFFCA28)]
+            : [const Color(0xFFC62828), const Color(0xFFEF5350)]);
+    final icon = isChiree
+        ? Icons.handshake
+        : (humanWon ? Icons.emoji_events : Icons.sentiment_dissatisfied);
+    final title = isChiree
+        ? 'CHIRÉE !'
+        : (humanWon ? 'VICTOIRE !' : 'DÉFAITE');
+    final subtitle = isChiree
+        ? 'Match nul ! Tous les joueurs ont gagné au moins une manche.'
+        : (humanWon
+            ? 'Félicitations, vous avez gagné la partie !'
+            : '${winner!.displayName} a gagné la partie.');
+
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        backgroundColor: Colors.grey.shade900,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              isChiree
-                  ? Icons.handshake
-                  : (humanWon ? Icons.emoji_events : Icons.sentiment_dissatisfied),
-              color: isChiree
-                  ? Colors.blue
-                  : (humanWon ? Colors.amber : Colors.red),
-              size: 48,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 420),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [const Color(0xFF1a1a2e), const Color(0xFF16213e)],
             ),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              isChiree
-                  ? 'CHIRÉE !'
-                  : (humanWon ? 'VICTOIRE !' : 'DÉFAITE'),
-              style: TextStyle(
-                color: isChiree
-                    ? Colors.blue
-                    : (humanWon ? Colors.amber : Colors.red),
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-              ),
-              textAlign: TextAlign.center,
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(
+              color: accentColor.withValues(alpha: 0.5),
+              width: 3,
             ),
-            const SizedBox(height: 16),
-            if (isChiree)
-              const Text(
-                'Match nul ! Tous les joueurs ont gagné au moins une manche.',
-                style: TextStyle(color: Colors.white70),
-                textAlign: TextAlign.center,
-              )
-            else if (!humanWon)
-              Text(
-                '${winner!.displayName} a gagné la partie.',
-                style: const TextStyle(color: Colors.white70),
-                textAlign: TextAlign.center,
+            boxShadow: [
+              BoxShadow(
+                color: accentColor.withValues(alpha: 0.4),
+                blurRadius: 30,
+                offset: const Offset(0, 10),
               ),
-            const SizedBox(height: 24),
-            ..._session!.participants.map((p) {
-              final isCochon = p.roundsWon == 0;
-              return Padding(
-                padding: const EdgeInsets.symmetric(vertical: 4),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+            ],
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(28),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Icône principale avec animation
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(colors: gradientColors),
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: accentColor.withValues(alpha: 0.6),
+                        blurRadius: 25,
+                        spreadRadius: 5,
+                      ),
+                    ],
+                  ),
+                  child: Icon(
+                    icon,
+                    color: Colors.white,
+                    size: 56,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                // Titre
+                Text(
+                  title,
+                  style: TextStyle(
+                    color: accentColor,
+                    fontSize: 36,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 2,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                // Sous-titre
+                Text(
+                  subtitle,
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.8),
+                    fontSize: 16,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 28),
+                // Scores finaux
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.1),
+                    ),
+                  ),
+                  child: Column(
+                    children: [
+                      Text(
+                        'Résultats finaux',
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.7),
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      ..._session!.participants.map((p) {
+                        final isCochon = p.roundsWon == 0;
+                        final isWinner = !isChiree && p.id == winner?.id;
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          child: Row(
+                            children: [
+                              // Indicateur
+                              Container(
+                                width: 32,
+                                height: 32,
+                                decoration: BoxDecoration(
+                                  color: isWinner
+                                      ? accentColor.withValues(alpha: 0.3)
+                                      : (isCochon
+                                          ? Colors.red.withValues(alpha: 0.3)
+                                          : Colors.white.withValues(alpha: 0.1)),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Center(
+                                  child: isWinner
+                                      ? const Icon(Icons.star, color: Colors.amber, size: 18)
+                                      : (isCochon
+                                          ? const Text('🐷', style: TextStyle(fontSize: 14))
+                                          : (p.isAI
+                                              ? Icon(Icons.smart_toy, color: Colors.grey.shade500, size: 16)
+                                              : Icon(Icons.person, color: Colors.grey.shade500, size: 16))),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              // Nom
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      p.displayName,
+                                      style: TextStyle(
+                                        color: isWinner
+                                            ? accentColor
+                                            : (isCochon ? Colors.red.shade300 : Colors.white),
+                                        fontWeight: isWinner ? FontWeight.bold : FontWeight.normal,
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                    if (isCochon)
+                                      Text(
+                                        'Cochon !',
+                                        style: TextStyle(
+                                          color: Colors.red.shade300,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                              ),
+                              // Score
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                decoration: BoxDecoration(
+                                  gradient: isWinner
+                                      ? LinearGradient(colors: gradientColors)
+                                      : null,
+                                  color: isWinner ? null : Colors.white.withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: Text(
+                                  '${p.roundsWon}',
+                                  style: TextStyle(
+                                    color: isWinner ? Colors.white : Colors.white70,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 28),
+                // Boutons
+                Row(
                   children: [
-                    if (p.isAI)
-                      const Icon(Icons.smart_toy, color: Colors.grey, size: 20),
-                    const SizedBox(width: 8),
-                    Text(
-                      '${p.displayName}: ${p.roundsWon} manches',
-                      style: TextStyle(
-                        color: isCochon ? Colors.red : Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () async {
+                          await DominoSoloService.clearSession();
+                          if (context.mounted) {
+                            Navigator.of(context).pop();
+                            context.go('/domino');
+                          }
+                        },
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: Colors.white70,
+                          side: BorderSide(color: Colors.white.withValues(alpha: 0.3)),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: const Text('Menu'),
                       ),
                     ),
-                    if (isCochon) ...[
-                      const SizedBox(width: 8),
-                      const Text('🐷', style: TextStyle(fontSize: 20)),
-                    ],
+                    const SizedBox(width: 16),
+                    Expanded(
+                      flex: 2,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                          _initializeGame(forceNew: true);
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.refresh, size: 20),
+                            SizedBox(width: 8),
+                            Text(
+                              'Rejouer',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                   ],
                 ),
-              );
-            }),
-          ],
+              ],
+            ),
+          ),
         ),
-        actions: [
-          TextButton(
-            onPressed: () async {
-              // Supprimer la session terminée avant de quitter
-              await DominoSoloService.clearSession();
-              if (context.mounted) {
-                Navigator.of(context).pop();
-                context.go('/domino');
-              }
-            },
-            child: const Text(
-              'Retour au menu',
-              style: TextStyle(color: Colors.white70),
-            ),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              _initializeGame(forceNew: true);
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.green,
-            ),
-            child: const Text('Rejouer'),
-          ),
-        ],
       ),
     );
   }
@@ -801,30 +1051,122 @@ class _DominoSoloGameScreenState extends State<DominoSoloGameScreen>
   void _showExitConfirmation() {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: Colors.grey.shade900,
-        title: const Text(
-          'Quitter la partie ?',
-          style: TextStyle(color: Colors.white),
-        ),
-        content: const Text(
-          'Votre progression sera sauvegardée.',
-          style: TextStyle(color: Colors.white70),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Annuler'),
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 360),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [const Color(0xFF1a1a2e), const Color(0xFF16213e)],
+            ),
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(
+              color: Colors.orange.withValues(alpha: 0.4),
+              width: 2,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.orange.withValues(alpha: 0.2),
+                blurRadius: 20,
+                offset: const Offset(0, 10),
+              ),
+            ],
           ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              context.go('/domino');
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
-            child: const Text('Quitter'),
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Icône
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.orange.withValues(alpha: 0.2),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.exit_to_app,
+                    color: Colors.orange,
+                    size: 36,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                // Titre
+                const Text(
+                  'Quitter la partie ?',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                // Message
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.save,
+                      color: Colors.lightGreenAccent.withValues(alpha: 0.8),
+                      size: 18,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Votre progression sera sauvegardée',
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.8),
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 28),
+                // Boutons
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: Colors.white70,
+                          side: BorderSide(color: Colors.white.withValues(alpha: 0.3)),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: const Text('Annuler'),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                          context.go('/domino');
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.orange,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: const Text(
+                          'Quitter',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
-        ],
+        ),
       ),
     );
   }

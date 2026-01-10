@@ -29,24 +29,152 @@ class RoundEndDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final winner = _findWinner();
+    final accentColor = round.isCapot ? Colors.amber : Colors.orange;
+    final gradientColors = round.isCapot
+        ? [const Color(0xFF1B5E20), const Color(0xFF2E7D32)]
+        : [const Color(0xFFE65100), const Color(0xFFFF8F00)];
 
-    return AlertDialog(
-      backgroundColor: Colors.grey.shade900,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      title: _buildTitle(),
-      content: _buildContent(winner),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text(
-            'Continuer',
-            style: TextStyle(
-              color: Colors.lightGreenAccent,
-              fontWeight: FontWeight.bold,
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      child: Container(
+        constraints: const BoxConstraints(maxWidth: 400),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [const Color(0xFF1a1a2e), const Color(0xFF16213e)],
+          ),
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(
+            color: accentColor.withValues(alpha: 0.4),
+            width: 2,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: accentColor.withValues(alpha: 0.3),
+              blurRadius: 20,
+              offset: const Offset(0, 10),
             ),
+          ],
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Icône principale
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(colors: gradientColors),
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: accentColor.withValues(alpha: 0.5),
+                      blurRadius: 15,
+                    ),
+                  ],
+                ),
+                child: Icon(
+                  round.isCapot ? Icons.emoji_events : Icons.block,
+                  color: Colors.white,
+                  size: 40,
+                ),
+              ),
+              const SizedBox(height: 16),
+              // Titre
+              Text(
+                'Manche ${round.roundNumber} terminée !',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              // Badge type de fin
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(colors: gradientColors),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  round.isCapot ? 'CAPOT !' : 'Partie bloquée',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              // Gagnant
+              if (winner != null)
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.star, color: Colors.amber, size: 24),
+                    const SizedBox(width: 8),
+                    Text(
+                      winner.displayName,
+                      style: const TextStyle(
+                        color: Colors.lightGreenAccent,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              const SizedBox(height: 24),
+              // Points restants
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.3),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Column(
+                  children: [
+                    Text(
+                      'Points restants',
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.7),
+                        fontSize: 14,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    ...session.participants.map((p) => _buildPlayerScore(p)),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+              // Bouton
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.lightGreenAccent,
+                    foregroundColor: Colors.black,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text(
+                    'Continuer',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
-      ],
+      ),
     );
   }
 
@@ -62,118 +190,51 @@ class RoundEndDialog extends StatelessWidget {
     }
   }
 
-  Widget _buildTitle() {
-    return Row(
-      children: [
-        Icon(
-          round.isCapot ? Icons.emoji_events : Icons.block,
-          color: round.isCapot ? Colors.amber : Colors.orange,
-          size: 32,
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Text(
-            'Manche ${round.roundNumber} terminée !',
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildContent(DominoParticipant? winner) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildEndTypeBadge(),
-        const SizedBox(height: 16),
-        if (winner != null) ...[
-          _buildWinnerText(winner),
-          const SizedBox(height: 16),
-        ],
-        _buildScoresSection(),
-      ],
-    );
-  }
-
-  Widget _buildEndTypeBadge() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: round.isCapot ? Colors.green.shade800 : Colors.orange.shade800,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Text(
-        round.isCapot ? 'CAPOT !' : 'Partie bloquée',
-        style: const TextStyle(
-          color: Colors.white,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildWinnerText(DominoParticipant winner) {
-    return Text(
-      'Gagnant: ${winner.displayName}',
-      style: const TextStyle(
-        color: Colors.lightGreenAccent,
-        fontSize: 18,
-        fontWeight: FontWeight.bold,
-      ),
-    );
-  }
-
-  Widget _buildScoresSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Points restants:',
-          style: TextStyle(
-            color: Colors.white70,
-            fontSize: 14,
-          ),
-        ),
-        const SizedBox(height: 8),
-        ...session.participants.map((p) => _buildPlayerScore(p)),
-      ],
-    );
-  }
-
   Widget _buildPlayerScore(DominoParticipant player) {
     final score = round.finalScores[player.id] ?? 0;
     final isWinner = player.id == round.winnerParticipantId;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
         children: [
           if (isWinner)
-            const Icon(Icons.star, color: Colors.amber, size: 20)
+            Container(
+              padding: const EdgeInsets.all(4),
+              decoration: const BoxDecoration(
+                color: Colors.amber,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.star, color: Colors.white, size: 14),
+            )
           else
-            const SizedBox(width: 20),
-          const SizedBox(width: 8),
+            const SizedBox(width: 22),
+          const SizedBox(width: 10),
           Expanded(
             child: Text(
               player.displayName,
               style: TextStyle(
                 color: isWinner ? Colors.lightGreenAccent : Colors.white,
                 fontWeight: isWinner ? FontWeight.bold : FontWeight.normal,
+                fontSize: 16,
               ),
             ),
           ),
-          Text(
-            '$score pts',
-            style: TextStyle(
-              color: isWinner ? Colors.lightGreenAccent : Colors.white70,
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            decoration: BoxDecoration(
+              color: isWinner
+                  ? Colors.lightGreenAccent.withValues(alpha: 0.2)
+                  : Colors.white.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(
+              '$score pts',
+              style: TextStyle(
+                color: isWinner ? Colors.lightGreenAccent : Colors.white70,
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
             ),
           ),
         ],
