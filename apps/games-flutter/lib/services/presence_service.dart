@@ -20,6 +20,7 @@ class PresenceService {
   final _onlineUsersController = StreamController<PresenceStats>.broadcast();
   final List<OnlineUser> _connectedUsers = [];
   final List<OnlineUser> _visitors = [];
+  bool _isInitialized = false;
 
   /// Stream des statistiques de présence
   Stream<PresenceStats> get presenceStatsStream => _onlineUsersController.stream;
@@ -55,6 +56,13 @@ class PresenceService {
 
   /// Initialise le tracking de présence pour tout utilisateur (connecté ou visiteur)
   Future<void> initialize() async {
+    // Éviter la réinitialisation multiple
+    if (_isInitialized && _presenceChannel != null) {
+      // Émettre les stats actuelles pour les nouveaux abonnés
+      _onlineUsersController.add(currentStats);
+      return;
+    }
+
     final userId = _authService.getUserIdOrNull();
     final isAuthenticated = userId != null;
 
@@ -89,6 +97,8 @@ class PresenceService {
     // Écouter les changements de présence
     _presenceChannel!.onPresenceSync((payload) {
       _updatePresenceStats();
+      // Émettre immédiatement les stats à la première synchronisation
+      _onlineUsersController.add(currentStats);
     });
 
     _presenceChannel!.onPresenceJoin((payload) {
@@ -102,6 +112,7 @@ class PresenceService {
     // S'abonner et tracker la présence
     _presenceChannel!.subscribe((status, error) async {
       if (status == RealtimeSubscribeStatus.subscribed) {
+        _isInitialized = true;
         // Envoyer notre état de présence
         _presenceChannel!.track({
           'user_id': odentifier,
@@ -154,6 +165,7 @@ class PresenceService {
     _presenceChannel = null;
     _connectedUsers.clear();
     _visitors.clear();
+    _isInitialized = false;
   }
 
   /// Rafraîchir l'état de présence (heartbeat)

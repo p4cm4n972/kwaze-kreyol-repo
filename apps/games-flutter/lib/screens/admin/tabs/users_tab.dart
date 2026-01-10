@@ -31,6 +31,12 @@ class _UsersTabState extends State<UsersTab> {
   void initState() {
     super.initState();
     _loadData();
+    _initAndSubscribeToPresence();
+  }
+
+  Future<void> _initAndSubscribeToPresence() async {
+    // S'assurer que le service de présence est initialisé
+    await _presenceService.initialize();
     _subscribeToPresence();
   }
 
