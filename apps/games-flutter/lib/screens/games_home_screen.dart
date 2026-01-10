@@ -820,7 +820,7 @@ class _GamesHomeScreenState extends State<GamesHomeScreen>
 
   Widget _buildDesktopGrid(double maxWidth) {
     final isMobile = maxWidth < 600;
-    final crossAxisCount = maxWidth > 1200 ? 3 : (maxWidth > 600 ? 3 : 2);
+    final crossAxisCount = isMobile ? 2 : 3;
 
     return Container(
       decoration: const BoxDecoration(
@@ -830,51 +830,60 @@ class _GamesHomeScreenState extends State<GamesHomeScreen>
           colors: [KKColors.secondary, KKColors.secondaryLight],
         ),
       ),
-      padding: EdgeInsets.all(isMobile ? 12 : 24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Nos jeux',
-            style: TextStyle(
-              fontSize: 32,
-              fontWeight: FontWeight.bold,
-              color: KKColors.accent,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Découvre nos jeux 100% créole ! Joue en ligne ou télécharge les applications.',
-            style: TextStyle(
-              fontSize: 16,
-              color: Colors.white.withValues(alpha: 0.8),
-            ),
-          ),
-          const SizedBox(height: 24),
-          GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: crossAxisCount,
-              crossAxisSpacing: 20,
-              mainAxisSpacing: 20,
-              childAspectRatio: 0.75,
-            ),
-            itemCount: _allGames.length,
-            itemBuilder: (context, index) {
-              final game = _allGames[index];
-              return _DesktopGameCard(
-                name: game.name,
-                description: game.subtitle,
-                iconPath: game.iconPath,
-                gradient: game.gradient,
-                available: game.available,
-                badge: game.badge,
-                onTap: game.available ? () => context.go('/${game.id}') : null,
-              );
+      padding: EdgeInsets.symmetric(
+        horizontal: isMobile ? 12 : 24,
+        vertical: isMobile ? 16 : 32,
+      ),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 900),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Nos jeux',
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: KKColors.accent,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Découvre nos jeux 100% créole ! Joue en ligne ou télécharge les applications.',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.white.withValues(alpha: 0.8),
+                ),
+              ),
+              const SizedBox(height: 20),
+              GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: crossAxisCount,
+                  crossAxisSpacing: isMobile ? 10 : 16,
+                  mainAxisSpacing: isMobile ? 10 : 16,
+                  childAspectRatio: isMobile ? 0.7 : 0.85,
+                ),
+                itemCount: _allGames.length,
+                itemBuilder: (context, index) {
+                  final game = _allGames[index];
+                  return _DesktopGameCard(
+                    name: game.name,
+                    description: game.subtitle,
+                    iconPath: game.iconPath,
+                    gradient: game.gradient,
+                    available: game.available,
+                    badge: game.badge,
+                    isMobile: isMobile,
+                    onTap: game.available ? () => context.go('/${game.id}') : null,
+                  );
             },
           ),
-        ],
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -1404,6 +1413,7 @@ class _DesktopGameCard extends StatelessWidget {
   final List<Color> gradient;
   final bool available;
   final String? badge;
+  final bool isMobile;
   final VoidCallback? onTap;
 
   const _DesktopGameCard({
@@ -1413,6 +1423,7 @@ class _DesktopGameCard extends StatelessWidget {
     required this.gradient,
     required this.available,
     this.badge,
+    this.isMobile = false,
     this.onTap,
   });
 
@@ -1443,10 +1454,10 @@ class _DesktopGameCard extends StatelessWidget {
                   color: Colors.white,
                   child: Stack(
                     children: [
-                      // Image centrée
+                      // Image centrée (moins de padding sur mobile)
                       Positioned.fill(
                         child: Padding(
-                          padding: const EdgeInsets.all(16),
+                          padding: EdgeInsets.all(isMobile ? 6 : 16),
                           child: Opacity(
                             opacity: available ? 1.0 : 0.5,
                             child: Image.asset(
@@ -1454,7 +1465,7 @@ class _DesktopGameCard extends StatelessWidget {
                               fit: BoxFit.contain,
                               errorBuilder: (_, __, ___) => Icon(
                                 Icons.sports_esports,
-                                size: 100,
+                                size: isMobile ? 50 : 100,
                                 color: gradient[0].withValues(alpha: 0.5),
                               ),
                             ),
@@ -1464,23 +1475,26 @@ class _DesktopGameCard extends StatelessWidget {
                       // Badge en haut à droite
                       if (badge != null)
                         Positioned(
-                          top: 12,
-                          right: 12,
+                          top: isMobile ? 4 : 12,
+                          right: isMobile ? 4 : 12,
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                            padding: EdgeInsets.symmetric(
+                              horizontal: isMobile ? 6 : 10,
+                              vertical: isMobile ? 2 : 5,
+                            ),
                             decoration: BoxDecoration(
                               color: badge == 'Nouveau'
                                   ? Colors.green
                                   : badge == 'Populaire'
                                       ? KKColors.primary
                                       : Colors.grey,
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(isMobile ? 8 : 12),
                             ),
                             child: Text(
                               badge!,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 color: Colors.white,
-                                fontSize: 11,
+                                fontSize: isMobile ? 8 : 11,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -1490,67 +1504,89 @@ class _DesktopGameCard extends StatelessWidget {
                   ),
                 ),
               ),
-              // Section basse - Fond bleu foncé avec nom + bouton
+              // Section basse - Fond bleu foncé avec nom (+ bouton sur desktop)
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding: EdgeInsets.symmetric(
+                  horizontal: isMobile ? 8 : 16,
+                  vertical: isMobile ? 8 : 12,
+                ),
                 color: KKColors.secondary,
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Nom du jeu
-                    Text(
-                      name,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: KKColors.accent,
-                      ),
-                      textAlign: TextAlign.center,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 10),
-                    // Bouton Jouer avec couleur du jeu
-                    Container(
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        gradient: available
-                            ? LinearGradient(colors: gradient)
-                            : null,
-                        color: available ? null : Colors.grey.withValues(alpha: 0.5),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Material(
-                        color: Colors.transparent,
-                        child: InkWell(
-                          onTap: available ? onTap : null,
+                    // Nom du jeu (en couleur gradient sur mobile)
+                    isMobile
+                        ? ShaderMask(
+                            shaderCallback: (bounds) => LinearGradient(
+                              colors: available ? gradient : [Colors.grey, Colors.grey],
+                            ).createShader(bounds),
+                            child: Text(
+                              name,
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                              textAlign: TextAlign.center,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          )
+                        : Text(
+                            name,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: KKColors.accent,
+                            ),
+                            textAlign: TextAlign.center,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                    // Bouton Jouer uniquement sur desktop
+                    if (!isMobile) ...[
+                      const SizedBox(height: 10),
+                      Container(
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          gradient: available
+                              ? LinearGradient(colors: gradient)
+                              : null,
+                          color: available ? null : Colors.grey.withValues(alpha: 0.5),
                           borderRadius: BorderRadius.circular(8),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.sports_esports,
-                                  size: 18,
-                                  color: available ? Colors.white : Colors.white54,
-                                ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  available ? 'Jouer' : 'Bientôt',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.bold,
+                        ),
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: available ? onTap : null,
+                            borderRadius: BorderRadius.circular(8),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.sports_esports,
+                                    size: 18,
                                     color: available ? Colors.white : Colors.white54,
                                   ),
-                                ),
-                              ],
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    available ? 'Jouer' : 'Bientôt',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                      color: available ? Colors.white : Colors.white54,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ),
                       ),
-                    ),
+                    ],
                   ],
                 ),
               ),
