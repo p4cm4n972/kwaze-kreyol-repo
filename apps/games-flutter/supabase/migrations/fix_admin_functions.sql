@@ -1,6 +1,9 @@
 -- ================================================
 -- SCRIPT DE CORRECTION DES FONCTIONS ADMIN
 -- Exécutez ce script dans Supabase SQL Editor
+--
+-- IMPORTANT: Toutes les colonnes id/user_id sont UUID
+-- Comparer UUID avec UUID directement (pas de cast ::TEXT)
 -- ================================================
 
 -- 1. SUPPRIMER toutes les fonctions existantes pour les recréer proprement
@@ -26,10 +29,10 @@ RETURNS JSONB AS $$
 DECLARE
   stats JSONB;
 BEGIN
-  -- Check if caller is admin
+  -- Check if caller is admin (UUID = UUID)
   IF NOT EXISTS (
     SELECT 1 FROM users
-    WHERE id::TEXT = auth.uid()::TEXT AND role = 'admin'
+    WHERE id = auth.uid() AND role = 'admin'
   ) THEN
     RAISE EXCEPTION 'Access denied: Admin role required';
   END IF;
