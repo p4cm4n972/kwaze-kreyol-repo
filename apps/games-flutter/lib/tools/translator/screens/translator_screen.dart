@@ -106,7 +106,7 @@ class _TranslatorScreenState extends State<TranslatorScreen> {
               // Header unifié
               GameHeader(
                 title: 'Kozé Kwazé',
-                emoji: '📖',
+                iconPath: 'assets/icons/koze-kwaze.png',
                 onBack: () => context.go('/home'),
                 gradientColors: const [Color(0xFF1ABC9C), Color(0xFF16A085)],
                 actions: [

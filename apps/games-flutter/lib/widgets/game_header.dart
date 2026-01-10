@@ -3,9 +3,11 @@ import 'package:go_router/go_router.dart';
 
 /// Widget d'en-tête unifié pour tous les jeux
 /// Style moderne avec gradient, shadow et bouton retour dans un cercle
+/// Peut afficher soit un titre, soit une icône ronde du jeu
 class GameHeader extends StatelessWidget {
   final String title;
   final String? emoji;
+  final String? iconPath;
   final VoidCallback? onBack;
   final List<Widget>? actions;
   final List<Color>? gradientColors;
@@ -14,6 +16,7 @@ class GameHeader extends StatelessWidget {
     super.key,
     required this.title,
     this.emoji,
+    this.iconPath,
     this.onBack,
     this.actions,
     this.gradientColors,
@@ -70,43 +73,79 @@ class GameHeader extends StatelessWidget {
           ),
           SizedBox(width: isMobile ? 12 : 16),
 
-          // Titre avec gradient doré
-          Expanded(
-            child: Container(
-              padding: EdgeInsets.symmetric(
-                horizontal: isMobile ? 16 : 20,
-                vertical: isMobile ? 10 : 12,
-              ),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: gradientColors ?? [
-                    const Color(0xFFFFD700),
-                    const Color(0xFFFF8C00),
-                  ],
-                ),
-                borderRadius: BorderRadius.circular(15),
-                boxShadow: [
-                  BoxShadow(
-                    color: (gradientColors?.last ?? const Color(0xFFFF8C00))
-                        .withValues(alpha: 0.5),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
+          // Icône ronde du jeu OU Titre avec gradient
+          iconPath != null
+              ? Container(
+                  width: isMobile ? 50 : 60,
+                  height: isMobile ? 50 : 60,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white,
+                    boxShadow: [
+                      BoxShadow(
+                        color: (gradientColors?.first ?? const Color(0xFFFFD700))
+                            .withValues(alpha: 0.5),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-              child: Text(
-                emoji != null ? '$emoji $title' : title,
-                style: TextStyle(
-                  fontSize: isMobile ? 20 : 26,
-                  fontWeight: FontWeight.w900,
-                  color: Colors.black,
-                  letterSpacing: 0.5,
+                  child: ClipOval(
+                    child: Padding(
+                      padding: const EdgeInsets.all(4),
+                      child: Image.asset(
+                        iconPath!,
+                        fit: BoxFit.contain,
+                        errorBuilder: (_, __, ___) => Text(
+                          emoji ?? title[0],
+                          style: TextStyle(
+                            fontSize: isMobile ? 24 : 30,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                )
+              : Expanded(
+                  child: Container(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: isMobile ? 16 : 20,
+                      vertical: isMobile ? 10 : 12,
+                    ),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: gradientColors ?? [
+                          const Color(0xFFFFD700),
+                          const Color(0xFFFF8C00),
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(15),
+                      boxShadow: [
+                        BoxShadow(
+                          color: (gradientColors?.last ?? const Color(0xFFFF8C00))
+                              .withValues(alpha: 0.5),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Text(
+                      emoji != null ? '$emoji $title' : title,
+                      style: TextStyle(
+                        fontSize: isMobile ? 20 : 26,
+                        fontWeight: FontWeight.w900,
+                        color: Colors.black,
+                        letterSpacing: 0.5,
+                      ),
+                      textAlign: TextAlign.center,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
                 ),
-                textAlign: TextAlign.center,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          ),
+          // Spacer pour centrer l'icône si pas d'actions
+          if (iconPath != null && (actions == null || actions!.isEmpty))
+            const Spacer(),
 
           // Actions (icônes supplémentaires)
           if (actions != null && actions!.isNotEmpty) ...[

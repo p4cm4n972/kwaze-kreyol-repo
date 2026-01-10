@@ -859,40 +859,39 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
                 ),
               ),
               SizedBox(width: isMobile ? 8 : 12),
-              // Titre centré qui prend tout l'espace
-              Expanded(
-                child: Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: isMobile ? 12 : 16,
-                    vertical: isMobile ? 8 : 10,
-                  ),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        const Color(0xFFFFD700),
-                        const Color(0xFFFF8C00),
-                      ],
+              // Icône ronde du jeu
+              Container(
+                width: isMobile ? 50 : 60,
+                height: isMobile ? 50 : 60,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white,
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFFFFD700).withValues(alpha: 0.5),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
                     ),
-                    borderRadius: BorderRadius.circular(15),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFFFF8C00).withValues(alpha: 0.5),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
+                  ],
+                ),
+                child: ClipOval(
+                  child: Padding(
+                    padding: const EdgeInsets.all(4),
+                    child: Image.asset(
+                      'assets/icons/skrabb.png',
+                      fit: BoxFit.contain,
+                      errorBuilder: (_, __, ___) => Text(
+                        'S',
+                        style: TextStyle(
+                          fontSize: isMobile ? 24 : 30,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ],
-                  ),
-                  child: Text(
-                    '🎰 Skrabb',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: isMobile ? 18 : 24,
-                      fontWeight: FontWeight.w900,
-                      color: Colors.black,
                     ),
                   ),
                 ),
               ),
+              const Spacer(),
               SizedBox(width: isMobile ? 8 : 12),
               Container(
                 padding: EdgeInsets.symmetric(

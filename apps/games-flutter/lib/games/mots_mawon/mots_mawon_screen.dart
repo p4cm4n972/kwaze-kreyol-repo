@@ -468,7 +468,7 @@ class _MotsMawonScreenState extends State<MotsMawonScreen> {
               // Header unifié
               GameHeader(
                 title: 'Mots Mawon',
-                emoji: '🔍',
+                iconPath: 'assets/icons/mots-mawon.png',
                 onBack: () => context.go('/home'),
                 gradientColors: const [Color(0xFFE74C3C), Color(0xFFF39C12)],
                 actions: [

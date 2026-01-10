@@ -252,37 +252,36 @@ class _DominoHomeScreenState extends State<DominoHomeScreen>
             ),
           ),
           const SizedBox(width: 16),
-          Expanded(
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    const Color(0xFFFFD700),
-                    const Color(0xFFFF8C00),
-                  ],
+          // Icône ronde du jeu
+          Container(
+            width: 60,
+            height: 60,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.white,
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFFFFD700).withValues(alpha: 0.5),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
                 ),
-                borderRadius: BorderRadius.circular(15),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFFFF8C00).withValues(alpha: 0.5),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
+              ],
+            ),
+            child: ClipOval(
+              child: Padding(
+                padding: const EdgeInsets.all(4),
+                child: Image.asset(
+                  'assets/icons/double-siz.png',
+                  fit: BoxFit.contain,
+                  errorBuilder: (_, __, ___) => const Text(
+                    '🎲',
+                    style: TextStyle(fontSize: 30),
                   ),
-                ],
-              ),
-              child: const Text(
-                '🎲 Dominos',
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.w900,
-                  color: Colors.black,
-                  letterSpacing: 1,
                 ),
-                textAlign: TextAlign.center,
               ),
             ),
           ),
+          const Spacer(),
         ],
       ),
     );
