@@ -1118,16 +1118,19 @@ class _MainGameCard extends StatelessWidget {
                                 ),
                               ),
                             ),
-                            // Icon
-                            Image.asset(
-                              iconPath,
-                              width: 90,
-                              height: 90,
-                              fit: BoxFit.contain,
-                              errorBuilder: (_, __, ___) => Icon(
-                                Icons.sports_esports,
-                                size: 70,
-                                color: Colors.white.withValues(alpha: 0.5),
+                            // Icon - zoomé
+                            Transform.scale(
+                              scale: 1.15,
+                              child: Image.asset(
+                                iconPath,
+                                width: 90,
+                                height: 90,
+                                fit: BoxFit.contain,
+                                errorBuilder: (_, __, ___) => Icon(
+                                  Icons.sports_esports,
+                                  size: 70,
+                                  color: Colors.white.withValues(alpha: 0.5),
+                                ),
                               ),
                             ),
                           ],
@@ -1252,10 +1255,10 @@ class _CategoryGameCard extends StatelessWidget {
                   color: Colors.white,
                   child: Stack(
                     children: [
-                      // Image centrée
+                      // Image centrée - zoomée pour remplir le conteneur
                       Positioned.fill(
-                        child: Padding(
-                          padding: const EdgeInsets.all(6),
+                        child: Transform.scale(
+                          scale: 1.15,
                           child: Opacity(
                             opacity: available ? 1.0 : 0.5,
                             child: Image.asset(
@@ -1466,10 +1469,10 @@ class _DesktopGameCard extends StatelessWidget {
                   color: Colors.white,
                   child: Stack(
                     children: [
-                      // Image centrée (moins de padding sur mobile)
+                      // Image centrée - zoomée pour remplir le conteneur
                       Positioned.fill(
-                        child: Padding(
-                          padding: EdgeInsets.all(isMobile ? 4 : 10),
+                        child: Transform.scale(
+                          scale: 1.15,
                           child: Opacity(
                             opacity: available ? 1.0 : 0.5,
                             child: Image.asset(

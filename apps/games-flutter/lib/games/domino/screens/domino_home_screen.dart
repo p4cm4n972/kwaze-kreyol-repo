@@ -293,30 +293,30 @@ class _DominoHomeScreenState extends State<DominoHomeScreen>
             ),
           ),
           const SizedBox(width: 16),
-          // Icône ronde du jeu
+          // Icône ronde du jeu - agrandie
           Container(
-            width: 60,
-            height: 60,
+            width: 75,
+            height: 75,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: Colors.white,
               boxShadow: [
                 BoxShadow(
                   color: const Color(0xFFFFD700).withValues(alpha: 0.5),
-                  blurRadius: 10,
+                  blurRadius: 12,
                   offset: const Offset(0, 4),
                 ),
               ],
             ),
             child: ClipOval(
-              child: Padding(
-                padding: const EdgeInsets.all(4),
+              child: Transform.scale(
+                scale: 1.1,
                 child: Image.asset(
                   'assets/icons/double-siz.png',
-                  fit: BoxFit.contain,
+                  fit: BoxFit.cover,
                   errorBuilder: (_, __, ___) => const Text(
                     '🎲',
-                    style: TextStyle(fontSize: 30),
+                    style: TextStyle(fontSize: 36),
                   ),
                 ),
               ),

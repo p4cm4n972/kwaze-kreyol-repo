@@ -861,29 +861,29 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
               SizedBox(width: isMobile ? 8 : 12),
               // Icône ronde du jeu
               Container(
-                width: isMobile ? 50 : 60,
-                height: isMobile ? 50 : 60,
+                width: isMobile ? 65 : 80,
+                height: isMobile ? 65 : 80,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: Colors.white,
                   boxShadow: [
                     BoxShadow(
                       color: const Color(0xFFFFD700).withValues(alpha: 0.5),
-                      blurRadius: 10,
+                      blurRadius: 12,
                       offset: const Offset(0, 4),
                     ),
                   ],
                 ),
                 child: ClipOval(
-                  child: Padding(
-                    padding: const EdgeInsets.all(4),
+                  child: Transform.scale(
+                    scale: 1.1,
                     child: Image.asset(
                       'assets/icons/skrabb.png',
-                      fit: BoxFit.contain,
+                      fit: BoxFit.cover,
                       errorBuilder: (_, __, ___) => Text(
                         'S',
                         style: TextStyle(
-                          fontSize: isMobile ? 24 : 30,
+                          fontSize: isMobile ? 28 : 36,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
