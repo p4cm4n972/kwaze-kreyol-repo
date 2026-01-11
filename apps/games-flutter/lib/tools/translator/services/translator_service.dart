@@ -206,22 +206,54 @@ class TranslatorService {
   // Récupérer un mot aléatoire (mot du jour)
   Future<DictionaryWord?> getRandomWord({String? language}) async {
     try {
-      var queryBuilder = _supabase.from('dictionary_words').select();
+      // D'abord, compter le nombre de mots
+      var countQuery = _supabase
+          .from('dictionary_words')
+          .select()
+          .eq('is_official', true);
 
       if (language != null) {
-        queryBuilder = queryBuilder.eq('language', language);
+        countQuery = countQuery.eq('language', language);
       }
 
-      // Utiliser une fonction PostgreSQL pour obtenir un mot aléatoire
-      final response = await _supabase.rpc('get_random_word', params: {
-        if (language != null) 'p_language': language,
-      });
+      final countResponse = await countQuery;
+      final totalCount = (countResponse as List).length;
 
-      if (response != null) {
-        return DictionaryWord.fromJson(response);
+      if (totalCount == 0) {
+        debugPrint('⚠️ Aucun mot trouvé dans le dictionnaire');
+        return null;
       }
+
+      // Générer un offset aléatoire basé sur la date du jour
+      // pour avoir le même mot toute la journée
+      final today = DateTime.now();
+      final seed = today.year * 10000 + today.month * 100 + today.day;
+      final randomOffset = seed % totalCount;
+
+      debugPrint('📊 Total mots: $totalCount, Offset: $randomOffset');
+
+      // Récupérer le mot à cet offset
+      var wordQuery = _supabase
+          .from('dictionary_words')
+          .select()
+          .eq('is_official', true);
+
+      if (language != null) {
+        wordQuery = wordQuery.eq('language', language);
+      }
+
+      final response = await wordQuery
+          .order('id', ascending: true)
+          .range(randomOffset, randomOffset);
+
+      if ((response as List).isNotEmpty) {
+        debugPrint('✅ Mot du jour: ${response[0]['word']}');
+        return DictionaryWord.fromJson(response[0]);
+      }
+
       return null;
     } catch (e) {
+      debugPrint('❌ Erreur mot aléatoire: $e');
       throw Exception('Erreur lors de la récupération du mot aléatoire: $e');
     }
   }
