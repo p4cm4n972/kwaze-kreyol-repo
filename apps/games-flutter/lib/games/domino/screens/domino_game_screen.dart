@@ -10,9 +10,9 @@ import '../models/domino_round.dart';
 import '../utils/domino_logic.dart';
 import '../utils/responsive_utils.dart';
 import '../widgets/domino_board_widget.dart';
-import '../widgets/shared/game_header.dart';
-import '../widgets/shared/opponent_card.dart';
-import '../widgets/shared/player_hand.dart';
+import '../widgets/shared/multi_game_header.dart';
+import '../widgets/shared/players_opponents_bar.dart';
+import '../widgets/shared/solo_player_hand.dart';
 import '../widgets/dialogs/round_end_dialog.dart';
 
 /// Écran principal du jeu de dominos
@@ -250,17 +250,20 @@ class _DominoGameScreenState extends State<DominoGameScreen>
       );
     }
 
+    final opponents = _session!.participants
+        .where((p) => p.id != _currentParticipant?.id)
+        .toList();
+
     return Scaffold(
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
             colors: [
-              const Color(0xFF1A237E),
-              const Color(0xFF283593),
-              const Color(0xFF3949AB),
-              const Color(0xFF5C6BC0),
+              const Color(0xFF1a1a2e),
+              const Color(0xFF16213e),
+              const Color(0xFF0f3460),
             ],
           ),
         ),
@@ -269,48 +272,33 @@ class _DominoGameScreenState extends State<DominoGameScreen>
             opacity: _fadeAnimation,
             child: Column(
               children: [
-                DominoGameHeader(
+                MultiGameHeader(
                   session: _session!,
                   currentParticipant: _currentParticipant,
+                  onBack: () => _showExitConfirmation(),
                 ),
                 if (_errorMessage != null) _buildErrorBanner(),
+                PlayersOpponentsBar(
+                  opponents: opponents,
+                  currentTurnParticipantId: _session!.currentGameState?.currentTurnParticipantId,
+                  playerHands: _session!.currentGameState?.playerHands,
+                  pulseAnimation: _pulseAnimation,
+                ),
                 Expanded(
-                  child: Stack(
-                    children: [
-                      // Plateau de jeu (prend tout l'espace)
-                      Positioned.fill(
-                        child: Padding(
-                          padding: const EdgeInsets.only(top: 60),
-                          child: _buildBoard(),
-                        ),
-                      ),
-                      // Adversaires en overlay en haut
-                      Positioned(
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        child: OpponentsRow(
-                          opponents: _session!.participants
-                              .where((p) => p.id != _currentParticipant?.id)
-                              .toList(),
-                          currentTurnParticipantId: _session!.currentGameState?.currentTurnParticipantId,
-                          playerHands: _session!.currentGameState?.playerHands,
-                          pulseAnimation: _pulseAnimation,
-                        ),
-                      ),
-                    ],
+                  child: DominoBoardWidget(
+                    gameState: _session!.currentGameState!,
+                    isMyTurn: _isMyTurn,
+                    onTilePlaced: (side, tile) => _placeTile(side, tile),
+                    selectedTile: _selectedTile,
                   ),
                 ),
-                PlayerHand(
+                SoloPlayerHand(
                   tiles: _myHand,
                   playableTiles: _playableTiles,
                   selectedTile: _selectedTile,
                   isMyTurn: _isMyTurn,
-                  isLoading: _isLoading,
-                  gameState: _session?.currentGameState,
-                  pulseAnimation: _pulseAnimation,
+                  roundsWon: _currentParticipant?.roundsWon ?? 0,
                   onTileSelected: (tile) => setState(() => _selectedTile = tile),
-                  onTilePlaced: _placeTile,
                   onPassTurn: _passTurn,
                 ),
               ],
@@ -363,36 +351,115 @@ class _DominoGameScreenState extends State<DominoGameScreen>
     );
   }
 
-  Widget _buildBoard() {
-    final gameState = _session?.currentGameState;
-
-    // Aucun état de jeu = afficher le chargement
-    if (gameState == null) {
-      return Container(
-        margin: const EdgeInsets.symmetric(vertical: 16),
-        height: 400,
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              Colors.black.withValues(alpha: 0.3),
-              Colors.black.withValues(alpha: 0.1),
+  void _showExitConfirmation() {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 360),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [const Color(0xFF1a1a2e), const Color(0xFF16213e)],
+            ),
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(
+              color: Colors.orange.withValues(alpha: 0.4),
+              width: 2,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.orange.withValues(alpha: 0.2),
+                blurRadius: 20,
+                offset: const Offset(0, 10),
+              ),
             ],
           ),
-          borderRadius: BorderRadius.circular(20),
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.orange.withValues(alpha: 0.2),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.exit_to_app,
+                    color: Colors.orange,
+                    size: 36,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                const Text(
+                  'Quitter la partie ?',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'Vous pouvez reprendre cette partie plus tard depuis l\'accueil.',
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.7),
+                    fontSize: 14,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        style: OutlinedButton.styleFrom(
+                          side: BorderSide(
+                            color: Colors.white.withValues(alpha: 0.3),
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: const Text(
+                          'Continuer',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                          context.go('/domino');
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.orange,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: const Text(
+                          'Quitter',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
         ),
-        child: const Center(
-          child: CircularProgressIndicator(color: Colors.white),
-        ),
-      );
-    }
-
-    // Utiliser le nouveau widget de plateau modulaire
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 16),
-      child: DominoBoardWidget(
-        gameState: gameState,
-        isMyTurn: _isMyTurn,
-        onTilePlaced: (side, tile) => _placeTile(side, tile),
       ),
     );
   }
