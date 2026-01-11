@@ -671,6 +671,27 @@ class _MotsMawonScreenState extends State<MotsMawonScreen>
     return '$mins:${secs.toString().padLeft(2, '0')}';
   }
 
+  Widget _buildHeaderStat(IconData icon, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4.0),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: Colors.white70),
+          const SizedBox(width: 2),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
@@ -711,19 +732,28 @@ class _MotsMawonScreenState extends State<MotsMawonScreen>
         child: SafeArea(
           child: Column(
             children: [
-              // Header unifié
+              // Header unifié avec stats intégrées
               GameHeader(
                 title: 'Mo Mawon',
                 iconPath: 'assets/icons/mo-mawon.png',
                 onBack: () => context.go('/home'),
                 gradientColors: const [Color(0xFFE74C3C), Color(0xFFF39C12)],
                 actions: [
+                  // Stats dans le header
+                  if (_gameData != null) ...[
+                    _buildHeaderStat(Icons.timer, _formatTime(_timeElapsed)),
+                    _buildHeaderStat(Icons.stars, '$_score'),
+                    _buildHeaderStat(
+                      Icons.check_circle,
+                      '${_foundWords.length}/${_gameData!.words.length}',
+                    ),
+                  ],
                   if (_isSaving)
                     const Padding(
-                      padding: EdgeInsets.only(right: 8.0),
+                      padding: EdgeInsets.only(right: 4.0),
                       child: SizedBox(
-                        width: 20,
-                        height: 20,
+                        width: 16,
+                        height: 16,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
                           valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
@@ -777,69 +807,70 @@ class _MotsMawonScreenState extends State<MotsMawonScreen>
       builder: (context, constraints) {
         return Column(
           children: [
-            Expanded(flex: 4, child: _buildGameBoard(constraints.maxWidth)),
-            SizedBox(height: 12),
-            Expanded(flex: 2, child: _buildWordList()),
+            // Grille - prend 70% de l'espace
+            Expanded(
+              flex: 7,
+              child: _buildGameBoard(constraints.maxWidth),
+            ),
+            // Liste des mots compacte - 30% de l'espace
+            Expanded(flex: 3, child: _buildWordList()),
           ],
         );
       },
     );
   }
 
-  Widget _buildGameBoard([double? screenWidth]) {
+  Widget _buildGameBoard([double? screenWidth, double? gridSize]) {
     final isMobile = screenWidth != null && screenWidth < 600;
 
     return Padding(
-      padding: EdgeInsets.all(isMobile ? 16.0 : 16.0),
+      padding: EdgeInsets.symmetric(
+        horizontal: isMobile ? 4.0 : 16.0,
+        vertical: isMobile ? 2.0 : 16.0,
+      ),
       child: Column(
         children: [
-          // Stats compacts en mode mobile
-          if (isMobile)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _buildMobileStatItem(
-                    'assets/icons/clock.svg',
-                    _formatTime(_timeElapsed),
-                  ),
-                  _buildMobileStatItem('assets/icons/trophy.svg', '$_score'),
-                  _buildMobileStatItem(
-                    'assets/icons/check_circle.svg',
-                    '${_foundWords.length}/${_gameData!.words.length}',
-                  ),
-                ],
-              ),
-            )
-          else
+          // Stats uniquement sur desktop (sur mobile, elles sont dans le header)
+          if (!isMobile) ...[
             _buildStats(),
+            const SizedBox(height: 16),
+          ],
 
-          SizedBox(height: isMobile ? 4 : 16),
-
-          // Grille - prend tout l'espace disponible
+          // Grille - prend tout l'espace disponible avec LayoutBuilder
           Expanded(
-            child: AspectRatio(
-              aspectRatio: 1,
-              child: GridView.builder(
-                physics: const NeverScrollableScrollPhysics(),
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: _gameData!.size,
-                  crossAxisSpacing: isMobile ? 4 : 2,
-                  mainAxisSpacing: isMobile ? 4 : 2,
-                ),
-                itemCount: _gameData!.size * _gameData!.size,
-                itemBuilder: (context, index) {
-                  final row = index ~/ _gameData!.size;
-                  final col = index % _gameData!.size;
-                  return _buildCell(row, col, isMobile);
-                },
-              ),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                // Calculer la taille maximale pour une grille carrée
+                final maxSize = constraints.maxWidth < constraints.maxHeight
+                    ? constraints.maxWidth
+                    : constraints.maxHeight;
+
+                return Center(
+                  child: SizedBox(
+                    width: maxSize,
+                    height: maxSize,
+                    child: GridView.builder(
+                      physics: const NeverScrollableScrollPhysics(),
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: _gameData!.size,
+                        crossAxisSpacing: isMobile ? 2 : 2,
+                        mainAxisSpacing: isMobile ? 2 : 2,
+                      ),
+                      itemCount: _gameData!.size * _gameData!.size,
+                      itemBuilder: (context, index) {
+                        final row = index ~/ _gameData!.size;
+                        final col = index % _gameData!.size;
+                        return _buildCell(row, col, isMobile);
+                      },
+                    ),
+                  ),
+                );
+              },
             ),
           ),
-          SizedBox(height: isMobile ? 4 : 16),
+          if (!isMobile) const SizedBox(height: 16),
 
-          // Boutons de contrôle compacts
+          // Boutons de contrôle ultra-compacts sur mobile
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
@@ -850,18 +881,19 @@ class _MotsMawonScreenState extends State<MotsMawonScreen>
                   ),
                   child: ElevatedButton.icon(
                     onPressed: _selectedCells.isEmpty ? null : _clearSelection,
-                    icon: Icon(Icons.clear, size: isMobile ? 14 : 20),
+                    icon: Icon(Icons.clear, size: isMobile ? 12 : 20),
                     label: Text(
-                      'Annuler',
-                      style: TextStyle(fontSize: isMobile ? 12 : 16),
+                      isMobile ? 'X' : 'Annuler',
+                      style: TextStyle(fontSize: isMobile ? 11 : 16),
                     ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.red,
                       foregroundColor: Colors.white,
                       padding: EdgeInsets.symmetric(
-                        vertical: isMobile ? 8 : 16,
+                        vertical: isMobile ? 6 : 16,
+                        horizontal: isMobile ? 4 : 8,
                       ),
-                      minimumSize: Size(0, isMobile ? 32 : 50),
+                      minimumSize: Size(0, isMobile ? 28 : 50),
                     ),
                   ),
                 ),
@@ -875,18 +907,19 @@ class _MotsMawonScreenState extends State<MotsMawonScreen>
                     onPressed: _selectedCells.isEmpty
                         ? null
                         : _validateSelection,
-                    icon: Icon(Icons.check, size: isMobile ? 14 : 20),
+                    icon: Icon(Icons.check, size: isMobile ? 12 : 20),
                     label: Text(
-                      'Valider',
-                      style: TextStyle(fontSize: isMobile ? 12 : 16),
+                      isMobile ? 'OK' : 'Valider',
+                      style: TextStyle(fontSize: isMobile ? 11 : 16),
                     ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.green,
                       foregroundColor: Colors.white,
                       padding: EdgeInsets.symmetric(
-                        vertical: isMobile ? 8 : 16,
+                        vertical: isMobile ? 6 : 16,
+                        horizontal: isMobile ? 4 : 8,
                       ),
-                      minimumSize: Size(0, isMobile ? 32 : 50),
+                      minimumSize: Size(0, isMobile ? 28 : 50),
                     ),
                   ),
                 ),
@@ -898,16 +931,17 @@ class _MotsMawonScreenState extends State<MotsMawonScreen>
                   ),
                   child: ElevatedButton.icon(
                     onPressed: _loadAndStartGame,
-                    icon: Icon(Icons.refresh, size: isMobile ? 14 : 20),
+                    icon: Icon(Icons.refresh, size: isMobile ? 12 : 20),
                     label: Text(
-                      'Nouveau',
-                      style: TextStyle(fontSize: isMobile ? 12 : 16),
+                      isMobile ? 'New' : 'Nouveau',
+                      style: TextStyle(fontSize: isMobile ? 11 : 16),
                     ),
                     style: ElevatedButton.styleFrom(
                       padding: EdgeInsets.symmetric(
-                        vertical: isMobile ? 8 : 16,
+                        vertical: isMobile ? 6 : 16,
+                        horizontal: isMobile ? 4 : 8,
                       ),
-                      minimumSize: Size(0, isMobile ? 32 : 50),
+                      minimumSize: Size(0, isMobile ? 28 : 50),
                     ),
                   ),
                 ),
@@ -1103,7 +1137,7 @@ class _MotsMawonScreenState extends State<MotsMawonScreen>
                 child: Text(
                   _gameData!.grid[row][col],
                   style: GoogleFonts.openSans(
-                    fontSize: isMobile ? 14 : 20,
+                    fontSize: isMobile ? 18 : 20,
                     fontWeight: FontWeight.bold,
                     color: isInFoundWord || isSelected
                         ? Colors.white
