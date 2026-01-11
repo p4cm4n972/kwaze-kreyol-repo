@@ -168,15 +168,24 @@ class _MotsMawonScreenState extends State<MotsMawonScreen>
                   Navigator.pop(ctx);
                   context.go('/home');
                 },
-                child: const Text('Retour'),
+                style: TextButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                ),
+                child: const Text('Retour', style: TextStyle(fontSize: 13)),
               ),
               TextButton(
                 onPressed: () => Navigator.pop(ctx, false),
-                child: const Text('Nouvelle partie'),
+                style: TextButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                ),
+                child: const Text('Nouvelle', style: TextStyle(fontSize: 13)),
               ),
               ElevatedButton(
                 onPressed: () => Navigator.pop(ctx, true),
-                child: const Text('Reprendre'),
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                ),
+                child: const Text('Reprendre', style: TextStyle(fontSize: 13)),
               ),
             ],
           ),
