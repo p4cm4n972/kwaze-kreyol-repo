@@ -11,7 +11,9 @@ import '../../utils/word_search_generator.dart';
 import '../../widgets/game_header.dart';
 import 'models/mots_mawon_game.dart';
 import 'services/mots_mawon_service.dart';
+import 'services/mots_mawon_sound_service.dart';
 import 'dart:async';
+import 'dart:math';
 
 class MotsMawonScreen extends StatefulWidget {
   const MotsMawonScreen({super.key});
@@ -20,10 +22,12 @@ class MotsMawonScreen extends StatefulWidget {
   State<MotsMawonScreen> createState() => _MotsMawonScreenState();
 }
 
-class _MotsMawonScreenState extends State<MotsMawonScreen> {
+class _MotsMawonScreenState extends State<MotsMawonScreen>
+    with TickerProviderStateMixin {
   final DictionaryService _dictService = DictionaryService();
   final AuthService _authService = AuthService();
   final MotsMawonService _motsMawonService = MotsMawonService();
+  final MotsMawonSoundService _soundService = MotsMawonSoundService();
 
   WordSearchGrid? _gameData;
   List<CellPosition> _selectedCells = []; // Changed to List to maintain order
@@ -54,16 +58,54 @@ class _MotsMawonScreenState extends State<MotsMawonScreen> {
   // Mot sélectionné pour afficher sa définition
   Word? _selectedWordForDefinition;
 
+  // Animation pour mot trouvé
+  AnimationController? _wordFoundAnimController;
+  Animation<double>? _wordFoundAnimation;
+  String? _lastFoundWord;
+
+  // Animation pour la progression
+  AnimationController? _progressAnimController;
+
+  // Confetti pour la victoire
+  bool _showConfetti = false;
+
   @override
   void initState() {
     super.initState();
+    _initSound();
+    _initAnimations();
     _checkAuthAndLoadGame();
+  }
+
+  Future<void> _initSound() async {
+    await _soundService.initialize();
+  }
+
+  void _initAnimations() {
+    _wordFoundAnimController = AnimationController(
+      duration: const Duration(milliseconds: 600),
+      vsync: this,
+    );
+    _wordFoundAnimation = Tween<double>(begin: 1.0, end: 1.3).animate(
+      CurvedAnimation(
+        parent: _wordFoundAnimController!,
+        curve: Curves.elasticOut,
+      ),
+    );
+
+    _progressAnimController = AnimationController(
+      duration: const Duration(milliseconds: 500),
+      vsync: this,
+    );
   }
 
   @override
   void dispose() {
     _timer?.cancel();
     _autoSaveTimer?.cancel();
+    _wordFoundAnimController?.dispose();
+    _progressAnimController?.dispose();
+    _soundService.dispose();
     // Save final state before disposing (without setState since widget is being destroyed)
     if (_currentGame != null && !_isGameComplete && !_isSaving) {
       _saveProgressSync();
@@ -112,26 +154,36 @@ class _MotsMawonScreenState extends State<MotsMawonScreen> {
 
       if (inProgressGame != null && mounted) {
         // Proposer de reprendre la partie
-        final shouldResume = await showDialog<bool>(
+        final shouldResume = await showDialog<bool?>(
           context: context,
           barrierDismissible: false,
-          builder: (context) => AlertDialog(
+          builder: (ctx) => AlertDialog(
             title: const Text('Partie en cours'),
             content: const Text(
               'Vous avez une partie en cours. Voulez-vous la reprendre ?',
             ),
             actions: [
               TextButton(
-                onPressed: () => Navigator.pop(context, false),
+                onPressed: () {
+                  Navigator.pop(ctx);
+                  context.go('/home');
+                },
+                child: const Text('Retour'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
                 child: const Text('Nouvelle partie'),
               ),
               ElevatedButton(
-                onPressed: () => Navigator.pop(context, true),
+                onPressed: () => Navigator.pop(ctx, true),
                 child: const Text('Reprendre'),
               ),
             ],
           ),
         );
+
+        // Si l'utilisateur a cliqué sur "Retour", on sort
+        if (shouldResume == null) return;
 
         if (shouldResume == true) {
           await _resumeGame(inProgressGame);
@@ -230,8 +282,12 @@ class _MotsMawonScreenState extends State<MotsMawonScreen> {
   Future<void> _completeGame() async {
     if (_currentGame == null) return;
 
+    // Son de victoire
+    _soundService.playVictory();
+
     setState(() {
       _isGameComplete = true;
+      _showConfetti = true;
     });
 
     _timer?.cancel();
@@ -246,46 +302,186 @@ class _MotsMawonScreenState extends State<MotsMawonScreen> {
       );
 
       if (mounted) {
-        // Afficher un dialog de félicitations
+        // Attendre un peu pour que le son et confetti jouent
+        await Future.delayed(const Duration(milliseconds: 500));
+
+        // Afficher un dialog de félicitations amélioré
         await showDialog(
           context: context,
           barrierDismissible: false,
-          builder: (context) => AlertDialog(
-            title: const Text('🎉 Félicitations !'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text('Vous avez trouvé tous les mots !'),
-                const SizedBox(height: 16),
-                Text(
-                  'Score: $_score points',
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                Text(
-                  'Temps: ${_formatTime(_timeElapsed)}',
-                  style: const TextStyle(fontSize: 16),
-                ),
-              ],
+          builder: (ctx) => Dialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
             ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  context.go('/mots-mawon/leaderboard');
-                },
-                child: const Text('Voir le classement'),
+            child: Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20),
+                gradient: const LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Color(0xFFE74C3C),
+                    Color(0xFFF39C12),
+                    Color(0xFF27AE60),
+                  ],
+                ),
               ),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  _loadAndStartGame();
-                },
-                child: const Text('Nouvelle partie'),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    '🎉',
+                    style: TextStyle(fontSize: 60),
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'BRAVO !',
+                    style: TextStyle(
+                      fontSize: 32,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                      letterSpacing: 2,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Tous les mots trouvés !',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Column(
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.stars, color: Colors.amber, size: 28),
+                            const SizedBox(width: 8),
+                            Text(
+                              '$_score pts',
+                              style: const TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.timer, color: Colors.white70, size: 20),
+                            const SizedBox(width: 8),
+                            Text(
+                              _formatTime(_timeElapsed),
+                              style: const TextStyle(
+                                fontSize: 18,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  // Boutons d'action
+                  Wrap(
+                    alignment: WrapAlignment.center,
+                    spacing: 10,
+                    runSpacing: 10,
+                    children: [
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(ctx);
+                          context.go('/home');
+                        },
+                        style: TextButton.styleFrom(
+                          backgroundColor: Colors.white.withValues(alpha: 0.2),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 10,
+                          ),
+                        ),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.home, color: Colors.white, size: 18),
+                            SizedBox(width: 6),
+                            Text(
+                              'Accueil',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                          ],
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(ctx);
+                          context.go('/mots-mawon/leaderboard');
+                        },
+                        style: TextButton.styleFrom(
+                          backgroundColor: Colors.white.withValues(alpha: 0.2),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 10,
+                          ),
+                        ),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.leaderboard, color: Colors.white, size: 18),
+                            SizedBox(width: 6),
+                            Text(
+                              'Classement',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                          ],
+                        ),
+                      ),
+                      ElevatedButton(
+                        onPressed: () {
+                          Navigator.pop(ctx);
+                          setState(() {
+                            _showConfetti = false;
+                          });
+                          _loadAndStartGame();
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          foregroundColor: const Color(0xFFE74C3C),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 10,
+                          ),
+                        ),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.refresh, size: 18),
+                            SizedBox(width: 6),
+                            Text(
+                              'Rejouer',
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         );
       }
@@ -303,11 +499,44 @@ class _MotsMawonScreenState extends State<MotsMawonScreen> {
       _isLoading = true;
     });
 
-    // Charger le dictionnaire
-    final entries = await _dictService.loadDictionary('A');
+    try {
+      // Récupérer les mots aléatoires depuis la base de données
+      final wordsFromDB = await _motsMawonService.getRandomWordsFromDB(
+        count: 10,
+        minLength: 3,
+        maxLength: 10,
+      );
 
-    if (entries.isNotEmpty) {
-      _startNewGame(entries);
+      if (wordsFromDB.isNotEmpty) {
+        // Convertir en DictionaryEntry pour compatibilité avec le générateur
+        final entries = wordsFromDB.map((w) => DictionaryEntry(
+          mot: w['word'] as String,
+          definitions: [
+            Definition(
+              sensNum: 1,
+              traduction: w['translation'] as String? ?? '',
+              nature: w['nature'] as String? ?? '',
+            ),
+          ],
+        )).toList();
+
+        await _startNewGame(entries);
+      } else {
+        // Fallback: charger depuis les fichiers JSON locaux si pas de données en BDD
+        final fallbackEntries = await _dictService.loadDictionary('A');
+        if (fallbackEntries.isNotEmpty) {
+          final randomEntries = _dictService.getRandomEntries(fallbackEntries, 10);
+          await _startNewGame(randomEntries);
+        }
+      }
+    } catch (e) {
+      debugPrint('Erreur lors du chargement des mots: $e');
+      // Fallback en cas d'erreur
+      final fallbackEntries = await _dictService.loadDictionary('A');
+      if (fallbackEntries.isNotEmpty) {
+        final randomEntries = _dictService.getRandomEntries(fallbackEntries, 10);
+        await _startNewGame(randomEntries);
+      }
     }
 
     setState(() {
@@ -316,8 +545,7 @@ class _MotsMawonScreenState extends State<MotsMawonScreen> {
   }
 
   Future<void> _startNewGame(List<DictionaryEntry> entries) async {
-    final randomEntries = _dictService.getRandomEntries(entries, 10);
-    final grid = WordSearchGenerator.generateWithDefinitions(randomEntries);
+    final grid = WordSearchGenerator.generateWithDefinitions(entries);
 
     try {
       // Créer la partie dans Supabase
@@ -358,6 +586,7 @@ class _MotsMawonScreenState extends State<MotsMawonScreen> {
         // Sinon, on vérifie qu'elle est adjacente à la dernière cellule sélectionnée
         if (_selectedCells.isEmpty || _isAdjacentToLast(cellPos)) {
           _selectedCells.add(cellPos);
+          _soundService.playSelect(); // Son de sélection
         }
       }
     });
@@ -389,6 +618,11 @@ class _MotsMawonScreenState extends State<MotsMawonScreen> {
     );
 
     if (foundWord.text.isNotEmpty) {
+      // Son et animation de mot trouvé
+      _soundService.playWordFound();
+      _lastFoundWord = foundWord.text;
+      _wordFoundAnimController?.forward(from: 0);
+
       setState(() {
         _foundWords.add(foundWord.text);
         _score += foundWord.text.length * 10;
@@ -406,6 +640,9 @@ class _MotsMawonScreenState extends State<MotsMawonScreen> {
       if (_foundWords.length == _gameData!.words.length) {
         _completeGame();
       }
+    } else {
+      // Son d'erreur si mot invalide
+      _soundService.playError();
     }
 
     setState(() {
@@ -674,17 +911,67 @@ class _MotsMawonScreenState extends State<MotsMawonScreen> {
   }
 
   Widget _buildStats() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceAround,
+    final progress = _gameData != null
+        ? _foundWords.length / _gameData!.words.length
+        : 0.0;
+
+    return Column(
       children: [
-        _buildStatItemWithSvg(
-          'assets/icons/clock.svg',
-          _formatTime(_timeElapsed),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            _buildStatItemWithSvg(
+              'assets/icons/clock.svg',
+              _formatTime(_timeElapsed),
+            ),
+            _buildStatItemWithSvg('assets/icons/trophy.svg', '$_score pts'),
+            _buildStatItemWithSvg(
+              'assets/icons/check_circle.svg',
+              '${_foundWords.length}/${_gameData!.words.length}',
+            ),
+          ],
         ),
-        _buildStatItemWithSvg('assets/icons/trophy.svg', '$_score pts'),
-        _buildStatItemWithSvg(
-          'assets/icons/check_circle.svg',
-          '${_foundWords.length}/${_gameData!.words.length}',
+        const SizedBox(height: 12),
+        // Barre de progression
+        Container(
+          height: 8,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(4),
+            color: Colors.white.withValues(alpha: 0.3),
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: TweenAnimationBuilder<double>(
+              tween: Tween(begin: 0, end: progress),
+              duration: const Duration(milliseconds: 500),
+              curve: Curves.easeOutCubic,
+              builder: (context, value, child) {
+                return FractionallySizedBox(
+                  alignment: Alignment.centerLeft,
+                  widthFactor: value,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          _madrasColors[0],
+                          _madrasColors[1],
+                          _madrasColors[2],
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(4),
+                      boxShadow: [
+                        BoxShadow(
+                          color: _madrasColors[1].withValues(alpha: 0.5),
+                          blurRadius: 6,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
         ),
       ],
     );

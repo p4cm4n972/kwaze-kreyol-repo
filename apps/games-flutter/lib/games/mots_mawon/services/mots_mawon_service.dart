@@ -8,6 +8,47 @@ class MotsMawonService {
   final SupabaseClient _supabase = SupabaseService.client;
   final AuthService _authService = AuthService();
 
+  /// Récupérer des mots aléatoires depuis la base de données
+  /// count: nombre de mots à récupérer (défaut: 10)
+  /// minLength: longueur minimale du mot (défaut: 3)
+  /// maxLength: longueur maximale du mot (défaut: 10)
+  Future<List<Map<String, dynamic>>> getRandomWordsFromDB({
+    int count = 10,
+    int minLength = 3,
+    int maxLength = 10,
+  }) async {
+    try {
+      // Récupérer des mots créoles aléatoires qui correspondent aux critères
+      final response = await _supabase
+          .from('dictionary_words')
+          .select('word, translation, nature')
+          .eq('language', 'creole')
+          .eq('is_official', true)
+          .gte('word', 'A') // Exclure les mots vides
+          .order('word')
+          .limit(500); // Récupérer un pool de mots
+
+      if (response == null || (response as List).isEmpty) {
+        return [];
+      }
+
+      // Filtrer par longueur et mélanger
+      final List<Map<String, dynamic>> validWords = (response as List)
+          .where((word) {
+            final w = word['word'] as String;
+            return w.length >= minLength && w.length <= maxLength;
+          })
+          .map((w) => w as Map<String, dynamic>)
+          .toList();
+
+      // Mélanger et prendre le nombre demandé
+      validWords.shuffle();
+      return validWords.take(count).toList();
+    } catch (e) {
+      throw Exception('Erreur lors de la récupération des mots: $e');
+    }
+  }
+
   /// Créer une nouvelle partie
   /// Retourne la partie créée
   Future<MotsMawonGame> createGame(WordSearchGrid gridData) async {
