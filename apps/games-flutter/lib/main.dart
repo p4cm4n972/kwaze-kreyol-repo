@@ -10,6 +10,7 @@ import 'screens/email_invitation_screen.dart';
 import 'games/mots_mawon/mots_mawon_screen.dart';
 import 'games/mots_mawon/screens/mots_mawon_leaderboard_screen.dart';
 import 'games/skrabb/skrabb_screen.dart';
+import 'games/skrabb/screens/skrabb_home_screen.dart';
 import 'games/skrabb/screens/skrabb_leaderboard_screen.dart';
 import 'games/skrabb/screens/skrabb_help_screen.dart';
 import 'tools/met_double/screens/met_double_home_screen.dart';
@@ -89,7 +90,15 @@ final _router = GoRouter(
     ),
     GoRoute(
       path: '/skrabb',
-      builder: (context, state) => const SkrabbScreen(),
+      builder: (context, state) => const SkrabbHomeScreen(),
+    ),
+    GoRoute(
+      path: '/skrabb/game',
+      builder: (context, state) {
+        // Vérifie si on force une nouvelle partie
+        final isNew = state.uri.queryParameters['new'] == 'true';
+        return SkrabbScreen(forceNewGame: isNew);
+      },
     ),
     GoRoute(
       path: '/skrabb/leaderboard',

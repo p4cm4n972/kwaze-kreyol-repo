@@ -17,7 +17,9 @@ import 'utils/move_validator.dart';
 import 'utils/tile_bag_manager.dart';
 
 class SkrabbScreen extends StatefulWidget {
-  const SkrabbScreen({super.key});
+  final bool forceNewGame;
+
+  const SkrabbScreen({super.key, this.forceNewGame = false});
 
   @override
   State<SkrabbScreen> createState() => _SkrabbScreenState();
@@ -158,8 +160,10 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
     }
 
     try {
-      // Vérifier s'il existe une partie en cours
-      final existingGame = await _skrabbService.loadInProgressGame();
+      // Vérifier s'il existe une partie en cours (sauf si on force une nouvelle)
+      final existingGame = widget.forceNewGame
+          ? null
+          : await _skrabbService.loadInProgressGame();
 
       if (existingGame != null) {
         // Reprendre la partie existante
@@ -536,62 +540,187 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Row(
-          children: [
-            const Icon(Icons.celebration, color: Colors.amber, size: 32),
-            const SizedBox(width: 12),
-            const Text('Partie terminée!'),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Félicitations! Vous avez terminé la partie.',
-              style: TextStyle(fontSize: 16),
-            ),
-            const SizedBox(height: 16),
-            const Divider(),
-            const SizedBox(height: 16),
-            _buildStatRow('Score final', '$_score pts', Icons.stars),
-            const SizedBox(height: 12),
-            _buildStatRow(
-              'Temps total',
-              _formatTime(_timeElapsed),
-              Icons.timer,
-            ),
-            const SizedBox(height: 12),
-            _buildStatRow(
-              'Mots formés',
-              '${_moveHistory.length}',
-              Icons.spellcheck,
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              context.go('/');
-            },
-            child: const Text('Accueil'),
-          ),
-          ElevatedButton.icon(
-            onPressed: () {
-              Navigator.of(context).pop();
-              context.go('/skrabb/leaderboard');
-            },
-            icon: const Icon(Icons.emoji_events),
-            label: const Text('Voir Classement'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.amber,
-              foregroundColor: Colors.black87,
+      builder: (ctx) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 400),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            gradient: const LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Color(0xFFFFD700),
+                Color(0xFFFF8C00),
+                Color(0xFFE74C3C),
+              ],
             ),
           ),
-        ],
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Icône de victoire
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.2),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.celebration,
+                    color: Colors.white,
+                    size: 48,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Félicitations!',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Partie terminée avec brio!',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.white.withValues(alpha: 0.9),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                // Stats
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Column(
+                    children: [
+                      _buildGameStatRow('Score final', '$_score pts', Icons.stars),
+                      const SizedBox(height: 12),
+                      _buildGameStatRow('Temps total', _formatTime(_timeElapsed), Icons.timer),
+                      const SizedBox(height: 12),
+                      _buildGameStatRow('Mots formés', '${_moveHistory.length}', Icons.spellcheck),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
+                // Boutons
+                Wrap(
+                  spacing: 12,
+                  runSpacing: 12,
+                  alignment: WrapAlignment.center,
+                  children: [
+                    _buildDialogButton(
+                      icon: Icons.home,
+                      label: 'Accueil',
+                      color: const Color(0xFF9B59B6),
+                      onTap: () async {
+                        Navigator.of(ctx).pop();
+                        await _restoreAllOrientations();
+                        if (mounted) context.go('/home');
+                      },
+                    ),
+                    _buildDialogButton(
+                      icon: Icons.emoji_events,
+                      label: 'Classement',
+                      color: const Color(0xFFF39C12),
+                      onTap: () async {
+                        Navigator.of(ctx).pop();
+                        await _restoreAllOrientations();
+                        if (mounted) context.go('/skrabb/leaderboard');
+                      },
+                    ),
+                    _buildDialogButton(
+                      icon: Icons.replay,
+                      label: 'Rejouer',
+                      color: const Color(0xFF27AE60),
+                      onTap: () async {
+                        Navigator.of(ctx).pop();
+                        await _restoreAllOrientations();
+                        if (mounted) context.go('/skrabb/game?new=true');
+                      },
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGameStatRow(String label, String value, IconData icon) {
+    return Row(
+      children: [
+        Icon(icon, size: 20, color: Colors.white.withValues(alpha: 0.9)),
+        const SizedBox(width: 12),
+        Text(
+          label,
+          style: TextStyle(
+            fontWeight: FontWeight.w500,
+            color: Colors.white.withValues(alpha: 0.9),
+          ),
+        ),
+        const Spacer(),
+        Text(
+          value,
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
+            color: Colors.white,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDialogButton({
+    required IconData icon,
+    required String label,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            color: color,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: color.withValues(alpha: 0.4),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, color: Colors.white, size: 18),
+              const SizedBox(width: 8),
+              Text(
+                label,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -738,13 +867,45 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
     return '${minutes.toString().padLeft(2, '0')}:${secs.toString().padLeft(2, '0')}';
   }
 
-  /// Gère le bouton retour (restaure orientation avant navigation)
+  /// Gère le bouton retour avec confirmation
   Future<void> _onBackPressed() async {
+    // Demander confirmation si une partie est en cours
+    if (_currentGame != null && !_isGameComplete) {
+      final confirm = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Quitter la partie ?'),
+          content: const Text(
+            'Votre progression sera sauvegardée. '
+            'Vous pourrez reprendre plus tard.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Continuer'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF3498DB),
+              ),
+              child: const Text('Quitter'),
+            ),
+          ],
+        ),
+      );
+
+      if (confirm != true) return;
+
+      // Sauvegarder avant de quitter
+      await _saveProgress();
+    }
+
     // Restaurer l'orientation avant de naviguer
     await _restoreAllOrientations();
-    // Naviguer vers l'écran d'accueil
+    // Naviguer vers l'écran d'accueil Skrabb
     if (mounted) {
-      context.go('/');
+      context.go('/skrabb');
     }
   }
 
@@ -1471,22 +1632,27 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
   Widget _buildRack() {
     return Container(
       height: 80,
-      margin: const EdgeInsets.symmetric(horizontal: 16),
+      margin: const EdgeInsets.symmetric(horizontal: 8),
       child: LayoutBuilder(
         builder: (context, constraints) {
           // Calculer la taille optimale des tuiles selon la largeur disponible
           final availableWidth = constraints.maxWidth;
-          final tileSize = ((availableWidth - 56) / 7).clamp(40.0, 60.0);
+          // Réduire la taille des tuiles pour s'adapter à l'espace
+          final tileSize = ((availableWidth - 16) / 7).clamp(32.0, 55.0);
 
-          return Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: List.generate(7, (index) {
-              if (index < _rack.length) {
-                return _buildRackTile(index, tileSize);
-              } else {
-                return _buildEmptyRackSlot(tileSize);
-              }
-            }),
+          return SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: List.generate(7, (index) {
+                if (index < _rack.length) {
+                  return _buildRackTile(index, tileSize);
+                } else {
+                  return _buildEmptyRackSlot(tileSize);
+                }
+              }),
+            ),
           );
         },
       ),
@@ -1688,8 +1854,8 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
 
   Widget _buildControls() {
     return Container(
-      padding: const EdgeInsets.all(16),
-      margin: const EdgeInsets.symmetric(horizontal: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+      margin: const EdgeInsets.symmetric(horizontal: 4),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
@@ -1706,16 +1872,16 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          Expanded(
+          Flexible(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 2),
               child: ElevatedButton.icon(
                 onPressed: _pendingPlacements.isEmpty ? null : _onUndoPlacements,
-                icon: const Icon(Icons.undo, size: 18),
+                icon: const Icon(Icons.undo, size: 16),
                 label: const Text(
-                  'Annuler',
+                  'Ann.',
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: 11,
                     fontWeight: FontWeight.bold,
                   ),
                   overflow: TextOverflow.ellipsis,
@@ -1724,8 +1890,8 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
                   backgroundColor: const Color(0xFFE74C3C),
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 14,
+                    horizontal: 6,
+                    vertical: 10,
                   ),
                   elevation: 4,
                   shadowColor: Colors.black.withValues(alpha: 0.4),
@@ -1738,16 +1904,16 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
               ),
             ),
           ),
-          Expanded(
+          Flexible(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 2),
               child: ElevatedButton.icon(
                 onPressed: _rack.isEmpty ? null : _onShuffleRack,
-                icon: const Icon(Icons.shuffle, size: 18),
+                icon: const Icon(Icons.shuffle, size: 16),
                 label: const Text(
-                  'Mélanger',
+                  'Mél.',
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: 11,
                     fontWeight: FontWeight.bold,
                   ),
                   overflow: TextOverflow.ellipsis,
@@ -1756,8 +1922,8 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
                   backgroundColor: const Color(0xFF9B59B6),
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 14,
+                    horizontal: 6,
+                    vertical: 10,
                   ),
                   elevation: 4,
                   shadowColor: Colors.black.withValues(alpha: 0.4),
@@ -1770,9 +1936,9 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
               ),
             ),
           ),
-          Expanded(
+          Flexible(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 2),
               child: ElevatedButton.icon(
                 onPressed:
                     _pendingPlacements.isEmpty || _isValidating
@@ -1780,18 +1946,18 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
                         : _onValidateMove,
                 icon: _isValidating
                     ? const SizedBox(
-                        width: 16,
-                        height: 16,
+                        width: 14,
+                        height: 14,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
                           color: Colors.white,
                         ),
                       )
-                    : const Icon(Icons.check, size: 18),
+                    : const Icon(Icons.check, size: 16),
                 label: const Text(
-                  'Valider',
+                  'Val.',
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: 11,
                     fontWeight: FontWeight.bold,
                   ),
                   overflow: TextOverflow.ellipsis,
@@ -1800,8 +1966,8 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
                   backgroundColor: const Color(0xFF27AE60),
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 14,
+                    horizontal: 6,
+                    vertical: 10,
                   ),
                   elevation: 4,
                   shadowColor: Colors.black.withValues(alpha: 0.4),
