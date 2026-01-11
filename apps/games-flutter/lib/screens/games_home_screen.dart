@@ -1255,7 +1255,7 @@ class _CategoryGameCard extends StatelessWidget {
                       // Image centrée
                       Positioned.fill(
                         child: Padding(
-                          padding: const EdgeInsets.all(10),
+                          padding: const EdgeInsets.all(6),
                           child: Opacity(
                             opacity: available ? 1.0 : 0.5,
                             child: Image.asset(
@@ -1469,7 +1469,7 @@ class _DesktopGameCard extends StatelessWidget {
                       // Image centrée (moins de padding sur mobile)
                       Positioned.fill(
                         child: Padding(
-                          padding: EdgeInsets.all(isMobile ? 6 : 16),
+                          padding: EdgeInsets.all(isMobile ? 4 : 10),
                           child: Opacity(
                             opacity: available ? 1.0 : 0.5,
                             child: Image.asset(

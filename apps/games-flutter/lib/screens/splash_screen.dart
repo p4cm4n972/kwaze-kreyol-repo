@@ -106,7 +106,7 @@ class _SplashScreenState extends State<SplashScreen>
                           shape: BoxShape.circle,
                           boxShadow: [
                             BoxShadow(
-                              color: const Color(0xFFFFD700).withValues(alpha: 0.5),
+                              color: const Color(0xFF00BCD4).withValues(alpha: 0.5),
                               blurRadius: 30,
                               spreadRadius: 10,
                             ),
@@ -122,8 +122,8 @@ class _SplashScreenState extends State<SplashScreen>
                                 decoration: const BoxDecoration(
                                   gradient: LinearGradient(
                                     colors: [
-                                      Color(0xFFFFD700),
-                                      Color(0xFFFF8C00),
+                                      Color(0xFF00BCD4),
+                                      Color(0xFF0288D1),
                                     ],
                                   ),
                                 ),
@@ -148,7 +148,7 @@ class _SplashScreenState extends State<SplashScreen>
                       // Titre
                       ShaderMask(
                         shaderCallback: (bounds) => const LinearGradient(
-                          colors: [Color(0xFFFFD700), Color(0xFFFF8C00)],
+                          colors: [Color(0xFF4DD0E1), Color(0xFF00ACC1)],
                         ).createShader(bounds),
                         child: const Text(
                           'Kwazé Kréyol',
@@ -181,7 +181,7 @@ class _SplashScreenState extends State<SplashScreen>
                         height: 40,
                         child: CircularProgressIndicator(
                           valueColor: AlwaysStoppedAnimation<Color>(
-                            const Color(0xFFFFD700).withValues(alpha: 0.7),
+                            const Color(0xFF00BCD4).withValues(alpha: 0.7),
                           ),
                           strokeWidth: 3,
                         ),
