@@ -1631,28 +1631,24 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
 
   Widget _buildRack() {
     return Container(
-      height: 80,
-      margin: const EdgeInsets.symmetric(horizontal: 8),
+      margin: const EdgeInsets.symmetric(horizontal: 16),
       child: LayoutBuilder(
         builder: (context, constraints) {
           // Calculer la taille optimale des tuiles selon la largeur disponible
           final availableWidth = constraints.maxWidth;
-          // Réduire la taille des tuiles pour s'adapter à l'espace
-          final tileSize = ((availableWidth - 16) / 7).clamp(32.0, 55.0);
+          final tileSize = ((availableWidth - 56) / 7).clamp(40.0, 60.0);
 
-          return SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
-              children: List.generate(7, (index) {
-                if (index < _rack.length) {
-                  return _buildRackTile(index, tileSize);
-                } else {
-                  return _buildEmptyRackSlot(tileSize);
-                }
-              }),
-            ),
+          return Wrap(
+            alignment: WrapAlignment.center,
+            spacing: 4,
+            runSpacing: 4,
+            children: List.generate(7, (index) {
+              if (index < _rack.length) {
+                return _buildRackTile(index, tileSize);
+              } else {
+                return _buildEmptyRackSlot(tileSize);
+              }
+            }),
           );
         },
       ),
@@ -1854,8 +1850,8 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
 
   Widget _buildControls() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
-      margin: const EdgeInsets.symmetric(horizontal: 4),
+      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.symmetric(horizontal: 8),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
@@ -1869,115 +1865,99 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
           width: 1,
         ),
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      child: Wrap(
+        alignment: WrapAlignment.center,
+        spacing: 8,
+        runSpacing: 8,
         children: [
-          Flexible(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 2),
-              child: ElevatedButton.icon(
-                onPressed: _pendingPlacements.isEmpty ? null : _onUndoPlacements,
-                icon: const Icon(Icons.undo, size: 16),
-                label: const Text(
-                  'Ann.',
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFE74C3C),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 6,
-                    vertical: 10,
-                  ),
-                  elevation: 4,
-                  shadowColor: Colors.black.withValues(alpha: 0.4),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  disabledBackgroundColor: Colors.grey.shade700,
-                  disabledForegroundColor: Colors.grey.shade500,
-                ),
+          ElevatedButton.icon(
+            onPressed: _pendingPlacements.isEmpty ? null : _onUndoPlacements,
+            icon: const Icon(Icons.undo, size: 18),
+            label: const Text(
+              'Annuler',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.bold,
               ),
             ),
-          ),
-          Flexible(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 2),
-              child: ElevatedButton.icon(
-                onPressed: _rack.isEmpty ? null : _onShuffleRack,
-                icon: const Icon(Icons.shuffle, size: 16),
-                label: const Text(
-                  'Mél.',
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF9B59B6),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 6,
-                    vertical: 10,
-                  ),
-                  elevation: 4,
-                  shadowColor: Colors.black.withValues(alpha: 0.4),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  disabledBackgroundColor: Colors.grey.shade700,
-                  disabledForegroundColor: Colors.grey.shade500,
-                ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFE74C3C),
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 12,
               ),
+              elevation: 4,
+              shadowColor: Colors.black.withValues(alpha: 0.4),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              disabledBackgroundColor: Colors.grey.shade700,
+              disabledForegroundColor: Colors.grey.shade500,
             ),
           ),
-          Flexible(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 2),
-              child: ElevatedButton.icon(
-                onPressed:
-                    _pendingPlacements.isEmpty || _isValidating
-                        ? null
-                        : _onValidateMove,
-                icon: _isValidating
-                    ? const SizedBox(
-                        width: 14,
-                        height: 14,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      )
-                    : const Icon(Icons.check, size: 16),
-                label: const Text(
-                  'Val.',
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF27AE60),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 6,
-                    vertical: 10,
-                  ),
-                  elevation: 4,
-                  shadowColor: Colors.black.withValues(alpha: 0.4),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  disabledBackgroundColor: Colors.grey.shade700,
-                  disabledForegroundColor: Colors.grey.shade500,
-                ),
+          ElevatedButton.icon(
+            onPressed: _rack.isEmpty ? null : _onShuffleRack,
+            icon: const Icon(Icons.shuffle, size: 18),
+            label: const Text(
+              'Mélanger',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.bold,
               ),
+            ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF9B59B6),
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 12,
+              ),
+              elevation: 4,
+              shadowColor: Colors.black.withValues(alpha: 0.4),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              disabledBackgroundColor: Colors.grey.shade700,
+              disabledForegroundColor: Colors.grey.shade500,
+            ),
+          ),
+          ElevatedButton.icon(
+            onPressed:
+                _pendingPlacements.isEmpty || _isValidating
+                    ? null
+                    : _onValidateMove,
+            icon: _isValidating
+                ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
+                : const Icon(Icons.check, size: 18),
+            label: const Text(
+              'Valider',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF27AE60),
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 12,
+              ),
+              elevation: 4,
+              shadowColor: Colors.black.withValues(alpha: 0.4),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              disabledBackgroundColor: Colors.grey.shade700,
+              disabledForegroundColor: Colors.grey.shade500,
             ),
           ),
         ],
