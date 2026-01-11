@@ -732,41 +732,46 @@ class _MotsMawonScreenState extends State<MotsMawonScreen>
         child: SafeArea(
           child: Column(
             children: [
-              // Header unifié avec stats intégrées
-              GameHeader(
-                title: 'Mo Mawon',
-                iconPath: 'assets/icons/mo-mawon.png',
-                onBack: () => context.go('/home'),
-                gradientColors: const [Color(0xFFE74C3C), Color(0xFFF39C12)],
-                actions: [
-                  // Stats dans le header
-                  if (_gameData != null) ...[
-                    _buildHeaderStat(Icons.timer, _formatTime(_timeElapsed)),
-                    _buildHeaderStat(Icons.stars, '$_score'),
-                    _buildHeaderStat(
-                      Icons.check_circle,
-                      '${_foundWords.length}/${_gameData!.words.length}',
-                    ),
-                  ],
-                  if (_isSaving)
-                    const Padding(
-                      padding: EdgeInsets.only(right: 4.0),
-                      child: SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+              // Header unifié avec stats intégrées (mobile uniquement)
+              Builder(
+                builder: (context) {
+                  final isMobile = MediaQuery.of(context).size.width < 600;
+                  return GameHeader(
+                    title: 'Mo Mawon',
+                    iconPath: 'assets/icons/mo-mawon.png',
+                    onBack: () => context.go('/home'),
+                    gradientColors: const [Color(0xFFE74C3C), Color(0xFFF39C12)],
+                    actions: [
+                      // Stats dans le header uniquement sur mobile
+                      if (isMobile && _gameData != null) ...[
+                        _buildHeaderStat(Icons.timer, _formatTime(_timeElapsed)),
+                        _buildHeaderStat(Icons.stars, '$_score'),
+                        _buildHeaderStat(
+                          Icons.check_circle,
+                          '${_foundWords.length}/${_gameData!.words.length}',
                         ),
+                      ],
+                      if (_isSaving)
+                        const Padding(
+                          padding: EdgeInsets.only(right: 4.0),
+                          child: SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                            ),
+                          ),
+                        ),
+                      GameHeaderAction(
+                        icon: Icons.leaderboard,
+                        onPressed: () => context.go('/mots-mawon/leaderboard'),
+                        tooltip: 'Classement',
+                        iconColor: Colors.amber,
                       ),
-                    ),
-                  GameHeaderAction(
-                    icon: Icons.leaderboard,
-                    onPressed: () => context.go('/mots-mawon/leaderboard'),
-                    tooltip: 'Classement',
-                    iconColor: Colors.amber,
-                  ),
-                ],
+                    ],
+                  );
+                },
               ),
               // Contenu du jeu
               Expanded(
