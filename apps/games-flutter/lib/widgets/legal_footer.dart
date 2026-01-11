@@ -6,9 +6,10 @@ class LegalFooter extends StatelessWidget {
   const LegalFooter({super.key});
 
   static const String baseUrl = 'https://kwazé-kréyol.fr';
+  static const String kofiUrl = 'https://ko-fi.com/kwazekreyol';
 
-  Future<void> _launchUrl(String path) async {
-    final uri = Uri.parse('$baseUrl$path');
+  Future<void> _launchUrl(String url) async {
+    final uri = Uri.parse(url.startsWith('http') ? url : '$baseUrl$url');
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     }
@@ -52,7 +53,47 @@ class LegalFooter extends StatelessWidget {
             ],
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 16),
+
+        // Bouton Ko-fi
+        GestureDetector(
+          onTap: () => _launchUrl(kofiUrl),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFFFF5E5B), Color(0xFFFF9966)],
+              ),
+              borderRadius: BorderRadius.circular(25),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFFFF5E5B).withValues(alpha: 0.4),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: const Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  '☕',
+                  style: TextStyle(fontSize: 18),
+                ),
+                SizedBox(width: 8),
+                Text(
+                  'Soutenir le projet',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
 
         // Legal Links
         Wrap(
