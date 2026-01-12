@@ -114,13 +114,6 @@ class _MetDoubleHomeScreenState extends State<MetDoubleHomeScreen> {
     }
   }
 
-  Future<void> _logout() async {
-    await _authService.signOut();
-    if (mounted) {
-      context.go('/'); // Retourner à l'écran d'accueil avec go_router
-    }
-  }
-
   Future<void> _joinSessionWithCode() async {
     final codeController = TextEditingController();
 
@@ -299,67 +292,6 @@ class _MetDoubleHomeScreenState extends State<MetDoubleHomeScreen> {
     }
   }
 
-  Widget _buildUserMenu() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.2),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: PopupMenuButton<String>(
-        icon: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              _isGuest ? Icons.person_outline : Icons.person,
-              size: 20,
-              color: Colors.white,
-            ),
-            const SizedBox(width: 4),
-            const Icon(Icons.arrow_drop_down, size: 20, color: Colors.white),
-          ],
-        ),
-        itemBuilder: (context) => <PopupMenuEntry<String>>[
-          PopupMenuItem<String>(
-            enabled: false,
-            value: 'profile',
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  _displayName!,
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-                Text(
-                  _isGuest ? 'Invité' : 'Utilisateur',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey[600],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const PopupMenuDivider(),
-          const PopupMenuItem<String>(
-            value: 'logout',
-            child: Row(
-              children: [
-                Icon(Icons.logout),
-                SizedBox(width: 8),
-                Text('Déconnexion'),
-              ],
-            ),
-          ),
-        ],
-        onSelected: (value) {
-          if (value == 'logout') {
-            _logout();
-          }
-        },
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -391,8 +323,6 @@ class _MetDoubleHomeScreenState extends State<MetDoubleHomeScreen> {
                     tooltip: 'Statistiques',
                     iconColor: Colors.amber,
                   ),
-                  if (_displayName != null)
-                    _buildUserMenu(),
                 ],
               ),
               // Contenu
