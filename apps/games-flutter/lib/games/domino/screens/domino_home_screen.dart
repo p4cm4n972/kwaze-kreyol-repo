@@ -14,7 +14,7 @@ class DominoHomeScreen extends StatefulWidget {
 }
 
 class _DominoHomeScreenState extends State<DominoHomeScreen>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   final DominoService _dominoService = DominoService();
   final AuthService _authService = AuthService();
   final TextEditingController _joinCodeController = TextEditingController();
@@ -26,6 +26,11 @@ class _DominoHomeScreenState extends State<DominoHomeScreen>
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
+
+  // Animation pour les sessions actives
+  late AnimationController _sessionsAnimationController;
+  late Animation<double> _sessionsFadeAnimation;
+  late Animation<Offset> _sessionsSlideAnimation;
 
   @override
   void initState() {
@@ -44,6 +49,22 @@ class _DominoHomeScreenState extends State<DominoHomeScreen>
       CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
     );
     _animationController.forward();
+
+    // Animation pour les sessions actives (entrée fluide)
+    _sessionsAnimationController = AnimationController(
+      duration: const Duration(milliseconds: 500),
+      vsync: this,
+    );
+    _sessionsFadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _sessionsAnimationController, curve: Curves.easeOut),
+    );
+    _sessionsSlideAnimation = Tween<Offset>(
+      begin: const Offset(0, -0.3),
+      end: Offset.zero,
+    ).animate(
+      CurvedAnimation(parent: _sessionsAnimationController, curve: Curves.easeOutCubic),
+    );
+
     _loadActiveSessions();
   }
 
@@ -64,10 +85,15 @@ class _DominoHomeScreenState extends State<DominoHomeScreen>
       ).toList();
 
       if (mounted) {
+        final hadSessions = _activeSessions.isNotEmpty;
         setState(() {
           _activeSessions = active;
           _loadingSessions = false;
         });
+        // Déclencher l'animation si des sessions sont apparues
+        if (active.isNotEmpty && !hadSessions) {
+          _sessionsAnimationController.forward();
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -82,6 +108,7 @@ class _DominoHomeScreenState extends State<DominoHomeScreen>
   void dispose() {
     _joinCodeController.dispose();
     _animationController.dispose();
+    _sessionsAnimationController.dispose();
     super.dispose();
   }
 
@@ -369,9 +396,58 @@ class _DominoHomeScreenState extends State<DominoHomeScreen>
             ),
           ],
 
-          // Parties en cours
-          if (_activeSessions.isNotEmpty) ...[
-            _buildActiveSessionsSection(),
+          // Spinner pendant le chargement des parties
+          if (_loadingSessions) ...[
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    Colors.black.withValues(alpha: 0.4),
+                    Colors.black.withValues(alpha: 0.2),
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.3),
+                  width: 2,
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(
+                      color: Colors.white,
+                      strokeWidth: 3,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Text(
+                    'Chargement des parties...',
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.9),
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+          ],
+
+          // Parties en cours (avec animation d'entrée fluide)
+          if (!_loadingSessions && _activeSessions.isNotEmpty) ...[
+            FadeTransition(
+              opacity: _sessionsFadeAnimation,
+              child: SlideTransition(
+                position: _sessionsSlideAnimation,
+                child: _buildActiveSessionsSection(),
+              ),
+            ),
             const SizedBox(height: 24),
           ],
 
