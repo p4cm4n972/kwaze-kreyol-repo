@@ -147,10 +147,13 @@ class GameHeader extends StatelessWidget {
           if (iconPath != null && (actions == null || actions!.isEmpty))
             const Spacer(),
 
-          // Actions (icônes supplémentaires)
+          // Actions (icônes supplémentaires avec espacement)
           if (actions != null && actions!.isNotEmpty) ...[
-            SizedBox(width: isMobile ? 8 : 12),
-            ...actions!,
+            const Spacer(),
+            for (int i = 0; i < actions!.length; i++) ...[
+              if (i > 0) SizedBox(width: isMobile ? 8 : 12),
+              actions![i],
+            ],
           ],
         ],
       ),
