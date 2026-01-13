@@ -49,12 +49,10 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
   bool _isValidating = false;
   bool _isSaving = false;
   bool _isGameComplete = false;
-  String? _errorMessage;
 
   // Animations
   final Map<String, bool> _animatingTiles = {}; // "row,col" -> isAnimating
   final Map<String, bool> _validatedTiles = {}; // "row,col" -> isValidated (pour pulse)
-  bool _shakeError = false; // Pour animation shake en cas d'erreur
 
   // Timers
   Timer? _timer;
@@ -146,8 +144,7 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
   Future<void> _checkAuthAndLoadGame() async {
     setState(() {
       _isLoading = true;
-      _errorMessage = null;
-    });
+          });
 
     final userId = _authService.getUserIdOrNull();
     if (userId == null) {
@@ -177,9 +174,11 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
       _startTimers();
     } catch (e) {
       setState(() {
-        _errorMessage = 'Erreur de chargement: $e';
         _isLoading = false;
       });
+      if (mounted) {
+        _showError('Erreur de chargement: $e');
+      }
     }
   }
 
@@ -325,8 +324,7 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
         // Retirer de la liste d'animation
         _animatingTiles.remove('$row,$col');
 
-        _errorMessage = null;
-      });
+              });
       return;
     }
 
@@ -363,8 +361,7 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
       // Désélectionner
       _selectedRackTile = null;
       _selectedRackIndex = null;
-      _errorMessage = null;
-    });
+          });
 
     // Animer le placement
     _animateTilePlacement(row, col);
@@ -385,8 +382,7 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
       }
 
       _pendingPlacements.clear();
-      _errorMessage = null;
-    });
+          });
 
     // Jouer le son d'annulation
     _soundService.playUndo();
@@ -414,8 +410,7 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
 
     setState(() {
       _isValidating = true;
-      _errorMessage = null;
-    });
+          });
 
     try {
       // Valider le coup
@@ -429,11 +424,9 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
 
       if (!validationResult.isValid) {
         setState(() {
-          _errorMessage = validationResult.errorMessage;
           _isValidating = false;
         });
-        // Jouer le son d'erreur
-        _soundService.playError();
+        _showError(validationResult.errorMessage ?? 'Mot invalide');
         return;
       }
 
@@ -498,9 +491,9 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
       await _saveProgress();
     } catch (e) {
       setState(() {
-        _errorMessage = 'Erreur de validation: $e';
         _isValidating = false;
       });
+      _showError('Erreur de validation: $e');
     }
   }
 
@@ -840,24 +833,40 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
     );
   }
 
-  /// Affiche un message d'erreur
+  /// Affiche un message d'erreur dans un SnackBar en haut
   void _showError(String message) {
-    setState(() {
-      _errorMessage = message;
-      _shakeError = true;
-    });
-
     // Jouer le son d'erreur
     _soundService.playError();
 
-    // Arrêter l'animation shake après 500ms
-    Future.delayed(const Duration(milliseconds: 500), () {
-      if (mounted) {
-        setState(() {
-          _shakeError = false;
-        });
-      }
-    });
+    // Afficher le SnackBar en haut
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const Icon(Icons.error_outline, color: Colors.white, size: 20),
+            const SizedBox(width: 8),
+            Flexible(
+              child: Text(
+                message,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: Colors.red.shade700,
+        behavior: SnackBarBehavior.floating,
+        margin: EdgeInsets.only(
+          bottom: MediaQuery.of(context).size.height - 150,
+          left: 16,
+          right: 16,
+        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        duration: const Duration(seconds: 3),
+      ),
+    );
   }
 
   /// Formate le temps écoulé (MM:SS)
@@ -1113,14 +1122,37 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
                 ),
               ),
               SizedBox(width: isMobile ? 4 : 8),
-              IconButton(
-                icon: Icon(Icons.emoji_events, color: Colors.amber, size: isMobile ? 20 : 28),
-                tooltip: 'Classement',
-                onPressed: () => context.go('/skrabb/leaderboard'),
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
+              // Compteur tuiles restantes
+              Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: isMobile ? 6 : 12,
+                  vertical: isMobile ? 4 : 6,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.3),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: Colors.green.withValues(alpha: 0.3),
+                    width: 1,
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.inventory_2, color: Colors.green, size: isMobile ? 16 : 20),
+                    SizedBox(width: isMobile ? 4 : 6),
+                    Text(
+                      '${_tileBag.length}',
+                      style: TextStyle(
+                        fontSize: isMobile ? 14 : 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              SizedBox(width: isMobile ? 4 : 0),
+              SizedBox(width: isMobile ? 4 : 8),
               IconButton(
                 icon: Icon(Icons.help_outline, color: Colors.white70, size: isMobile ? 20 : 28),
                 tooltip: 'Aide',
@@ -1290,8 +1322,7 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
           // Désélectionner
           _selectedRackTile = null;
           _selectedRackIndex = null;
-          _errorMessage = null;
-        });
+                  });
 
         // Animer le placement
         _animateTilePlacement(row, col);
@@ -1566,67 +1597,27 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
   }
 
   Widget _buildInfoPanel() {
-    return Container(
-      margin: const EdgeInsets.all(16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.9),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Tuiles restantes: ${_tileBag.length}',
-            style: const TextStyle(fontSize: 14),
+    // Panel simplifié - les erreurs sont affichées dans un SnackBar
+    // et les tuiles restantes sont dans le header
+    if (_isGameComplete) {
+      return Container(
+        margin: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.9),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: const Text(
+          'Partie terminée!',
+          style: TextStyle(
+            color: Colors.green,
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
           ),
-          const SizedBox(height: 8),
-          if (_errorMessage != null)
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 100),
-              curve: Curves.elasticOut,
-              transform: Matrix4.translationValues(
-                _shakeError ? 10.0 : 0.0,
-                0.0,
-                0.0,
-              ),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                decoration: BoxDecoration(
-                  color: Colors.red.shade100,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.red.shade300, width: 2),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.error_outline, color: Colors.red, size: 20),
-                    const SizedBox(width: 8),
-                    Flexible(
-                      child: Text(
-                        _errorMessage!,
-                        style: const TextStyle(
-                          color: Colors.red,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          if (_isGameComplete)
-            const Text(
-              'Partie terminée!',
-              style: TextStyle(
-                color: Colors.green,
-                fontWeight: FontWeight.bold,
-                fontSize: 18,
-              ),
-            ),
-        ],
-      ),
-    );
+        ),
+      );
+    }
+    return const SizedBox.shrink();
   }
 
   Widget _buildRack() {
