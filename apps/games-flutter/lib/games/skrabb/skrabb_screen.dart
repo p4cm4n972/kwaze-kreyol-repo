@@ -1152,7 +1152,7 @@ class _SkrabbScreenState extends State<SkrabbScreen> {
                   ],
                 ),
               ),
-              SizedBox(width: isMobile ? 4 : 8),
+              SizedBox(width: isMobile ? 12 : 16),
               IconButton(
                 icon: Icon(Icons.help_outline, color: Colors.white70, size: isMobile ? 20 : 28),
                 tooltip: 'Aide',
