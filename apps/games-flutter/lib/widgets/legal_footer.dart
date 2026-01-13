@@ -87,46 +87,56 @@ class _LegalFooterState extends State<LegalFooter>
             ),
             const SizedBox(width: 10),
             // Bouton Ko-fi (bleu/teal pour contraste)
-            GestureDetector(
-              onTap: () => _launchUrl(kofiUrl),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF29B6F6), Color(0xFF26C6DA)],
-                  ),
+            Tooltip(
+              message: 'Soutenez le projet sur Ko-fi !',
+              preferBelow: false,
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: () => _launchUrl(kofiUrl),
+                  mouseCursor: SystemMouseCursors.click,
                   borderRadius: BorderRadius.circular(14),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFF29B6F6).withValues(alpha: 0.25),
-                      blurRadius: 4,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // Tasse animée
-                    AnimatedBuilder(
-                      animation: _coffeeAnimation,
-                      builder: (context, child) {
-                        return Transform.rotate(
-                          angle: _coffeeAnimation.value,
-                          child: const Text('☕', style: TextStyle(fontSize: 12)),
-                        );
-                      },
-                    ),
-                    const SizedBox(width: 4),
-                    const Text(
-                      'Un café ?',
-                      style: TextStyle(
-                        fontSize: 10,
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
+                  hoverColor: Colors.white.withValues(alpha: 0.1),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF29B6F6), Color(0xFF26C6DA)],
                       ),
+                      borderRadius: BorderRadius.circular(14),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF29B6F6).withValues(alpha: 0.25),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
                     ),
-                  ],
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // Tasse animée
+                        AnimatedBuilder(
+                          animation: _coffeeAnimation,
+                          builder: (context, child) {
+                            return Transform.rotate(
+                              angle: _coffeeAnimation.value,
+                              child: const Text('☕', style: TextStyle(fontSize: 12)),
+                            );
+                          },
+                        ),
+                        const SizedBox(width: 4),
+                        const Text(
+                          'Un café ?',
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ),

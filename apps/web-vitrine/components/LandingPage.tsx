@@ -196,7 +196,7 @@ const LandingPage = () => {
 
           {/* Colonne de droite : Logo */}
           <div ref={heroLogoRef} className="flex justify-center order-1 md:order-2">
-            <div className="relative p-3 md:p-8 bg-white/10 backdrop-blur-md rounded-2xl shadow-2xl border border-white/20 w-full max-w-xs md:max-w-full">
+            <div className="relative p-2 md:p-8 bg-white/10 backdrop-blur-md rounded-2xl shadow-2xl border border-white/20 w-full max-w-[180px] sm:max-w-[220px] md:max-w-full">
               <Image
                 src={heroData.logo}
                 alt="Kwazé Kréyol Logo"
