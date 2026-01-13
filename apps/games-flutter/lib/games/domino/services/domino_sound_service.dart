@@ -99,12 +99,23 @@ class DominoSoundService {
   /// Joue un son avec gestion d'erreur
   Future<void> _playSound(AudioPlayer player, String assetPath) async {
     try {
-      await player.stop();
+      // Stop sans await pour éviter les blocages
+      player.stop();
+      // Petit délai pour laisser le stop se faire
+      await Future.delayed(const Duration(milliseconds: 50));
       await player.play(AssetSource(assetPath.replaceFirst('assets/', '')));
     } catch (e) {
       if (kDebugMode) {
         print('Erreur lecture son $assetPath: $e');
       }
+      // Tentative de fallback: créer un nouveau player temporaire
+      try {
+        final tempPlayer = AudioPlayer();
+        await tempPlayer.setVolume(_volume);
+        await tempPlayer.play(AssetSource(assetPath.replaceFirst('assets/', '')));
+        // Dispose après la lecture
+        tempPlayer.onPlayerComplete.listen((_) => tempPlayer.dispose());
+      } catch (_) {}
     }
   }
 
