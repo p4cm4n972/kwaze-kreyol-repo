@@ -43,7 +43,7 @@ const pillarsData = [
     morphComponent: LogoMorph,
     bgColor: '#FFD700', // Jaune bouton d'or
     icons: [
-      { src: '/icons/mots-mawon.png', alt: 'Mots Mawon' },
+      { src: '/icons/mo-mawon.png', alt: 'Mo Mawon' },
       { src: '/icons/skrabb.png', alt: 'Skrabb' },
     ],
   },
