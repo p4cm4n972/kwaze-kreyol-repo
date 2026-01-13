@@ -1,12 +1,14 @@
 /// Version de l'application
-/// Le numéro correspond au nombre de commits git
-/// Mis à jour via le script update_version.sh avant chaque push
 class AppVersion {
-  static const int commitCount = 200;
+  static const String version = '1.0.0';
+  static const String stage = 'beta.1';
 
   /// Version complète formatée pour l'affichage
-  static String get fullVersion => 'Beta 0.$commitCount';
+  static String get fullVersion => 'Beta 1.000';
 
   /// Version courte
-  static String get shortVersion => '0.$commitCount';
+  static String get shortVersion => version;
+
+  /// Version sémantique complète
+  static String get semver => '$version-$stage';
 }
