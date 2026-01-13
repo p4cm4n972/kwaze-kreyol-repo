@@ -340,27 +340,27 @@ void main() {
     });
 
     group('getThinkingDelay', () {
-      test('facile: délai entre 800-1200ms', () {
+      test('facile: délai entre 3500-4500ms', () {
         for (var i = 0; i < 20; i++) {
           final delay = DominoAIService.getThinkingDelay(AIDifficulty.easy);
-          expect(delay, greaterThanOrEqualTo(800));
-          expect(delay, lessThanOrEqualTo(1200));
+          expect(delay, greaterThanOrEqualTo(3500));
+          expect(delay, lessThanOrEqualTo(4500));
         }
       });
 
-      test('normal: délai entre 600-1000ms', () {
+      test('normal: délai entre 3000-4000ms', () {
         for (var i = 0; i < 20; i++) {
           final delay = DominoAIService.getThinkingDelay(AIDifficulty.normal);
-          expect(delay, greaterThanOrEqualTo(600));
-          expect(delay, lessThanOrEqualTo(1000));
+          expect(delay, greaterThanOrEqualTo(3000));
+          expect(delay, lessThanOrEqualTo(4000));
         }
       });
 
-      test('difficile: délai entre 500-800ms', () {
+      test('difficile: délai entre 2500-3500ms', () {
         for (var i = 0; i < 20; i++) {
           final delay = DominoAIService.getThinkingDelay(AIDifficulty.hard);
-          expect(delay, greaterThanOrEqualTo(500));
-          expect(delay, lessThanOrEqualTo(800));
+          expect(delay, greaterThanOrEqualTo(2500));
+          expect(delay, lessThanOrEqualTo(3500));
         }
       });
     });

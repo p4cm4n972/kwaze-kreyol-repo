@@ -261,22 +261,24 @@ void main() {
       expect(distribution.blankCount, 2);
     });
 
-    test('devrait avoir des voyelles avec valeur 1', () {
+    test('devrait avoir des lettres très fréquentes avec valeur 1', () {
       final distribution = LetterDistribution.creole();
 
-      expect(distribution.getLetterValue('A'), 1);
-      expect(distribution.getLetterValue('E'), 1);
-      expect(distribution.getLetterValue('I'), 1);
-      expect(distribution.getLetterValue('O'), 1);
-      expect(distribution.getLetterValue('U'), 1);
+      // Lettres très fréquentes en créole (>8%): 1 pt
+      expect(distribution.getLetterValue('A'), 1);  // 22.85%
+      expect(distribution.getLetterValue('N'), 1);  // 11.09%
+      expect(distribution.getLetterValue('T'), 1);  // 8.95%
+      expect(distribution.getLetterValue('I'), 1);  // 8.59%
     });
 
     test('devrait avoir des lettres rares avec valeur élevée', () {
       final distribution = LetterDistribution.creole();
 
-      expect(distribution.getLetterValue('K'), 10);
-      expect(distribution.getLetterValue('W'), 10);
-      expect(distribution.getLetterValue('Z'), 10);
+      // Lettres très rares en créole (<0.4%): 10 pts
+      expect(distribution.getLetterValue('C'), 10);  // 0.36%
+      expect(distribution.getLetterValue('H'), 10);  // 0.36%
+      expect(distribution.getLetterValue('F'), 10);  // 0.36%
+      expect(distribution.getLetterValue('À'), 10);  // 0.05%
     });
 
     test('devrait créer un sac de lettres complet', () {
