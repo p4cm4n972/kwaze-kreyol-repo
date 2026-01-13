@@ -19,91 +19,92 @@ class LetterDistribution {
     this.blankCount = 2,
   });
 
-  /// Distribution créole initiale
-  /// Cette distribution sera affinée en Phase 5 après analyse du dictionnaire
+  /// Distribution créole optimisée
+  /// Basée sur l'analyse de fréquence du dictionnaire créole martiniquais
+  /// A=23%, N=11%, T=9%, I=9%, R=5%, É=5%, S=5%, etc.
   factory LetterDistribution.creole() {
     return LetterDistribution(
       counts: {
-        // Voyelles (très fréquentes)
-        'A': 9,
-        'E': 12,
-        'I': 8,
-        'O': 6,
-        'U': 6,
+        // Voyelles (fréquences créoles)
+        'A': 14,  // 22.85% - très fréquent en créole
+        'I': 6,   // 8.59%
+        'O': 4,   // 4.01%
+        'E': 3,   // 2.19% - rare sans accent en créole
+        'U': 2,   // 1.20% - rare en créole
+
+        // Consonnes très fréquentes
+        'N': 8,   // 11.09%
+        'T': 6,   // 8.95%
+        'R': 4,   // 5.31%
+        'S': 4,   // 4.53%
 
         // Consonnes fréquentes
-        'L': 4,
-        'N': 6,
-        'R': 6,
-        'S': 6,
-        'T': 6,
+        'P': 3,   // 4.16%
+        'V': 3,   // 2.55%
+        'W': 3,   // 2.50% - fréquent en créole!
+        'L': 3,   // 2.39%
+        'M': 3,   // 2.34%
 
         // Consonnes moyennement fréquentes
-        'B': 2,
-        'C': 2,
-        'D': 3,
-        'F': 2,
-        'G': 2,
-        'H': 2,
-        'M': 3,
-        'P': 2,
-        'V': 2,
-        'Y': 2,
+        'Z': 2,   // 1.46%
+        'Y': 2,   // 1.41%
+        'J': 2,   // 1.25%
+        'K': 2,   // 1.15%
+        'D': 2,   // 0.83%
+        'B': 2,   // 0.68%
 
         // Consonnes rares
-        'J': 1,
-        'K': 1,
-        'W': 2,
-        'Z': 1,
+        'G': 1,   // 0.52%
+        'C': 1,   // 0.36%
+        'H': 1,   // 0.36%
+        'F': 1,   // 0.36%
 
-        // Lettres accentuées créoles
-        'É': 2,
-        'È': 2,
-        'Ê': 1,
-        'À': 1,
-        'Ô': 1,
-        'Ç': 1,
+        // Lettres accentuées créoles (importantes!)
+        'É': 4,   // 4.58%
+        'È': 3,   // 3.28%
+        'Ò': 2,   // 0.52% - spécifique créole
+        'À': 1,   // 0.05%
       },
       values: {
-        // Voyelles communes: 1 pt
-        'A': 1,
-        'E': 1,
-        'I': 1,
-        'O': 1,
-        'U': 1,
+        // Très fréquentes (>8%): 1 pt
+        'A': 1,   // 22.85%
+        'N': 1,   // 11.09%
+        'T': 1,   // 8.95%
+        'I': 1,   // 8.59%
 
-        // Consonnes fréquentes: 1 pt
-        'L': 1,
-        'N': 1,
-        'R': 1,
-        'S': 1,
-        'T': 1,
+        // Fréquentes (4-6%): 2 pts
+        'R': 2,   // 5.31%
+        'É': 2,   // 4.58%
+        'S': 2,   // 4.53%
+        'P': 2,   // 4.16%
+        'O': 2,   // 4.01%
 
-        // Consonnes moyennement fréquentes: 2-3 pts
-        'B': 3,
-        'C': 3,
-        'D': 2,
-        'F': 4,
-        'G': 2,
-        'H': 4,
-        'M': 2,
-        'P': 3,
-        'V': 4,
-        'Y': 4,
+        // Moyennement fréquentes (2-4%): 3 pts
+        'È': 3,   // 3.28%
+        'V': 3,   // 2.55%
+        'W': 3,   // 2.50%
+        'L': 3,   // 2.39%
+        'M': 3,   // 2.34%
+        'E': 3,   // 2.19%
 
-        // Consonnes rares: 8-10 pts
-        'J': 8,
-        'K': 10,
-        'W': 10,
-        'Z': 10,
+        // Peu fréquentes (1-2%): 5 pts
+        'Z': 5,   // 1.46%
+        'Y': 5,   // 1.41%
+        'J': 5,   // 1.25%
+        'U': 5,   // 1.20%
+        'K': 5,   // 1.15%
+        'D': 5,   // 0.83%
+        'B': 5,   // 0.68%
 
-        // Lettres accentuées: 2-3 pts
-        'É': 2,
-        'È': 2,
-        'Ê': 3,
-        'À': 2,
-        'Ô': 3,
-        'Ç': 3,
+        // Rares (<0.6%): 8 pts
+        'Ò': 8,   // 0.52%
+        'G': 8,   // 0.52%
+
+        // Très rares (<0.4%): 10 pts
+        'C': 10,  // 0.36%
+        'H': 10,  // 0.36%
+        'F': 10,  // 0.36%
+        'À': 10,  // 0.05%
       },
       blankCount: 2,
     );
