@@ -61,7 +61,7 @@ const pillarsData = [
   {
     id: 'section3',
     title: 'Tradiktè',
-    text: 'Passez du français au créole martiniquais grâce à notre dictionnaire enrichi par Raphaël Confiant.',
+    text: 'Passez du français au créole martiniquais grâce à notre dictionnaire.',
     morphComponent: TranslatorMorph,
     bgColor: '#D2691E', // Orange terreux
     icons: [
