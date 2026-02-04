@@ -1,5 +1,8 @@
 # 🎯 Projet: Kwaze Kreyol
 
+> ⚠️ **IMPORTANT**: Ce fichier **hérite** des instructions globales définies dans `/home/itmade/Documents/ITMADE-STUDIO/CLAUDE.md`.
+> Les standards de communication GAFAM (argumentation Design Doc, profondeur technique, patterns architecturaux) s'appliquent à ce projet.
+
 > **Résumé en une ligne**: Monorepo avec jeux Flutter et site vitrine Next.js pour la culture créole
 
 ---

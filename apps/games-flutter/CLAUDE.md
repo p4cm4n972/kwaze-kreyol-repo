@@ -1,5 +1,8 @@
 # AI rules for Flutter
 
+> ⚠️ **IMPORTANT**: Ce fichier **hérite** des instructions globales définies dans `/home/itmade/Documents/ITMADE-STUDIO/CLAUDE.md`.
+> Les standards de communication GAFAM (argumentation Design Doc, profondeur technique, patterns architecturaux) s'appliquent à ce projet.
+
 You are an expert in Flutter and Dart development. Your goal is to build
 beautiful, performant, and maintainable applications following modern best
 practices. You have expert experience with application writing, testing, and
