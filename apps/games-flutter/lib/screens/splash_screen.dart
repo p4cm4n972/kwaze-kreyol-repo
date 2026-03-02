@@ -49,13 +49,11 @@ class _SplashScreenState extends State<SplashScreen>
     // Démarrer l'animation
     _animationController.forward();
 
-    // Jouer le son d'intro
-    try {
-      await _audioPlayer.play(AssetSource('sounds/tambour_intro_2s.mp3'));
-    } catch (e) {
-      // Le son peut échouer sur certains navigateurs sans interaction utilisateur
-      debugPrint('Audio play failed: $e');
-    }
+    // Jouer le son d'intro sans await — sur web, l'autoplay peut bloquer
+    // indéfiniment sans lancer d'exception (politique navigateur)
+    _audioPlayer
+        .play(AssetSource('sounds/tambour_intro_2s.mp3'))
+        .catchError((e) => debugPrint('Audio play failed: $e'));
 
     // Attendre 2.5 secondes puis naviguer vers l'accueil
     await Future.delayed(const Duration(milliseconds: 2500));
