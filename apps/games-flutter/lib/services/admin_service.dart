@@ -67,6 +67,35 @@ class AdminService {
     }
   }
 
+  /// Récupère la liste paginée des inscrits avec recherche
+  Future<({List<AdminUserListEntry> users, int totalCount})> getUserList({
+    String? searchQuery,
+    int offset = 0,
+    int limit = 50,
+    String sortBy = 'created_at',
+    bool sortDesc = true,
+  }) async {
+    try {
+      final response = await _supabase.rpc('get_admin_user_list', params: {
+        'search_query': searchQuery,
+        'page_offset': offset,
+        'page_limit': limit,
+        'sort_by': sortBy,
+        'sort_desc': sortDesc,
+      });
+      final rows = response as List;
+      final totalCount = rows.isNotEmpty
+          ? (rows.first['total_count'] as int? ?? 0)
+          : 0;
+      final users = rows
+          .map((e) => AdminUserListEntry.fromJson(e as Map<String, dynamic>))
+          .toList();
+      return (users: users, totalCount: totalCount);
+    } catch (e) {
+      throw Exception('Erreur lors de la récupération des inscrits: $e');
+    }
+  }
+
   // ============================================================================
   // STATISTIQUES JEUX
   // ============================================================================

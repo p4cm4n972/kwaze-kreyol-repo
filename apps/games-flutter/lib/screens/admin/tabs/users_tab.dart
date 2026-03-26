@@ -5,6 +5,7 @@ import '../../../services/presence_service.dart';
 import '../../../models/admin_stats.dart';
 import '../widgets/stat_card.dart';
 import '../widgets/line_chart_widget.dart';
+import '../widgets/user_list_section.dart';
 
 /// Onglet des statistiques utilisateurs
 class UsersTab extends StatefulWidget {
@@ -280,6 +281,10 @@ class _UsersTabState extends State<UsersTab> {
                   );
                 },
               ),
+            const SizedBox(height: 24),
+
+            // Liste des inscrits
+            const UserListSection(),
           ],
         ),
       ),

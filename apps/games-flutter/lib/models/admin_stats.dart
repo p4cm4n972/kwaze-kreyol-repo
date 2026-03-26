@@ -118,6 +118,38 @@ class AdminActiveUsers {
   }
 }
 
+/// Entrée de la liste des inscrits (admin)
+class AdminUserListEntry {
+  final String id;
+  final String? username;
+  final String email;
+  final String role;
+  final DateTime createdAt;
+  final DateTime? lastSignInAt;
+
+  AdminUserListEntry({
+    required this.id,
+    this.username,
+    required this.email,
+    required this.role,
+    required this.createdAt,
+    this.lastSignInAt,
+  });
+
+  factory AdminUserListEntry.fromJson(Map<String, dynamic> json) {
+    return AdminUserListEntry(
+      id: json['id'] as String,
+      username: json['username'] as String?,
+      email: json['email'] as String? ?? '',
+      role: json['role'] as String? ?? 'user',
+      createdAt: DateTime.parse(json['created_at'] as String),
+      lastSignInAt: json['last_sign_in_at'] != null
+          ? DateTime.parse(json['last_sign_in_at'] as String)
+          : null,
+    );
+  }
+}
+
 /// Entrée du classement des meilleurs joueurs
 class TopPlayerEntry {
   final String? oderId;
