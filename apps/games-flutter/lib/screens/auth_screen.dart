@@ -144,6 +144,15 @@ class _AuthScreenState extends State<AuthScreen> {
           email: _emailController.text.trim(),
           password: _passwordController.text,
         );
+
+        if (mounted) {
+          widget.onSuccess?.call();
+          if (Navigator.canPop(context)) {
+            Navigator.pop(context, true);
+          } else {
+            context.go('/');
+          }
+        }
       } else {
         // Inscription
         await _authService.signUpWithEmail(
@@ -151,18 +160,18 @@ class _AuthScreenState extends State<AuthScreen> {
           password: _passwordController.text,
           username: _usernameController.text.trim(),
         );
-      }
 
-      if (mounted) {
-        // Appeler le callback
-        widget.onSuccess?.call();
-
-        // Vérifier si on peut faire pop (navigation push)
-        // Sinon rediriger vers la page d'accueil (route GoRouter)
-        if (Navigator.canPop(context)) {
-          Navigator.pop(context, true);
-        } else {
-          context.go('/');
+        if (mounted) {
+          setState(() => _isLoading = false);
+          await _showEmailVerificationDialog(
+            _emailController.text.trim(),
+          );
+          if (mounted) {
+            setState(() {
+              _isLogin = true;
+              _passwordController.clear();
+            });
+          }
         }
       }
     } catch (e) {
@@ -177,6 +186,60 @@ class _AuthScreenState extends State<AuthScreen> {
         );
       }
     }
+  }
+
+  Future<void> _showEmailVerificationDialog(String email) async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        title: const Row(
+          children: [
+            Icon(Icons.mark_email_unread, color: Color(0xFFE74C3C)),
+            SizedBox(width: 8),
+            Text('Vérifie ta boîte mail'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Un email de confirmation a été envoyé à :',
+            ),
+            const SizedBox(height: 8),
+            Text(
+              email,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Color(0xFFE74C3C),
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'Clique sur le lien dans cet email pour activer ton compte, '
+              'puis reviens ici pour te connecter.',
+            ),
+          ],
+        ),
+        actions: [
+          ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFE74C3C),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            child: const Text('Compris !'),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _handleGuestMode() async {
