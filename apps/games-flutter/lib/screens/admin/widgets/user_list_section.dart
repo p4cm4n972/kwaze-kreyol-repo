@@ -106,8 +106,9 @@ class _UserListSectionState extends State<UserListSection> {
           searchController: _searchController,
         ),
         const SizedBox(height: 12),
-        Card(
-          clipBehavior: Clip.antiAlias,
+        SizedBox(
+          width: double.infinity,
+          child: Card(
           child: _isLoading
               ? const SizedBox(
                   height: 120,
@@ -123,6 +124,7 @@ class _UserListSectionState extends State<UserListSection> {
                           sortDesc: _sortDesc,
                           onSort: _onSort,
                         ),
+          ),
         ),
       ],
     );
@@ -209,12 +211,14 @@ class _UserTable extends StatelessWidget {
       scrollDirection: Axis.horizontal,
       child: DataTable(
         headingRowColor: WidgetStateProperty.all(Colors.grey.shade50),
-        dataRowMinHeight: 52,
-        dataRowMaxHeight: 52,
+        dataRowMinHeight: 56,
+        dataRowMaxHeight: 64,
         columnSpacing: 24,
         columns: [
-          DataColumn(label: const Text('Pseudo'), onSort: (_, __) => onSort('username')),
-          const DataColumn(label: Text('Email')),
+          DataColumn(
+            label: const Text('Utilisateur'),
+            onSort: (_, __) => onSort('username'),
+          ),
           const DataColumn(label: Text('Rôle')),
           DataColumn(
             label: _SortableHeader(
@@ -242,13 +246,6 @@ class _UserTable extends StatelessWidget {
     return DataRow(
       cells: [
         DataCell(_UsernameCell(username: u.username, email: u.email)),
-        DataCell(
-          Text(
-            u.email,
-            style: const TextStyle(fontSize: 13),
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
         DataCell(_RoleBadge(role: u.role)),
         DataCell(
           Text(
@@ -347,10 +344,23 @@ class _UsernameCell extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 8),
-        Text(
-          username ?? email.split('@').first,
-          style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 13),
-          overflow: TextOverflow.ellipsis,
+        Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              username ?? email.split('@').first,
+              style: const TextStyle(
+                fontWeight: FontWeight.w500,
+                fontSize: 13,
+              ),
+            ),
+            if (username != null)
+              Text(
+                email,
+                style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
+              ),
+          ],
         ),
       ],
     );
