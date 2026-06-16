@@ -13,6 +13,9 @@ flutter --version
 flutter config --enable-web
 
 # On est déjà dans apps/games-flutter grâce au Root directory
+# Purger le cache de build pour forcer la régénération du web_plugin_registrant.dart
+# (évite de servir d'anciens plugins si les dépendances ont changé entre deux builds)
+rm -rf .dart_tool/flutter_build/
 flutter pub get
 
 echo ""
