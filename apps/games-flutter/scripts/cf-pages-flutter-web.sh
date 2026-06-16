@@ -2,6 +2,16 @@
 set -euo pipefail
 
 FLUTTER_HOME="$HOME/flutter"
+REQUIRED_FLUTTER_VERSION="3.44.2"
+
+# Supprimer le SDK en cache s'il n'est pas à la bonne version (CF Pages cache $HOME entre builds)
+if [ -d "$FLUTTER_HOME" ]; then
+  CACHED_VERSION=$("$FLUTTER_HOME/bin/flutter" --version 2>/dev/null | head -1 | awk '{print $2}' || echo "unknown")
+  if [ "$CACHED_VERSION" != "$REQUIRED_FLUTTER_VERSION" ]; then
+    echo "Flutter en cache: $CACHED_VERSION — attendu: $REQUIRED_FLUTTER_VERSION. Suppression du cache."
+    rm -rf "$FLUTTER_HOME"
+  fi
+fi
 
 if [ ! -d "$FLUTTER_HOME" ]; then
   git clone https://github.com/flutter/flutter.git -b stable --depth 1 "$FLUTTER_HOME"
