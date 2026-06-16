@@ -63,6 +63,13 @@ echo ""
 
 flutter build web --release --no-wasm-dry-run
 
+# Fichier de diagnostic pour vérifier quel commit est déployé
+echo "commit=${CF_PAGES_COMMIT_SHA:-$(git rev-parse HEAD 2>/dev/null || echo unknown)}" > build/web/build-info.txt
+echo "branch=${CF_PAGES_BRANCH:-main}" >> build/web/build-info.txt
+echo "built_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> build/web/build-info.txt
+echo "flutter_version=$(flutter --version 2>/dev/null | head -1)" >> build/web/build-info.txt
+echo "app_version=Beta 1.024" >> build/web/build-info.txt
+
 echo ""
 echo "✅ Build terminé avec succès!"
 echo "   Les tests ont validé la qualité du code."

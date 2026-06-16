@@ -3,10 +3,10 @@
 class AppVersion {
   static const String version = '1.0.0';
   static const String stage = 'beta.1';
-  static const int patchNumber = 24;
+  static const int patchNumber = 25;
 
   /// Version complète formatée pour l'affichage
-  static String get fullVersion => 'Beta 1.024';
+  static String get fullVersion => 'Beta 1.025';
 
   /// Version courte
   static String get shortVersion => version;
