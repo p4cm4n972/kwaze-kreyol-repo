@@ -61,7 +61,7 @@ echo "🚀 Démarrage du build pour production..."
 echo "========================================"
 echo ""
 
-flutter build web --release
+flutter build web --release --no-wasm-dry-run
 
 echo ""
 echo "✅ Build terminé avec succès!"
