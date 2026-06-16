@@ -53,7 +53,8 @@ app.*.map.json
 build/
 ios/Flutter/Flutter.framework
 ios/Flutter/Flutter.podspec
-pubspec.lock
+# pubspec.lock: commité intentionnellement (app Flutter, pas une lib)
+# Cela garantit des builds déterministes en CI (évite gotrue 2.22+ qui tire passkeys)
 
 # Flutter SDK (shouldn't be committed)
 flutter/
